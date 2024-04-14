@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  database:
+    container_name: Database
+    build:
+      context: database
+      dockerfile: Dockerfile
+    ports:
+      - 5151:5432
+    networks:
+      - application-network
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  backend:
+    container_name: Backend
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/"${POSTGRES_DB}"
+    ports:
+      - 8080:8080
+    networks:
+      - application-network
+    depends_on:
+      - database
+
+  frontend:
+    container_name: Frontend
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - 80:3000
+    depends_on:
+      - backend
+    stdin_open: true
+
+networks:
+  application-network:
+    driver: bridge
+
+volumes:
+  pg-data:
