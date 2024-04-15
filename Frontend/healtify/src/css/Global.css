@@ -33,6 +33,14 @@ a, link {
   padding: 1em
 }
 
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
 #logreg {
   border-radius: 25px;
   background: #FF2424;
@@ -56,6 +64,57 @@ a, link {
   width: auto;
   padding-right: 1rem;
 }
+
+form>#input {
+  border-radius: 0.625rem;
+  background: #CCC;
+  width: 15em;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  padding: 10px;
+}
+
+input {
+  background-color: #CCC;
+  border: #CCC;
+  width: 100%;
+  height: 100%;
+}
+
+.panel_loginu {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button {
+  cursor: pointer;
+}
+
+#powrot {
+  margin-left: 20px;
+  margin-top: 20px;
+}
+
+#regbutton {
+  display: flex;
+  justify-content: center;
+  margin-top: 2em;
+}
+
+#messages {
+  color: red;
+}
+
+#lock {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {

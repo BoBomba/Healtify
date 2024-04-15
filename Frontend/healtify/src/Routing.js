@@ -1,11 +1,13 @@
 import React from 'react';
+import { createBrowserRouter} from 'react-router-dom';
+
+
 import Main from './views/App';
 import Test from './views/test';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import ReactDOM from 'react-dom';
 import Err404 from './views/err404';
-
-
+import Login from './views/login';
+import Register from './views/register';
+import Dashboard from './views/dashboard';
 
 
 import './index.css';
@@ -26,15 +28,26 @@ const router = createBrowserRouter([
     //   },
     // ],
   },
+  {
+    path: '/404',
+    element: <Err404 />,
+  },
+  {
+    path: '/login',
+    element: <Login />,
+  },
+  {
+    path: '/register',
+    element: <Register />,
+  },
+  {
+    path: '/dashboard',
+    element: <Dashboard />,
+  },
+  {
+    path: '*',
+    redirectTo: '/404',
+  }
 ]);
-
-// const rootElement = document.getElementById('root');
-// if (rootElement) {
-//   ReactDOM.createRoot(rootElement).render(
-//     <React.StrictMode>
-//       <RouterProvider router={router} />
-//     </React.StrictMode>
-//   );
-// }
 
 export default router;
