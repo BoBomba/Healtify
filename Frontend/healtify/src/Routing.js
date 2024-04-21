@@ -1,13 +1,16 @@
 import React from 'react';
-import { createBrowserRouter} from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 
 
 import Main from './views/App';
 import Test from './views/test';
-import Err404 from './views/err404';
+import Err404 from './views/NotFoundPage';
 import Login from './views/login';
 import Register from './views/register';
 import Dashboard from './views/dashboard';
+import Data from './views/data';
+import Sharing from './views/sharing';
+import Settings from './views/settings';
 
 
 import './index.css';
@@ -43,6 +46,18 @@ const router = createBrowserRouter([
   {
     path: '/dashboard',
     element: <Dashboard />,
+  },
+  {
+    path: '/data',
+    element: <Data />,
+  },
+  {
+    path: '/sharing',
+    element: <Sharing />,
+  },
+  {
+    path: '/settings',
+    element: <Settings />,
   },
   {
     path: '*',

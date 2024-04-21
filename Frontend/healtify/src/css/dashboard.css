@@ -76,7 +76,10 @@ main>.elements {
     justify-content: center;
 }
   
-  
+#settings {
+    height: 1em;
+    width: auto;
+}
   
   
   
