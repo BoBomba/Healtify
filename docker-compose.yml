@@ -3,11 +3,12 @@ version: '3'
 services:
   database:
     container_name: Database
+    image: postgres
     build:
       context: database
       dockerfile: Dockerfile
     ports:
-      - 5151:5432
+      - 5432:5432
     networks:
       - application-network
     volumes:
@@ -19,13 +20,14 @@ services:
       context: backend
       dockerfile: Dockerfile
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/"${POSTGRES_DB}"
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/healtify
     ports:
       - 8080:8080
     networks:
       - application-network
     depends_on:
       - database
+
 
   frontend:
     container_name: Frontend
@@ -38,16 +40,16 @@ services:
       - backend
     stdin_open: true
 
-  # pgadmin:
-  #   image: dpage/pgadmin4:latest
-  #   container_name: pg-admin
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@example.com
-  #     PGADMIN_DEFAULT_PASSWORD: admin_password
-  #   ports:
-  #     - "5050:80"
-  #   networks:
-  #     - pg-network
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pg_admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin_password
+    ports:
+      - "5050:80"
+    networks:
+      - application-network
 
 networks:
   application-network:

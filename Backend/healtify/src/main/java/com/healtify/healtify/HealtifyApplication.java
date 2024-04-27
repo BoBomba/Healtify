@@ -2,13 +2,14 @@ package com.healtify.healtify;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.healtify.healtify.MessageController;
 
 
-
 @SpringBootApplication
+@ComponentScan({"com.healtify.healtify.models"})
 public class HealtifyApplication {
 
 	public static void main(String[] args) {
@@ -22,7 +23,7 @@ public class HealtifyApplication {
 
 		@GetMapping("/")
 		public String showMessage() {
-			return "Hello from HealtifyApplication on port 8080!";
+			return "Hello from Healtify Application on port 8080!";
 		}
 	}
 
