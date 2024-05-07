@@ -1,6 +1,6 @@
 package com.healtify.healtify.models;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "user_account")
@@ -57,14 +57,14 @@ public class UserAccount {
     // constructors
 
     public UserAccount(
-        Long userId, 
-        String username, 
-        String email, 
-        String password) 
-        {
+            Long userId,
+            String username,
+            String email,
+            String password)
+    {
         this.userId = userId;
         this.username = username;
         this.email = email;
         this.password = password;
-        }
+    }
 }

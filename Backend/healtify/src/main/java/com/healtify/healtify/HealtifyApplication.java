@@ -5,16 +5,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.healtify.healtify.MessageController;
+//import com.healtify.healtify.MessageController;
 
 
 @SpringBootApplication
-@ComponentScan({"com.healtify.healtify.models"})
 public class HealtifyApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(HealtifyApplication.class, args);
-		System.out.println("Hello World");
+		System.out.println("Backend Working");
 	}
 
 	@RestController

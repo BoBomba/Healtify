@@ -1,6 +1,6 @@
 package com.healtify.healtify.models;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "doctors")
@@ -57,12 +57,9 @@ public class Doctor {
 
     // constructor
 
-    public Doctor(
-            Long doctorId,
-            String doctorName,
-            String specialization
-    ) {
+    public Doctor(Long doctorId, UserAccount userAccount, String doctorName, String specialization) {
         this.doctorId = doctorId;
+        this.userAccount = userAccount;
         this.doctorName = doctorName;
         this.specialization = specialization;
     }

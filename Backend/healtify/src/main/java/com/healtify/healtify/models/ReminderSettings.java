@@ -1,6 +1,6 @@
 package com.healtify.healtify.models;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "reminder_settings")
