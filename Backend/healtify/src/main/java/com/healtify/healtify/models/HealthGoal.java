@@ -1,6 +1,6 @@
 package com.healtify.healtify.models;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
 // TODO Dopracować tabelę by ją lepiej zsynchronizować z damymi których bedą ją dotyczyć

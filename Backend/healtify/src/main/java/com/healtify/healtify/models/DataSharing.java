@@ -1,6 +1,6 @@
 package com.healtify.healtify.models;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,9 +16,8 @@ public class DataSharing {
     @JoinColumn(name = "user_id", nullable = false)
     private UserAccount userAccount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", nullable = false)
-    private Doctor doctor;
+    @Column(name = "recipient_id")
+    private Long recipientId;
 
     @Column(name = "request_status")
     private String requestStatus;
@@ -47,12 +46,12 @@ public class DataSharing {
         this.userAccount = userAccount;
     }
 
-    public Doctor getDoctorId() {
-        return doctor;
+    public Long getRecipientId() {
+        return recipientId;
     }
 
-    public void setDoctorId(Doctor doctor) {
-        this.doctor = doctor;
+    public void setRecipientId(Long recipientId) {
+        this.recipientId = recipientId;
     }
 
     public String getRequestStatus() {
@@ -86,14 +85,14 @@ public class DataSharing {
     public DataSharing(
         Long sharingId, 
         UserAccount userAccount, 
-        Doctor doctor, 
+        Long recipientId, 
         String requestStatus, 
         LocalDateTime requestSentDate, 
         LocalDateTime requestAcceptedDate
     ) {
         this.sharingId = sharingId;
         this.userAccount = userAccount;
-        this.doctor = doctor;
+        this.recipientId = recipientId;
         this.requestStatus = requestStatus;
         this.requestSentDate = requestSentDate;
         this.requestAcceptedDate = requestAcceptedDate;

@@ -2,7 +2,7 @@ package com.healtify.healtify.models;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "medication_intake_actual")

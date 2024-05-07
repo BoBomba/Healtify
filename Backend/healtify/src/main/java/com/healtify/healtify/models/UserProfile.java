@@ -1,7 +1,6 @@
 package com.healtify.healtify.models;
 
-import javax.persistence.*;
-
+import jakarta.persistence.*;
 @Entity
 @Table(name = "user_profile")
 public class UserProfile {

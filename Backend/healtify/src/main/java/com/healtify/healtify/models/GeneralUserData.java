@@ -1,8 +1,7 @@
 package com.healtify.healtify.models;
 
 import java.time.LocalDate;
-
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "general_user_data")
