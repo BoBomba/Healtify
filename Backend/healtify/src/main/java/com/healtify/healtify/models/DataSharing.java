@@ -18,7 +18,7 @@ public class DataSharing {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
-    private Long doctorId;
+    private Doctor doctorId;
 
     @Column(name = "request_status")
     private String requestStatus;
@@ -47,11 +47,11 @@ public class DataSharing {
         this.userAccount = userAccount;
     }
 
-    public Long getDoctorId() {
+    public Doctor getDoctorId() {
         return doctorId;
     }
 
-    public void setDoctorId(Long doctorId) {
+    public void setDoctorId(Doctor doctorId) {
         this.doctorId = doctorId;
     }
 
@@ -86,7 +86,7 @@ public class DataSharing {
     public DataSharing(
         Long sharingId, 
         UserAccount userAccount, 
-        Long doctorId, 
+        Doctor doctorId, 
         String requestStatus, 
         LocalDateTime requestSentDate, 
         LocalDateTime requestAcceptedDate
