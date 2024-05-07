@@ -3,12 +3,12 @@ version: '3'
 services:
   database:
     container_name: Database
-    image: postgres
+    # image: postgres
     build:
       context: database
       dockerfile: Dockerfile
     ports:
-      - 5432:5432
+      - 5444:5432
     networks:
       - application-network
     volumes:
