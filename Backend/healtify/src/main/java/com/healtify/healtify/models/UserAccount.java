@@ -56,13 +56,10 @@ public class UserAccount {
 
     // constructors
 
-    public UserAccount(
-            Long userId,
-            String username,
-            String email,
-            String password)
-    {
-        this.userId = userId;
+    public UserAccount() {
+    }
+
+    public UserAccount(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;

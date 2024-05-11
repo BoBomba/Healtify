@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import '../css/Global.css';
 import User from '../images/user.svg';
 import Lock from '../images/lock.svg';
+import { useState } from 'react';
+import {validateLoginData} from "../utils/validateAuthData";
 
 function Login() {
     return (

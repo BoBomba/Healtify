@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import '../css/dashboard.css'
 import SettingsIcon from '../images/settings_icon.svg'
 import TextLogo from '../images/Healtify_white.svg'
-import { toggleMenu, useOutsideClick } from './Navbar.js';
+import { toggleMenu, useOutsideClick } from './Navbar';
 
 function Nav() {
     useOutsideClick();

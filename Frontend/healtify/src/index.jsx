@@ -5,10 +5,10 @@ import './index.css';
 import App from './views/App';
 import router from './Routing';
 
-
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
   <RouterProvider router={router}>
     <BrowserRouter>
