@@ -27,7 +27,7 @@ public class registerController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping("/register")
+    @PostMapping("/api/auth")
     @CrossOrigin(origins = "http://localhost:3000")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Boolean> registerUser(@RequestBody UserAccount request) {

@@ -7,7 +7,7 @@ export const registerService = async (username, email, password) => {
         password: password,
     };
 
-    await axios.post("http://localhost:8080/register", data)
+    await axios.post("http://localhost:8080/api/auth", data)
         .then((response) => {
             if (response.data) {
                 alert("User registered successfully Status:" + response.status);
@@ -24,6 +24,7 @@ export const loginService = async (email, password) => {
         email: email,
         password: password,
     };
+
 
     await axios.post("http://localhost:8080/login", data)
         .then((response) => {
