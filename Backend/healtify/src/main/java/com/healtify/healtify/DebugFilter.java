@@ -12,31 +12,31 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
-public class DebugFilter implements Filter {
-
-    private static final Logger LOG = LoggerFactory.getLogger(DebugFilter.class);
-
-    @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest request = (HttpServletRequest) req;
-        HttpServletResponse response = (HttpServletResponse) res;
-
-        LOG.info("Request Headers start");
-        Collection<String> requestHeaders = (Collection<String>) request.getHeaderNames();
-        for (String header : requestHeaders) {
-            LOG.info(header + " " + request.getHeader(header));
-        }
-        LOG.info("Request Headers end");
-
-        chain.doFilter(req, res);
-
-        LOG.info("Response Headers start");
-        Collection<String> responseHeaders = response.getHeaderNames();
-        for (String header : responseHeaders) {
-            LOG.info(header + " " + response.getHeader(header));
-        }
-        LOG.info("Response Headers end");
-    }
-}
+//@Component
+//@Order(Ordered.HIGHEST_PRECEDENCE)
+//public class DebugFilter implements Filter {
+//
+//    private static final Logger LOG = LoggerFactory.getLogger(DebugFilter.class);
+//
+//    @Override
+//    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+//        HttpServletRequest request = (HttpServletRequest) req;
+//        HttpServletResponse response = (HttpServletResponse) res;
+//
+//        LOG.info("Request Headers start");
+//        Collection<String> requestHeaders = (Collection<String>) request.getHeaderNames();
+//        for (String header : requestHeaders) {
+//            LOG.info(header + " " + request.getHeader(header));
+//        }
+//        LOG.info("Request Headers end");
+//
+//        chain.doFilter(req, res);
+//
+//        LOG.info("Response Headers start");
+//        Collection<String> responseHeaders = response.getHeaderNames();
+//        for (String header : responseHeaders) {
+//            LOG.info(header + " " + response.getHeader(header));
+//        }
+//        LOG.info("Response Headers end");
+//    }
+//}

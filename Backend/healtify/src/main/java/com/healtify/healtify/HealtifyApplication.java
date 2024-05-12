@@ -9,19 +9,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@CrossOrigin(
-		origins = {
-				"http://localhost:3000",
-				"https://staging.example.com",
-				"https://app.example.com"
-		},
-		methods = {
-				RequestMethod.OPTIONS,
-				RequestMethod.GET,
-				RequestMethod.PUT,
-				RequestMethod.DELETE,
-				RequestMethod.POST
-		})
+//@CrossOrigin(
+//		origins = {
+//				"http://localhost:3000",
+//				"https://staging.example.com",
+//				"https://app.example.com"
+//		},
+//		methods = {
+//				RequestMethod.OPTIONS,
+//				RequestMethod.GET,
+//				RequestMethod.PUT,
+//				RequestMethod.DELETE,
+//				RequestMethod.POST
+//		})
 
 @SpringBootApplication
 public class HealtifyApplication {
@@ -34,22 +34,11 @@ public class HealtifyApplication {
 	@RestController
 	public static class MainController {
 
-
 		@GetMapping("/")
 		public String showMessage() {
 			return "Hello from Healtify Application on port 8080!";
 		}
 	}
-
-//	 @RestController
-//	 @CrossOrigin(origins = "http://localhost:3000")
-//	 public static class registerController {
-//
-//	 	@GetMapping("/register")
-//	 	public String registerUser() {
-//	 		return "Register User";
-//	 	}
-//	 }
 
 	public static void main(String[] args) {
 		SpringApplication.run(HealtifyApplication.class, args);
