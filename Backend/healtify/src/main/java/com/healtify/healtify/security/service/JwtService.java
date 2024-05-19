@@ -17,11 +17,11 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    @Value("${application.security.jwt.secret-key}")
+    @Value(value = "${application.security.jwt.secret-key}")
     private String secretKey;
 
 //  generate RSA key pair public key copy here and private key add to for example application.yml file and keep it secret and safe
-    private String publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArns1cvlrog7zcurKqZjdxDI2+9zFufmbFJt9CLfYAlx1LKdmwkhpm1UR1gkh8bmOPqfiXVYA8ZzM8OtDSO+WySuJUET0bEuorVIhkAafIYJ91pu3yUTfAa1tk5r4Eecsab82qpimriumfseehu9QzYjzWqZVExu2TH/vz42B1w7/9irEjG40VGO1WwWWci+VT7abT1SAQuIefeaaBF6U7pyRrCncMcTPNhhkV/QW/AiTr951vMR3PYnRYpLxcPBVKNPWoIBEDG6ayllauavsJvSBmkR+4P8UkaN3ZxeDmLIqrTGzb9gzpgFCio9JYAGEVKYCJ9cU72DOEFaaT+V5AQIDAQAB";
+//    private String publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArns1cvlrog7zcurKqZjdxDI2+9zFufmbFJt9CLfYAlx1LKdmwkhpm1UR1gkh8bmOPqfiXVYA8ZzM8OtDSO+WySuJUET0bEuorVIhkAafIYJ91pu3yUTfAa1tk5r4Eecsab82qpimriumfseehu9QzYjzWqZVExu2TH/vz42B1w7/9irEjG40VGO1WwWWci+VT7abT1SAQuIefeaaBF6U7pyRrCncMcTPNhhkV/QW/AiTr951vMR3PYnRYpLxcPBVKNPWoIBEDG6ayllauavsJvSBmkR+4P8UkaN3ZxeDmLIqrTGzb9gzpgFCio9JYAGEVKYCJ9cU72DOEFaaT+V5AQIDAQAB";
 
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
@@ -86,16 +86,17 @@ public class JwtService {
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parserBuilder()
-                .setSigningKey(getSignInPublicKey())
+//                .setSigningKey(getSignInPublicKey())
+                .setSigningKey(getSignInKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
-    private Key getSignInPublicKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(publicKey);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
+//    private Key getSignInPublicKey() {
+//        byte[] keyBytes = Decoders.BASE64.decode(publicKey);
+//        return Keys.hmacShaKeyFor(keyBytes);
+//    }
 
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);

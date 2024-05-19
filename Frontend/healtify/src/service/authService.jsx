@@ -6,8 +6,10 @@ export const registerService = async (username, email, password) => {
         email: email,
         password: password,
     };
+    
+    console.log("wysylane dane " + data.username);
 
-    await axios.post("http://localhost:8080/api/auth", data)
+    await axios.post("http://localhost:8080/api/auth/register", data)
         .then((response) => {
             if (response.data) {
                 alert("User registered successfully Status:" + response.status);
@@ -15,7 +17,11 @@ export const registerService = async (username, email, password) => {
             }
         })
         .catch((error) => {
-            console.log(error);
+            if (error.response && error.response.status === 409) {
+                alert("Conflict: User with this email already exists.");
+            } else {
+                console.log(error);
+            }
         });
 };
 
@@ -25,10 +31,13 @@ export const loginService = async (email, password) => {
         password: password,
     };
 
+    console.log("Wysylane dane: " , data);
 
-    await axios.post("http://localhost:8080/login", data)
+
+    await axios.post("http://localhost:8080/api/auth/authenticate", data)
         .then((response) => {
             if (response.data) {
+                console.log("User logged in successfully");
                 window.location.href = "/";
             } else {
                 alert("Invalid password");

@@ -2,6 +2,7 @@ package com.healtify.healtify.models;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -16,7 +17,7 @@ public class Role {
     private String name;
 
     @ManyToMany(mappedBy = "roles")
-    private Set<UserAccount> users;
+    private Set<UserAccount> users = new java.util.HashSet<>();
 
     public Integer getId() {
         return id;
@@ -34,9 +35,16 @@ public class Role {
         this.name = name;
     }
 
+    // public Set<UserAccount> getUsers() {
+    //     return users;
+    // }
+
     public Set<UserAccount> getUsers() {
-        return users;
+    if (users == null) {
+        users = new HashSet<>();
     }
+    return users;
+}
 
     public void setUsers(Set<UserAccount> users) {
         this.users = users;

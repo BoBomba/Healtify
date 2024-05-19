@@ -41,8 +41,11 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
         Role role = roleRepository.findByName(RoleEnum.ROLE_USER.name())
-                .orElse(new Role.Builder().name(RoleEnum.ROLE_USER.name()).build());
+                .orElseGet(() -> roleRepository.save(new Role.Builder().name(RoleEnum.ROLE_USER.name()).build()));
         user.addRole(role);
+
+        System.out.println("AuthResponse register username :"+user.getUsername());
+
         var savedUser = userRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);

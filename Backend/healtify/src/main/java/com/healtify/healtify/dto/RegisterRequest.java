@@ -9,7 +9,7 @@ public class RegisterRequest {
         return username;
     }
 
-    public void setUsername(String name) {
+    public void setUsername(String username) {
         this.username = username;
     }
 
