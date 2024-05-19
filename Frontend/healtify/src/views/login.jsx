@@ -7,6 +7,16 @@ import { useState } from 'react';
 import {validateLoginData} from "../utils/validateAuthData";
 
 function Login() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    console.log(email, password);
+
+    const loginSubmit = (event) => {
+        event.preventDefault();
+        console.log("Wysyłanie danych do validatora logowania...");
+        validateLoginData(email, password);
+    };
+
     return (
         <div className="login">
             <div id="powrot">
@@ -14,14 +24,14 @@ function Login() {
             </div>
             <div className="main-container">
                 <h1>Login</h1>
-                <form action="/login" method="POST">
+                <form action="/login" onSubmit={loginSubmit}>
                     <div id="input">
                         <img src={User} alt="user" />
-                        <input type="email" name="email" placeholder="Wprowadź email" />
+                        <input type="email" name="email" placeholder="Wprowadź email" value={email} onChange={e => setEmail(e.target.value)}/>
                     </div>
                     <div id="input">
                         <img src={Lock} id="lock" alt="lock" />
-                        <input type="password" name="password" placeholder="Wprowadź hasło" />
+                        <input type="password" name="password" placeholder="Wprowadź hasło" value={password} onChange={e => setPassword(e.target.value)}/>
                     </div>
                     <div id="messages">
                         {/* {messages &&
