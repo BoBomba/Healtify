@@ -3,8 +3,23 @@ import React from 'react';
 import '../css/dashboard.css';
 import Nav from '../Components/Nav';
 import Message from '../Components/Message';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
+
+    const navigate = useNavigate();
+
+    //TODO Zmienić na sprawdzanie poprawności tokenu w api
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            alert('You are not logged in');
+            navigate('/login');
+        }
+    }, [navigate]);
 
     return (
         <div className="dashboard">

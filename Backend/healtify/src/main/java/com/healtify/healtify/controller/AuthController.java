@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,12 +37,31 @@ public class AuthController {
         }
     }
 
+    // @PostMapping("/authenticate")
+    // public ResponseEntity<AuthResponse> authenticate(
+    //         @RequestBody AuthRequest request
+    // ) {
+    //     System.out.println("Dziala cos");
+    //     return ResponseEntity.ok(service.authenticate(request));
+    // }
+
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthResponse> authenticate(
-            @RequestBody AuthRequest request
+    public ResponseEntity<?> authenticate(
+    @RequestBody AuthRequest request
     ) {
-        System.out.println();
-        return ResponseEntity.ok(service.authenticate(request));
+    try {
+            return ResponseEntity.ok(service.authenticate(request));
+        } 
+        catch (AccessDeniedException e) {
+            return new ResponseEntity<>("Access denied", HttpStatus.FORBIDDEN);
+        } 
+        catch (LockedException e) {
+        return new ResponseEntity<>("User account is locked", HttpStatus.UNAUTHORIZED); 
+        }
+        catch (Exception e) {
+            e.printStackTrace(); // log the exception
+            return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/refresh-token")

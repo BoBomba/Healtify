@@ -1,4 +1,7 @@
 import axios from "axios";
+// import { useNavigate } from "react-router-dom";
+
+//TODO Zmienić window.location.href na useNavigate
 
 export const registerService = async (username, email, password) => {
     const data = {
@@ -13,6 +16,7 @@ export const registerService = async (username, email, password) => {
         .then((response) => {
             if (response.data) {
                 alert("User registered successfully Status:" + response.status);
+
                 window.location.href = "/login";
             }
         })
@@ -37,13 +41,24 @@ export const loginService = async (email, password) => {
     await axios.post("http://localhost:8080/api/auth/authenticate", data)
         .then((response) => {
             if (response.data) {
+                // console.log(response);
                 console.log("User logged in successfully");
-                window.location.href = "/";
+                alert("User logged in successfully");
+
+                // Odbieranie tokena z odpowiedzi
+                const token = response.data.access_token;
+                console.log("Token: ", token);
+
+                // Możesz teraz zapisać token w localStorage lub w innym bezpiecznym miejscu
+                // localStorage.setItem('token', token);
+
+                window.location.href = "/dashboard";
             } else {
                 alert("Invalid password");
             }
         })
         .catch((error) => {
             console.log(error);
+            alert("Logowanie się nie powiodło\nKod Błędu: " + error.response.status + "\n" + error.response.data);
         });
 };
