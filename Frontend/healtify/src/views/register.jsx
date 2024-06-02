@@ -45,12 +45,6 @@ function Register() {
                         <img src={Lock} id="lock" alt="lock" />
                         <input type="password" name="repeated_password" placeholder="Wprowadź ponownie hasło" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}/>
                     </div>
-                    <div id="messages">
-                        {/* {messages &&
-                            messages.map((message, index) => (
-                                <span key={index}>{message}</span>
-                            ))} */}
-                    </div>
                     <button id="logreg" type="submit">Zarejestruj się</button>
                     <button id="logreg" type="reset">reset</button>
                 </form>

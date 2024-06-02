@@ -55,11 +55,13 @@ export const validateRegisterData = (username,  email, password, confirmPassword
     );
 }
 
-export const validateLoginLData = (email, password) => {
+export const validateLoginData = (email, password) => {
     const data = {
         email: email,
         password: password,
     };
+
+    console.log("Przyjete dane: " , data);
 
     if (data.email === "" || data.password === "") {
         alert("Please fill in all fields!");
@@ -70,6 +72,7 @@ export const validateLoginLData = (email, password) => {
         alert("Invalid email!");
         return;
     }
+    console.log("Wysyłanie danych do pliku wysyłającego...");
 
     return loginService(data.email, data.password);
 };
