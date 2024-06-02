@@ -5,6 +5,7 @@ import Nav from '../../Components/Nav';
 import { useEffect } from 'react';
 import { validateToken } from '../../service/authService';
 import '../../css/data.css';
+import { getActivityData } from '../../service/dataService';
 
 
 function ActivityData() {
