@@ -125,6 +125,12 @@ public class AuthService {
         }
     }
 
+    public boolean validateToken(String token) {
+        return tokenRepository.findByToken(token)
+                .map(Token::isExpired)
+                .orElse(true);
+    }
+
     //args constructor
     public AuthService(UserAccountRepository userRepository, TokenRepository tokenRepository, PasswordEncoder passwordEncoder, JwtService jwtService, RoleRepository roleRepository, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;

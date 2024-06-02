@@ -49,8 +49,8 @@ export const loginService = async (email, password) => {
                 const token = response.data.access_token;
                 console.log("Token: ", token);
 
-                // Możesz teraz zapisać token w localStorage lub w innym bezpiecznym miejscu
-                // localStorage.setItem('token', token);
+                // saving token in local storage
+                localStorage.setItem('token', token);
 
                 window.location.href = "/dashboard";
             } else {
@@ -62,3 +62,30 @@ export const loginService = async (email, password) => {
             alert("Logowanie się nie powiodło\nKod Błędu: " + error.response.status + "\n" + error.response.data);
         });
 };
+
+
+export const validateToken = async () => {
+    const token = localStorage.getItem('token');
+    console.log("Token: ", token);
+
+    if (token) {
+        await axios.post(`http://localhost:8080/api/auth/validate?token=${token}`, {
+            headers: {
+                Authorization: "Bearer " + token,
+            },
+        })
+            .then((response) => {
+                // alert("Token is good");
+                return response.data.username;
+            })
+            .catch((error) => {
+                alert("Token is invalid");
+                localStorage.removeItem('token');
+                window.location.href = "/login";
+            });
+    } else {
+        alert("Token is invalid - error");
+        localStorage.removeItem('token');
+        window.location.href = "/login";
+    }
+}

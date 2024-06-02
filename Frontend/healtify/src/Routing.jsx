@@ -11,6 +11,7 @@ import Dashboard from './views/dashboard';
 import Data from './views/data';
 import Sharing from './views/sharing';
 import Settings from './views/settings';
+import Logout from './utils/logout';
 
 
 import './index.css';
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/logout',
+    element: <Logout />,
   },
   {
     path: '/register',

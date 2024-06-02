@@ -11,10 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -37,14 +34,6 @@ public class AuthController {
         }
     }
 
-    // @PostMapping("/authenticate")
-    // public ResponseEntity<AuthResponse> authenticate(
-    //         @RequestBody AuthRequest request
-    // ) {
-    //     System.out.println("Dziala cos");
-    //     return ResponseEntity.ok(service.authenticate(request));
-    // }
-
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(
     @RequestBody AuthRequest request
@@ -60,6 +49,18 @@ public class AuthController {
         }
         catch (Exception e) {
             e.printStackTrace(); // log the exception
+            return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/validate")
+    public ResponseEntity<?> validateToken(
+            @RequestParam String token
+    ) {
+        try {
+            System.out.println("validateToken");
+            return ResponseEntity.ok(service.validateToken(token));
+        } catch (Exception e) {
             return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

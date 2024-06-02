@@ -5,6 +5,7 @@ import Nav from '../Components/Nav';
 import Message from '../Components/Message';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { validateToken } from '../service/authService';
 
 function Dashboard() {
 
@@ -13,13 +14,8 @@ function Dashboard() {
     //TODO Zmienić na sprawdzanie poprawności tokenu w api
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            alert('You are not logged in');
-            navigate('/login');
-        }
-    }, [navigate]);
+        validateToken();
+    });
 
     return (
         <div className="dashboard">

@@ -11,6 +11,9 @@ function Login() {
     const [password, setPassword] = useState('');
     console.log(email, password);
 
+    //remove unnecessary token
+    localStorage.removeItem('token');
+
     const loginSubmit = (event) => {
         event.preventDefault();
         console.log("Wysyłanie danych do validatora logowania...");
