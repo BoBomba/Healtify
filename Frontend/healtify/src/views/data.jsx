@@ -2,8 +2,16 @@ import React from 'react'
 import { Link } from 'react-router-dom';
 import '../css/dashboard.css';
 import Nav from '../Components/Nav';
+import { useEffect } from 'react';
+import { validateToken } from '../service/authService';
 
-function data() {
+
+function Data() {
+
+  useEffect(() => {
+    validateToken();
+  });
+
   return (
     <div>
         
@@ -14,4 +22,4 @@ function data() {
   )
 }
 
-export default data
+export default Data
