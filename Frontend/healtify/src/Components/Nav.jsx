@@ -7,6 +7,7 @@ import { toggleMenu, useOutsideClick } from './Navbar';
 
 function Nav() {
     useOutsideClick();
+    const username = localStorage.getItem('username');
   return (
     <div>
         <nav>
@@ -20,10 +21,7 @@ function Nav() {
 
         <div className="navbar" id="myNavbar">
                 <p>
-                    {/* {sessionStorage.getItem('name') && sessionStorage.getItem('surname')
-                            ? `${sessionStorage.getItem('name')} ${sessionStorage.getItem('surname')}`
-                            : 'Niezalogowany'} */}
-                    Niezalogowany
+                {username}
                 </p>
                 <Link to="/dashboard">Dashboard</Link>
                 <Link to="/data">Przeglądaj Dane</Link>

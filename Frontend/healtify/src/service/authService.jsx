@@ -75,7 +75,11 @@ export const validateToken = async () => {
             },
         })
             .then((response) => {
-                // alert("Token is good");
+                // Odpowiedź z serwera
+                const data = response.data;
+                const username = data.username;
+                console.log(`Username: ${username}`);
+                localStorage.setItem('username', data.username);
                 return response.data.username;
             })
             .catch((error) => {

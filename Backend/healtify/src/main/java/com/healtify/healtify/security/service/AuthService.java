@@ -1,6 +1,7 @@
 package com.healtify.healtify.security.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.healtify.healtify.dto.ValidateResponse;
 import com.healtify.healtify.models.Role;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -125,10 +126,12 @@ public class AuthService {
         }
     }
 
-    public boolean validateToken(String token) {
-        return tokenRepository.findByToken(token)
+    public ValidateResponse validateToken(String token) {
+        Object username = jwtService.extractUsername(token);
+        boolean isValid = tokenRepository.findByToken(token)
                 .map(Token::isExpired)
                 .orElse(true);
+        return new ValidateResponse(isValid, (String) username);
     }
 
     //args constructor

@@ -1,0 +1,23 @@
+.datablock {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    margin: 0.5rem;
+    border-radius: 1.25rem;
+    background: #FFF;
+    box-shadow: 0px 10px 15px 5px rgba(0, 0, 0, 0.25);
+}
+
+.block-container {
+    width: 100%;
+}
+
+.block-row {
+    margin-left: 20%;
+    width: 70%;
+}
+
+
