@@ -28,6 +28,7 @@ public class ApplicationConfig {
         this.repository = repository;
     }
 
+
     @Bean
     public UserDetailsService userDetailsService() {
         return new UserDetailsService() {
