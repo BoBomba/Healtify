@@ -3,8 +3,19 @@ import React from 'react';
 import '../css/dashboard.css';
 import Nav from '../Components/Nav';
 import Message from '../Components/Message';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { validateToken } from '../service/authService';
 
 function Dashboard() {
+
+    const navigate = useNavigate();
+
+    //TODO Zmienić na sprawdzanie poprawności tokenu w api
+
+    useEffect(() => {
+        validateToken();
+    });
 
     return (
         <div className="dashboard">

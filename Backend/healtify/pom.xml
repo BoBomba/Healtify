@@ -12,7 +12,7 @@
 	<artifactId>healtify</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>healtify</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Aplication for monitoring your health</description>
 	<properties>
 		<java.version>21</java.version>
 	</properties>
@@ -25,7 +25,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -35,11 +34,49 @@
     		<groupId>org.springframework.boot</groupId>
     		<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
+		    <dependency>
+        	<groupId>org.springframework.boot</groupId>
+        	<artifactId>spring-boot-starter-security</artifactId>
+    	</dependency>
+		<!-- <dependency>
+    		<groupId>org.springframework.security</groupId>
+    		<artifactId>spring-security-config</artifactId>
+    		<version>6.2.4</version>
+		</dependency> -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.11.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.11.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.11.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
     	<dependency>
         	<groupId>org.postgresql</groupId>
         	<artifactId>postgresql</artifactId>
         	<scope>runtime</scope>
     	</dependency>
+		<dependency>
+    		<groupId>javax.servlet</groupId>
+    		<artifactId>javax.servlet-api</artifactId>
+    		<version>4.0.1</version>
+    		<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
