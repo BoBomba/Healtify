@@ -8,7 +8,7 @@ body {
   align-items: center;
   gap: 2rem;
   width: 20em;
-  height: 30em;
+  /* height: 30em; */
   padding-top: 2em;
   padding-bottom: 2em;
   flex-direction: column;

@@ -6,6 +6,7 @@ import { useEffect , useState } from 'react';
 import { validateToken } from '../../service/authService';
 import '../../css/data.css';
 import { GetHeartData } from '../../service/dataService';
+import { RenderData } from "../../Components/RenderData";
 
 
 function HeartData() {
@@ -14,8 +15,14 @@ function HeartData() {
 
   useEffect(() => {
     validateToken();
-    GetHeartData().then(fetchedData => setData(fetchedData));
-  });
+    GetHeartData().then((fetchedData) => {
+      if (fetchedData === "null") {
+        setData(null);
+      } else {
+        setData(fetchedData);
+      }
+    });
+  }, []);
 
   return (
     <div>
@@ -25,7 +32,8 @@ function HeartData() {
         <main>
           <div className="block-container">
             <div className="block-row">
-              <div className="datablock">Serce {data}</div>
+              <div className="datablock">Serce</div>
+              <div className="datablock"> {data && RenderData(data)}</div>
             </div>
           </div>
           

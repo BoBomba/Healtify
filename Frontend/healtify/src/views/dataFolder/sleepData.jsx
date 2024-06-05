@@ -6,6 +6,7 @@ import { useEffect , useState } from 'react';
 import { validateToken } from '../../service/authService';
 import '../../css/data.css';
 import { GetSleepData } from '../../service/dataService';
+import { RenderData } from "../../Components/RenderData";
 
 
 function SleepData() {
@@ -14,8 +15,14 @@ function SleepData() {
 
   useEffect(() => {
     validateToken();
-    GetSleepData().then(fetchedData => setData(fetchedData));
-  });
+    GetSleepData().then((fetchedData) => {
+      if (fetchedData === "null") {
+        setData(null);
+      } else {
+        setData(fetchedData);
+      }
+    });
+  }, []);
 
   return (
     <div>
@@ -26,7 +33,7 @@ function SleepData() {
           <div className="block-container">
             <div className="block-row">
               <div className="datablock">Sen</div>
-              <div className="datablock"> {data} </div>
+              <div className="datablock"> {data && RenderData(data)} </div>
             </div>
           </div>
           

@@ -10,50 +10,37 @@ import {
   GetHeartData,
   GetSymptomsData,
 } from "../service/dataService";
+import { RenderData } from "../Components/RenderData";
 
 function Dashboard() {
-  const navigate = useNavigate();
   const [generalData, setGeneralData] = useState(null);
   const [heartData, setHeartData] = useState(null);
   const [symptomsData, setSymptomsData] = useState(null);
 
-  //TODO Zmienić na sprawdzanie poprawności tokenu w api
-
-  const renderData = (data, parentKey = '') => {
-    return Object.entries(data).map(([key, value]) => {
-        const newKey = parentKey ? `${parentKey}.${key}` : key;
-        if (value !== null && typeof value === 'object') {
-            return renderData(value, newKey);
-        } else {
-            return <p key={newKey}>{`${newKey}: ${value}`}</p>;
-        }
-    });
-};
-
   useEffect(() => {
     validateToken();
     GetGeneralData().then((fetchedData) => {
-      if (fetchedData === "Unauthorized") {
-        navigate("/login");
+      if (fetchedData === "null") {
+        setGeneralData(null);
       } else {
         setGeneralData(fetchedData);
       }
     });
     GetHeartData().then((fetchedData) => {
-      if (fetchedData === "Unauthorized") {
-        navigate("/login");
+      if (fetchedData === "null") {
+        setHeartData(null);
       } else {
         setHeartData(fetchedData);
       }
     });
     GetSymptomsData().then((fetchedData) => {
-      if (fetchedData === "Unauthorized") {
-        navigate("/login");
+      if (fetchedData === "null") {
+        setSymptomsData(null);
       } else {
         setSymptomsData(fetchedData);
       }
     });
-  }, [navigate]);
+  }, []);
 
   return (
     <div className="dashboard">
@@ -63,19 +50,19 @@ function Dashboard() {
         <div className="main-container">
           <div className="datablock">Ogólne Dane</div>
           <div className="datablock">
-            {/* {generalData && renderData(generalData)} */}
+            {generalData && RenderData(generalData)}
           </div>
         </div>
         <div className="main-container">
           <div className="datablock">Serce</div>
           <div className="datablock">
-            {/* {heartData && renderData(heartData)} */}
+            {heartData && RenderData(heartData)}
             </div>
         </div>
         <div className="main-container">
           <div className="datablock">Symptomy</div>
           <div className="datablock">
-          {/* {symptomsData && renderData(symptomsData)} */}
+          {symptomsData && RenderData(symptomsData)}
           </div>
         </div>
         {/* TODO Dodać wiecej widoków */}

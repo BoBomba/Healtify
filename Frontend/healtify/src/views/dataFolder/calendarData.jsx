@@ -6,6 +6,7 @@ import { useEffect , useState} from 'react';
 import { validateToken } from '../../service/authService';
 import '../../css/data.css';
 import { GetCalendarData } from '../../service/dataService';
+import { RenderData } from "../../Components/RenderData";
 
 
 function CalendarData() {
@@ -14,8 +15,14 @@ function CalendarData() {
 
   useEffect(() => {
     validateToken();
-    GetCalendarData().then(fetchedData => setData(fetchedData));
-  });
+    GetCalendarData().then((fetchedData) => {
+      if (fetchedData === "null") {
+        setData(null);
+      } else {
+        setData(fetchedData);
+      }
+    });
+  }, []);
 
   return (
     <div>
@@ -26,7 +33,7 @@ function CalendarData() {
           <div className="block-container">
             <div className="block-row">
               <div className="datablock">Kalendarz</div>
-              <div className="datablock"> {data} </div>
+              <div className="datablock"> {data && RenderData(data)} </div>
             </div>
           </div>
           

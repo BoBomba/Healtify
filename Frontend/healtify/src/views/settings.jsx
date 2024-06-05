@@ -5,6 +5,7 @@ import Nav from '../Components/Nav';
 import { useEffect , useState} from 'react';
 import { validateToken } from '../service/authService';
 import { GetSettingsData } from '../service/dataService';
+import { RenderData } from "../Components/RenderData";
 
 function Settings() {
 

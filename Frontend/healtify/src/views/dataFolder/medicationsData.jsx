@@ -6,6 +6,7 @@ import { useEffect , useState} from 'react';
 import { validateToken } from '../../service/authService';
 import '../../css/data.css';
 import { GetMedicationsData } from '../../service/dataService';
+import { RenderData } from "../../Components/RenderData";
 
 
 function MedicationsData() {
@@ -14,8 +15,14 @@ function MedicationsData() {
 
   useEffect(() => {
     validateToken();
-    GetMedicationsData().then(fetchedData => setData(fetchedData));
-  });
+    GetMedicationsData().then((fetchedData) => {
+      if (fetchedData === "null") {
+        setData(null);
+      } else {
+        setData(fetchedData);
+      }
+    });
+  }, []);
 
   return (
     <div>
@@ -26,7 +33,7 @@ function MedicationsData() {
           <div className="block-container">
             <div className="block-row">
               <div className="datablock">Leki</div>
-              <div className="datablock"> {data} </div>
+              <div className="datablock"> {data && RenderData(data)} </div>
             </div>
           </div>
           

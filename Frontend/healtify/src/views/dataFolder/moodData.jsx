@@ -6,6 +6,7 @@ import { useEffect , useState} from 'react';
 import { validateToken } from '../../service/authService';
 import '../../css/data.css';
 import { GetMoodData } from '../../service/dataService';
+import { RenderData } from "../../Components/RenderData";
 
 
 function MoodData() {
@@ -14,8 +15,14 @@ function MoodData() {
 
   useEffect(() => {
     validateToken();
-    GetMoodData().then(fetchedData => setData(fetchedData));
-  });
+    GetMoodData().then((fetchedData) => {
+      if (fetchedData === "null") {
+        setData(null);
+      } else {
+        setData(fetchedData);
+      }
+    });
+  }, []);
 
   return (
     <div>
@@ -26,7 +33,7 @@ function MoodData() {
           <div className="block-container">
             <div className="block-row">
               <div className="datablock">Samopoczucie</div>
-              <div className="datablock"> {data} </div>
+              <div className="datablock"> {data && RenderData(data)} </div>
             </div>
           </div>
           

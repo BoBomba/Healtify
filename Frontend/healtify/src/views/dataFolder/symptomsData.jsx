@@ -6,6 +6,7 @@ import { useEffect , useState} from 'react';
 import { validateToken } from '../../service/authService';
 import '../../css/data.css';
 import { GetSymptomsData } from '../../service/dataService';
+import { RenderData } from "../../Components/RenderData";
 
 
 function SymptomsData() {
@@ -14,8 +15,14 @@ function SymptomsData() {
 
   useEffect(() => {
     validateToken();
-    GetSymptomsData().then(fetchedData => setData(fetchedData));
-  });
+    GetSymptomsData().then((fetchedData) => {
+      if (fetchedData === "null") {
+        setData(null);
+      } else {
+        setData(fetchedData);
+      }
+    });
+  }, []);
 
   return (
     <div>
@@ -25,7 +32,8 @@ function SymptomsData() {
         <main>
           <div className="block-container">
             <div className="block-row">
-              <div className="datablock">Symptomy {data}</div>
+              <div className="datablock">Symptomy</div>
+              <div className="datablock"> {data && RenderData(data)}</div>
             </div>
           </div>
           

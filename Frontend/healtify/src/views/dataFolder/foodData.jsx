@@ -6,6 +6,7 @@ import { useEffect , useState} from 'react';
 import { validateToken } from '../../service/authService';
 import '../../css/data.css';
 import { GetFoodData } from '../../service/dataService';
+import { RenderData } from "../../Components/RenderData";
 
 
 function FoodData() {
@@ -14,8 +15,14 @@ function FoodData() {
 
   useEffect(() => {
     validateToken();
-    GetFoodData().then(fetchedData => setData(fetchedData));
-  });
+    GetFoodData().then((fetchedData) => {
+      if (fetchedData === "null") {
+        setData(null);
+      } else {
+        setData(fetchedData);
+      }
+    });
+  }, []);
 
   return (
     <div>
@@ -26,7 +33,7 @@ function FoodData() {
           <div className="block-container">
             <div className="block-row">
               <div className="datablock">Jedzenie</div>
-              <div className="datablock"> {data} </div>
+              <div className="datablock"> {data && RenderData(data)} </div>
             </div>
           </div>
           
