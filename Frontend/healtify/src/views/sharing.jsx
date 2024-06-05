@@ -13,10 +13,16 @@ function Sharing() {
 
   return (
     <div>
-        
-        <Nav />
-        sharing
-        
+      <Nav />
+        <main>
+          <div className="block-container">
+            <div className="block-row">
+              <div className="datablock">Udostepnianie</div>
+              <div className="datablock"></div>
+            </div>
+          </div>
+          
+        </main> 
     </div>
   )
 }

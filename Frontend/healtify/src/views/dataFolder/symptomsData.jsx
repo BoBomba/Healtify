@@ -2,15 +2,19 @@ import React from 'react'
 import { Link } from 'react-router-dom';
 import '../../css/dashboard.css';
 import Nav from '../../Components/Nav';
-import { useEffect } from 'react';
+import { useEffect , useState} from 'react';
 import { validateToken } from '../../service/authService';
 import '../../css/data.css';
+import { GetSymptomsData } from '../../service/dataService';
 
 
 function SymptomsData() {
 
+  const [data, setData] = useState(null);
+
   useEffect(() => {
     validateToken();
+    GetSymptomsData().then(fetchedData => setData(fetchedData));
   });
 
   return (
@@ -21,7 +25,7 @@ function SymptomsData() {
         <main>
           <div className="block-container">
             <div className="block-row">
-              <div className="datablock">Symptomy</div>
+              <div className="datablock">Symptomy {data}</div>
             </div>
           </div>
           
