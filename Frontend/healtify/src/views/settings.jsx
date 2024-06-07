@@ -85,19 +85,6 @@ function Settings() {
                     </div>
                     <input className="submit" type="submit" value="Update" />
               </form>
-
-
-
-                    {/* <div id="input">
-                        <img src={Lock} id="lock" alt="lock" />
-                        <input type="password" name="password" placeholder="Wprowadź aktualne hasło" value={password} onChange={e => setPassword(e.target.value)}/>
-                    </div>
-                    <div id="input">
-                        <img src={Lock} id="lock" alt="lock" />
-                        <input type="password" name="repeated_password" placeholder="Wprowadź nowe hasło" value={NewPassword} onChange={e => setNewPassword(e.target.value)}/>
-                    </div> */}
-                {/* <input type="submit" value="Update" /> */}
-              {/* </form> */}
             </div>
           </div>
         </div>

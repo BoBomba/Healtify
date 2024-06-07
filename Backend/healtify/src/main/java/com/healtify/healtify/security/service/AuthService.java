@@ -123,6 +123,7 @@ public class AuthService {
         }
     }
 
+
     public ValidateResponse validateToken(String token) {
         Object username = jwtService.extractUsername(token);
         System.out.println("validateToken username: " + username);

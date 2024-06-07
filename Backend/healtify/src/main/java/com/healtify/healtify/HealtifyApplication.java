@@ -18,19 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-//@CrossOrigin(
-//		origins = {
-//				"http://localhost:3000",
-//				"https://staging.example.com",
-//				"https://app.example.com"
-//		},
-//		methods = {
-//				RequestMethod.OPTIONS,
-//				RequestMethod.GET,
-//				RequestMethod.PUT,
-//				RequestMethod.DELETE,
-//				RequestMethod.POST
-//		})
 
 @SpringBootApplication
 public class HealtifyApplication {
@@ -52,7 +39,6 @@ public class HealtifyApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(HealtifyApplication.class, args);
 		System.out.println("Backend Working...");
-
 	}
 
 }
