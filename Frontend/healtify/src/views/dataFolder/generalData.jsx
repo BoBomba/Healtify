@@ -11,7 +11,7 @@ import { RenderData } from "../../Components/RenderData";
 
 function GeneralData() {
 
-    const [data, setData] = useState(null);
+    const [data, setData] = useState({});
 
     useEffect(() => {
       validateToken();
@@ -19,6 +19,7 @@ function GeneralData() {
         if (fetchedData === "null") {
           setData(null);
         } else {
+          console.log(fetchedData);
           setData(fetchedData);
         }
       });

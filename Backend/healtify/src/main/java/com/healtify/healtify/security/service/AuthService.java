@@ -41,9 +41,6 @@ public class AuthService {
                 .roles(new HashSet<>())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
-        Role role = roleRepository.findByName(RoleEnum.ROLE_USER.name())
-                .orElseGet(() -> roleRepository.save(new Role.Builder().name(RoleEnum.ROLE_USER.name()).build()));
-        user.addRole(role);
 
         System.out.println("AuthResponse register username :"+user.getUsername());
 
@@ -128,6 +125,7 @@ public class AuthService {
 
     public ValidateResponse validateToken(String token) {
         Object username = jwtService.extractUsername(token);
+        System.out.println("validateToken username: " + username);
         boolean isValid = tokenRepository.findByToken(token)
                 .map(Token::isExpired)
                 .orElse(true);

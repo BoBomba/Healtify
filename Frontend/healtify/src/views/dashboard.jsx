@@ -1,9 +1,7 @@
 import React from "react";
-// import { Link } from 'react-router-dom';
 import "../css/dashboard.css";
 import Nav from "../Components/Nav";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { validateToken } from "../service/authService";
 import {
   GetGeneralData,
@@ -20,6 +18,7 @@ function Dashboard() {
   useEffect(() => {
     validateToken();
     GetGeneralData().then((fetchedData) => {
+      console.log(fetchedData);
       if (fetchedData === "null") {
         setGeneralData(null);
       } else {
@@ -27,6 +26,7 @@ function Dashboard() {
       }
     });
     GetHeartData().then((fetchedData) => {
+      console.log(fetchedData);
       if (fetchedData === "null") {
         setHeartData(null);
       } else {
@@ -34,6 +34,7 @@ function Dashboard() {
       }
     });
     GetSymptomsData().then((fetchedData) => {
+      console.log(fetchedData);
       if (fetchedData === "null") {
         setSymptomsData(null);
       } else {
@@ -65,7 +66,6 @@ function Dashboard() {
           {symptomsData && RenderData(symptomsData)}
           </div>
         </div>
-        {/* TODO Dodać wiecej widoków */}
       </main>
 
       <footer>Damian Guca</footer>

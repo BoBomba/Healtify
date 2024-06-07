@@ -70,9 +70,6 @@ export const validateToken = async () => {
 
     if (token) {
         await axios.post(`http://localhost:8080/api/auth/validate?token=${token}`, {
-            headers: {
-                Authorization: "Bearer " + token,
-            },
         })
             .then((response) => {
                 // Odpowiedź z serwera

@@ -57,7 +57,6 @@ public class AuthController {
             @RequestParam String token
     ) {
         try {
-            System.out.println("validateToken");
             return ResponseEntity.ok(service.validateToken(token));
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);

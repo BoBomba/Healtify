@@ -3,13 +3,10 @@ import com.healtify.healtify.models.*;
 
 import com.healtify.healtify.repository.*;
 import com.healtify.healtify.security.service.JwtService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -67,35 +64,26 @@ public class basicDataController {
     }
 
     @GetMapping("/general")
-    public List<UserProfile> getGeneralData(@RequestParam("token") String token) {
-        // Extract the username from the token
+    public ResponseEntity<UserProfile> getGeneralData(@RequestParam("token") String token) {
+        System.out.println("token: " + token);
+        String username = jwtService.extractUsername(token);
 
-        Object username = jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the data
-
-//            AddData addData = new AddData(userProfileRepository);
-//            addData.addUserProfileData(userAccount);
 
             UserProfile userProfile = userProfileRepository.findByUserAccount(userAccount)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-
-
-            System.out.println("user: " + userProfile);
-//            return null;
-            return List.of(userProfile);
+            return new ResponseEntity<>(userProfile, HttpStatus.OK);
         } else {
-            // Return an error message
-            return null;
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @GetMapping("/heart")
-    public List<VitalSigns> getHeartData(@RequestParam("token") String token) {
+    public ResponseEntity<VitalSigns> getHeartData(@RequestParam("token") String token) {
+        System.out.println("token: " + token);
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -112,7 +100,7 @@ public class basicDataController {
 
             System.out.println("user: " + vitalSigns);
 //            return null;
-            return List.of(vitalSigns);
+            return ResponseEntity.ok(vitalSigns);
         } else {
             // Return an error message
             return null;
@@ -120,7 +108,7 @@ public class basicDataController {
     }
 
     @GetMapping("/symptoms")
-    public List<SymptomTracker> getSymptoms(@RequestParam("token") String token) {
+    public ResponseEntity<SymptomTracker> getSymptoms(@RequestParam("token") String token) {
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -137,7 +125,7 @@ public class basicDataController {
 
             System.out.println("user: " + symptomTracker);
 //            return null;
-            return List.of(symptomTracker);
+            return ResponseEntity.ok(symptomTracker);
         } else {
             // Return an error message
             return null;
@@ -145,7 +133,7 @@ public class basicDataController {
     }
 
     @GetMapping("/medications")
-    public List<Medication> getMedications(@RequestParam("token") String token) {
+    public ResponseEntity<Medication> getMedications(@RequestParam("token") String token) {
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -160,16 +148,15 @@ public class basicDataController {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
             System.out.println("user: " + medications);
-            return List.of(medications);
+            return ResponseEntity.ok(medications);
         } else {
             // Return an error message
             return null;
         }
     }
 
-
     @GetMapping("/calendar")
-    public List<CalendarEvent> getCalendar(@RequestParam("token") String token) {
+    public ResponseEntity<CalendarEvent> getCalendar(@RequestParam("token") String token) {
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -185,16 +172,15 @@ public class basicDataController {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
             System.out.println("username: " + username);
-            return List.of(calendarEvent);
+            return ResponseEntity.ok(calendarEvent);
         } else {
             // Return an error message
             return null;
         }
     }
 
-
     @GetMapping("/mood")
-    public List<MoodTracker> getMood(@RequestParam("token") String token) {
+    public ResponseEntity<MoodTracker> getMood(@RequestParam("token") String token) {
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -210,16 +196,15 @@ public class basicDataController {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
             System.out.println("username: " + username);
-            return List.of(moodTracker);
+            return ResponseEntity.ok(moodTracker);
         } else {
             // Return an error message
             return null;
         }
     }
 
-
     @GetMapping("/sleep")
-    public List<SleepRecord> getSleep(@RequestParam("token") String token) {
+    public ResponseEntity<SleepRecord> getSleep(@RequestParam("token") String token) {
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -235,16 +220,15 @@ public class basicDataController {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
             System.out.println("username: " + username);
-            return List.of(sleepRecord);
+            return ResponseEntity.ok(sleepRecord);
         } else {
             // Return an error message
             return null;
         }
     }
 
-
     @GetMapping("/history")
-    public List<MedicalHistory> getMedHistory (@RequestParam("token") String token) {
+    public ResponseEntity<MedicalHistory> getMedHistory (@RequestParam("token") String token) {
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -260,16 +244,15 @@ public class basicDataController {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
             System.out.println("username: " + username);
-            return List.of(medicalHistory);
+            return ResponseEntity.ok(medicalHistory);
         } else {
             // Return an error message
             return null;
         }
     }
 
-
     @GetMapping("/food")
-    public List<NutritionLog> getFood(@RequestParam("token") String token) {
+    public ResponseEntity<NutritionLog> getFood(@RequestParam("token") String token) {
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -285,16 +268,15 @@ public class basicDataController {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
             System.out.println("username: " + username);
-            return List.of(nutritionLog);
+            return ResponseEntity.ok(nutritionLog);
         } else {
             // Return an error message
             return null;
         }
     }
 
-
     @GetMapping("/activity")
-    public List<Activity> getActivity(@RequestParam("token") String token) {
+    public ResponseEntity<Activity> getActivity(@RequestParam("token") String token) {
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -310,16 +292,15 @@ public class basicDataController {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
             System.out.println("username: " + username);
-            return List.of(activity);
+            return ResponseEntity.ok(activity);
         } else {
             // Return an error message
             return null;
         }
     }
 
-
     @GetMapping("/sharing")
-    public List<DataSharing> getSharing(@RequestParam("token") String token) {
+    public ResponseEntity<DataSharing> getSharing(@RequestParam("token") String token) {
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -335,16 +316,15 @@ public class basicDataController {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
             System.out.println("username: " + username);
-            return List.of(dataSharing);
+            return ResponseEntity.ok(dataSharing);
         } else {
             // Return an error message
             return null;
         }
     }
 
-
     @GetMapping("/settings")
-    public List<UserAccount> getSettings(@RequestParam("token") String token) {
+    public ResponseEntity<UserAccount> getSettings(@RequestParam("token") String token) {
         // Extract the username from the token
         Object username = jwtService.extractUsername(token);
 
@@ -360,7 +340,7 @@ public class basicDataController {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
             System.out.println("username: " + username);
-            return List.of(userAccount);
+            return ResponseEntity.ok(userAccount);
         } else {
             // Return an error message
             return null;

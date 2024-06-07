@@ -22,6 +22,7 @@ import MedicationsData from './views/dataFolder/medicationsData';
 import HistoryData from './views/dataFolder/historyData';
 import FoodData from './views/dataFolder/foodData';
 import ActivityData from './views/dataFolder/activityData';
+import AdminPanel from './views/AdminPanel';
 
 
 import './index.css';
@@ -113,6 +114,10 @@ const router = createBrowserRouter([
   {
     path: '/settings',
     element: <Settings />,
+  },
+  {
+    path: '/admin',
+    element: <AdminPanel />,
   },
   {
     path: '*',
