@@ -23,6 +23,9 @@ public class JwtService {
 //  generate RSA key pair public key copy here and private key add to for example application.yml file and keep it secret and safe
 //    private String publicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArns1cvlrog7zcurKqZjdxDI2+9zFufmbFJt9CLfYAlx1LKdmwkhpm1UR1gkh8bmOPqfiXVYA8ZzM8OtDSO+WySuJUET0bEuorVIhkAafIYJ91pu3yUTfAa1tk5r4Eecsab82qpimriumfseehu9QzYjzWqZVExu2TH/vz42B1w7/9irEjG40VGO1WwWWci+VT7abT1SAQuIefeaaBF6U7pyRrCncMcTPNhhkV/QW/AiTr951vMR3PYnRYpLxcPBVKNPWoIBEDG6ayllauavsJvSBmkR+4P8UkaN3ZxeDmLIqrTGzb9gzpgFCio9JYAGEVKYCJ9cU72DOEFaaT+V5AQIDAQAB";
 
+// public key not used in this project
+
+
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
 

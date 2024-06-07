@@ -82,5 +82,8 @@ public class SymptomTracker {
         this.symptomName = symptomName;
         this.comments = comments;
     }
+
+    public SymptomTracker() {
+    }
 }
 

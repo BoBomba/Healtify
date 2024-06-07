@@ -1,6 +1,8 @@
 package com.healtify.healtify.models;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,10 +31,10 @@ public class Medication {
     private String frequency;
 
     @Column(name = "start_date")
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 
     // constructors
 
@@ -43,8 +45,8 @@ public class Medication {
         double dosageAmount, 
         String dosageUnit, 
         String frequency, 
-        LocalDateTime startDate, 
-        LocalDateTime endDate) 
+        LocalDate startDate,
+        LocalDate endDate)
         {
         this.medicationId = medicationId;
         this.userAccount = userAccount;
@@ -54,6 +56,9 @@ public class Medication {
         this.frequency = frequency;
         this.startDate = startDate;
         this.endDate = endDate;
+        }
+
+        public Medication() {
         }
 
     // Getters and setters
@@ -106,19 +111,19 @@ public class Medication {
         this.frequency = frequency;
     }
 
-    public LocalDateTime getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDateTime startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public LocalDateTime getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(LocalDateTime endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 

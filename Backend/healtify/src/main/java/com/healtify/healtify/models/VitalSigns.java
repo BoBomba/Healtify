@@ -134,4 +134,7 @@ public class VitalSigns {
         this.cholesterolLevel = cholesterolLevel;
         this.oxygenSaturation = oxygenSaturation;
         }
+
+    public VitalSigns() {
+    }
 }

@@ -82,4 +82,7 @@ public class MoodTracker {
         this.moodRating = moodRating;
         this.comments = comments;
     }
+
+    public MoodTracker() {
+    }
 }

@@ -40,6 +40,13 @@ nav {
     width: 100%;
 }
 
+main {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    margin-top: 70px;
+}
+
 #textlogo {
     height: 1em;
     width: auto;

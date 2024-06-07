@@ -25,7 +25,6 @@ public class AuthController {
         try {
             service.register(registerRequest);
             System.out.println(new ResponseEntity<>(HttpStatus.CREATED));
-//            return new ResponseEntity<>(HttpStatus.CREATED);
             return ResponseEntity.ok(HttpStatus.CREATED);
         } catch (DataIntegrityViolationException e) {
             return new ResponseEntity<>("Email already exists", HttpStatus.CONFLICT);
@@ -58,7 +57,6 @@ public class AuthController {
             @RequestParam String token
     ) {
         try {
-            System.out.println("validateToken");
             return ResponseEntity.ok(service.validateToken(token));
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);

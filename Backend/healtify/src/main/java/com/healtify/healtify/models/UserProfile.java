@@ -23,6 +23,10 @@ public class UserProfile {
     @Column(name = "gender")
     private String gender;
 
+    public UserProfile() {
+
+    }
+
     // Getters and setters
 
     public Long getProfileId() {

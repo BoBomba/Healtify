@@ -95,4 +95,7 @@ public class CalendarEvent {
         this.eventStart = eventStart;
         this.eventEnd = eventEnd;
     }
+
+    public CalendarEvent() {
+    }
 }

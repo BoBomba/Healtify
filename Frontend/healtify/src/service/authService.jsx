@@ -70,12 +70,13 @@ export const validateToken = async () => {
 
     if (token) {
         await axios.post(`http://localhost:8080/api/auth/validate?token=${token}`, {
-            headers: {
-                Authorization: "Bearer " + token,
-            },
         })
             .then((response) => {
-                // alert("Token is good");
+                // Odpowiedź z serwera
+                const data = response.data;
+                const username = data.username;
+                console.log(`Username: ${username}`);
+                localStorage.setItem('username', data.username);
                 return response.data.username;
             })
             .catch((error) => {

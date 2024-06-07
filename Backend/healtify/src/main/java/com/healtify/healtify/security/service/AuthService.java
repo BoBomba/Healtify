@@ -1,6 +1,7 @@
 package com.healtify.healtify.security.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.healtify.healtify.dto.ValidateResponse;
 import com.healtify.healtify.models.Role;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,9 +41,6 @@ public class AuthService {
                 .roles(new HashSet<>())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
-        Role role = roleRepository.findByName(RoleEnum.ROLE_USER.name())
-                .orElseGet(() -> roleRepository.save(new Role.Builder().name(RoleEnum.ROLE_USER.name()).build()));
-        user.addRole(role);
 
         System.out.println("AuthResponse register username :"+user.getUsername());
 
@@ -125,10 +123,14 @@ public class AuthService {
         }
     }
 
-    public boolean validateToken(String token) {
-        return tokenRepository.findByToken(token)
+
+    public ValidateResponse validateToken(String token) {
+        Object username = jwtService.extractUsername(token);
+        System.out.println("validateToken username: " + username);
+        boolean isValid = tokenRepository.findByToken(token)
                 .map(Token::isExpired)
                 .orElse(true);
+        return new ValidateResponse(isValid, (String) username);
     }
 
     //args constructor

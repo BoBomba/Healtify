@@ -1,41 +1,76 @@
-import React from 'react';
-// import { Link } from 'react-router-dom';
-import '../css/dashboard.css';
-import Nav from '../Components/Nav';
-import Message from '../Components/Message';
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { validateToken } from '../service/authService';
+import React from "react";
+import "../css/dashboard.css";
+import Nav from "../Components/Nav";
+import { useEffect, useState } from "react";
+import { validateToken } from "../service/authService";
+import {
+  GetGeneralData,
+  GetHeartData,
+  GetSymptomsData,
+} from "../service/dataService";
+import { RenderData } from "../Components/RenderData";
 
 function Dashboard() {
+  const [generalData, setGeneralData] = useState(null);
+  const [heartData, setHeartData] = useState(null);
+  const [symptomsData, setSymptomsData] = useState(null);
 
-    const navigate = useNavigate();
-
-    //TODO Zmienić na sprawdzanie poprawności tokenu w api
-
-    useEffect(() => {
-        validateToken();
+  useEffect(() => {
+    validateToken();
+    GetGeneralData().then((fetchedData) => {
+      console.log(fetchedData);
+      if (fetchedData === "null") {
+        setGeneralData(null);
+      } else {
+        setGeneralData(fetchedData);
+      }
     });
+    GetHeartData().then((fetchedData) => {
+      console.log(fetchedData);
+      if (fetchedData === "null") {
+        setHeartData(null);
+      } else {
+        setHeartData(fetchedData);
+      }
+    });
+    GetSymptomsData().then((fetchedData) => {
+      console.log(fetchedData);
+      if (fetchedData === "null") {
+        setSymptomsData(null);
+      } else {
+        setSymptomsData(fetchedData);
+      }
+    });
+  }, []);
 
-    return (
-        <div className="dashboard">
-            <Nav />
+  return (
+    <div className="dashboard">
+      <Nav />
 
-            <main>
-                <div className="main-container">
-                    <Message />
-                </div>
-                <div className="main-container">2.</div>
-                <div className="main-container">3.</div>
-                {/* TODO Dodać wiecej widoków */}
-            </main>
-
-            <footer>
-                Damian Guca
-            </footer>
+      <main>
+        <div className="main-container">
+          <div className="datablock">Ogólne Dane</div>
+          <div className="datablock">
+            {generalData && RenderData(generalData)}
+          </div>
         </div>
-    );
-}
+        <div className="main-container">
+          <div className="datablock">Serce</div>
+          <div className="datablock">
+            {heartData && RenderData(heartData)}
+            </div>
+        </div>
+        <div className="main-container">
+          <div className="datablock">Symptomy</div>
+          <div className="datablock">
+          {symptomsData && RenderData(symptomsData)}
+          </div>
+        </div>
+      </main>
 
+      <footer>Damian Guca</footer>
+    </div>
+  );
+}
 
 export default Dashboard;
