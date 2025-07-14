@@ -2,6 +2,7 @@ package com.healtify.healtify.dto;
 
 public class ChangePasswordRequest {
 
+
     private String password;
     private String newPassword;
 
@@ -20,5 +21,6 @@ public class ChangePasswordRequest {
     public void setPassword(String currentPassword) {
         this.password = currentPassword;
     }
+
 
 }

@@ -21,10 +21,9 @@ function Sharing() {
               <div className="datablock"></div>
             </div>
           </div>
-          
         </main> 
     </div>
-  )
+  );
 }
 
 export default Sharing

@@ -64,286 +64,231 @@ public class basicDataController {
     }
 
     @GetMapping("/general")
-    public ResponseEntity<UserProfile> getGeneralData(@RequestParam("token") String token) {
-        System.out.println("token: " + token);
+    public ResponseEntity<?> getGeneralData(@RequestParam("token") String token) {
         String username = jwtService.extractUsername(token);
-
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        if (userAccount != null && username.equals(userAccount.getUsername())){
-
-            UserProfile userProfile = userProfileRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            return new ResponseEntity<>(userProfile, HttpStatus.OK);
+        if (userAccount != null && username.equals(userAccount.getUsername())) {
+            Optional<UserProfile> userProfileOpt = userProfileRepository.findByUserAccount(userAccount);
+            if (userProfileOpt.isPresent()) {
+                return ResponseEntity.ok(userProfileOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
+        }
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<?> getUserData(@RequestParam("token") String token) {
+        String username = jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
+
+        if (userAccount != null && username.equals(userAccount.getUsername())) {
+            // Zwróć dane z UserAccount
+            return ResponseEntity.ok(userAccount);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/heart")
-    public ResponseEntity<VitalSigns> getHeartData(@RequestParam("token") String token) {
-        System.out.println("token: " + token);
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getHeartData(@RequestParam("token") String token) {
+        String username = jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
-        if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the data
-
-//            AddData addData = new AddData(heartDataRepository);
-//            addData.addUserProfileData(userAccount);
-
-            VitalSigns vitalSigns = heartDataRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("user: " + vitalSigns);
-//            return null;
-            return ResponseEntity.ok(vitalSigns);
+        if (userAccount != null && username.equals(userAccount.getUsername())) {
+            Optional<VitalSigns> vitalSignsOpt = heartDataRepository.findByUserAccount(userAccount);
+            if (vitalSignsOpt.isPresent()) {
+                return ResponseEntity.ok(vitalSignsOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych : " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/symptoms")
-    public ResponseEntity<SymptomTracker> getSymptoms(@RequestParam("token") String token) {
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
-
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
+    public ResponseEntity<?> getSymptoms(@RequestParam("token") String token) {
+        String username = (String) jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the login data
-//            AddData addData = new AddData(symptomTrackerRepository);
-//            addData.addUserProfileData(userAccount);
-
-            SymptomTracker symptomTracker = symptomTrackerRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("user: " + symptomTracker);
-//            return null;
-            return ResponseEntity.ok(symptomTracker);
+            Optional<SymptomTracker> symptomTrackerOpt = symptomTrackerRepository.findByUserAccount(userAccount);
+            if (symptomTrackerOpt.isPresent()) {
+                return ResponseEntity.ok(symptomTrackerOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/medications")
-    public ResponseEntity<Medication> getMedications(@RequestParam("token") String token) {
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getMedications(@RequestParam("token") String token) {
+        String username = (String) jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the login data
-//            AddData addData = new AddData(medicationsRepository);
-//            addData.addUserProfileData(userAccount);
-
-            Medication medications = medicationsRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("user: " + medications);
-            return ResponseEntity.ok(medications);
+            Optional<Medication> medicationsOpt = medicationsRepository.findByUserAccount(userAccount);
+            if (medicationsOpt.isPresent()) {
+                return ResponseEntity.ok(medicationsOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/calendar")
-    public ResponseEntity<CalendarEvent> getCalendar(@RequestParam("token") String token) {
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getCalendar(@RequestParam("token") String token) {
+        String username = (String) jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the login data
-
-//            AddData addData = new AddData(calendarRepository);
-//            addData.addUserProfileData(userAccount);
-
-            CalendarEvent calendarEvent = calendarRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("username: " + username);
-            return ResponseEntity.ok(calendarEvent);
+            Optional<CalendarEvent> calendarEventOpt = calendarRepository.findByUserAccount(userAccount);
+            if (calendarEventOpt.isPresent()) {
+                return ResponseEntity.ok(calendarEventOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/mood")
-    public ResponseEntity<MoodTracker> getMood(@RequestParam("token") String token) {
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getMood(@RequestParam("token") String token) {
+        String username = (String) jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the login data
-
-//            AddData addData = new AddData(moodRepository);
-//            addData.addUserProfileData(userAccount);
-
-            MoodTracker moodTracker = moodRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("username: " + username);
-            return ResponseEntity.ok(moodTracker);
+            Optional<MoodTracker> moodTrackerOpt = moodRepository.findByUserAccount(userAccount);
+            if (moodTrackerOpt.isPresent()) {
+                return ResponseEntity.ok(moodTrackerOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/sleep")
-    public ResponseEntity<SleepRecord> getSleep(@RequestParam("token") String token) {
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getSleep(@RequestParam("token") String token) {
+        String username = (String) jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the login data
-
-//            AddData addData = new AddData(sleepRepository);
-//            addData.addUserProfileData(userAccount);
-
-            SleepRecord sleepRecord = sleepRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("username: " + username);
-            return ResponseEntity.ok(sleepRecord);
+            Optional<SleepRecord> sleepRecordOpt = sleepRepository.findByUserAccount(userAccount);
+            if (sleepRecordOpt.isPresent()) {
+                return ResponseEntity.ok(sleepRecordOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/history")
-    public ResponseEntity<MedicalHistory> getMedHistory (@RequestParam("token") String token) {
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getMedHistory (@RequestParam("token") String token) {
+        String username = (String) jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the login data
-
-//            AddData addData = new AddData(historyRepository);
-//            addData.addUserProfileData(userAccount);
-
-            MedicalHistory medicalHistory = historyRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("username: " + username);
-            return ResponseEntity.ok(medicalHistory);
+            Optional<MedicalHistory> medicalHistoryOpt = historyRepository.findByUserAccount(userAccount);
+            if (medicalHistoryOpt.isPresent()) {
+                return ResponseEntity.ok(medicalHistoryOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/food")
-    public ResponseEntity<NutritionLog> getFood(@RequestParam("token") String token) {
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getFood(@RequestParam("token") String token) {
+        String username = (String) jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the login data
-
-//            AddData addData = new AddData(foodRepository);
-//            addData.addUserProfileData(userAccount);
-
-            NutritionLog nutritionLog = foodRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("username: " + username);
-            return ResponseEntity.ok(nutritionLog);
+            Optional<NutritionLog> nutritionLogOpt = foodRepository.findByUserAccount(userAccount);
+            if (nutritionLogOpt.isPresent()) {
+                return ResponseEntity.ok(nutritionLogOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/activity")
-    public ResponseEntity<Activity> getActivity(@RequestParam("token") String token) {
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getActivity(@RequestParam("token") String token) {
+        String username = (String) jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the login data
-
-//            AddData addData = new AddData(activityRepository);
-//            addData.addUserProfileData(userAccount);
-
-            Activity activity = activityRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("username: " + username);
-            return ResponseEntity.ok(activity);
+            Optional<Activity> activityOpt = activityRepository.findByUserAccount(userAccount);
+            if (activityOpt.isPresent()) {
+                return ResponseEntity.ok(activityOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/sharing")
-    public ResponseEntity<DataSharing> getSharing(@RequestParam("token") String token) {
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getSharing(@RequestParam("token") String token) {
+        String username = (String) jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the login data
-
-//            AddData addData = new AddData(sharingRepository);
-//            addData.addUserProfileData(userAccount);
-
-            DataSharing dataSharing = sharingRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("username: " + username);
-            return ResponseEntity.ok(dataSharing);
+            Optional<DataSharing> dataSharingOpt = sharingRepository.findByUserAccount(userAccount);
+            if (dataSharingOpt.isPresent()) {
+                return ResponseEntity.ok(dataSharingOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 
     @GetMapping("/settings")
-    public ResponseEntity<UserAccount> getSettings(@RequestParam("token") String token) {
-        // Extract the username from the token
-        Object username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getSettings(@RequestParam("token") String token) {
+        String username = (String) jwtService.extractUsername(token);
+        UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
-        UserAccount userAccount = userAccountRepository.findByUsername((String) username).orElse(null);
-        // Check if the username matches
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            // Return the login data
-
-//            AddData addData = new AddData(settingsRepository);
-//            addData.addUserProfileData(userAccount);
-
-            UserProfile userProfile = userProfileRepository.findByUserAccount(userAccount)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-            System.out.println("username: " + username);
-            return ResponseEntity.ok(userAccount);
+            Optional<UserProfile> userProfileOpt = userProfileRepository.findByUserAccount(userAccount);
+            if (userProfileOpt.isPresent()) {
+                return ResponseEntity.ok(userAccount);
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("Brak danych: " + username);
+            }
         } else {
-            // Return an error message
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }
     }
 

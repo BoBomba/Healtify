@@ -35,14 +35,29 @@ public class AuthService {
 
 
     public AuthResponse register(RegisterRequest request) {
+        // Pobierz rolę ROLE_USER z bazy
+        Role userRole = roleRepository.findByName("ROLE_USER").orElse(null);
+
+        // Jeśli nie istnieje, utwórz i zapisz nową rolę
+        if (userRole == null) {
+            userRole = new Role();
+            userRole.setName("ROLE_USER");
+            userRole = roleRepository.save(userRole);
+        }
+
+        // Utwórz zbiór ról i dodaj ROLE_USER
+        HashSet<Role> roles = new HashSet<>();
+        roles.add(userRole);
+
         var user = new UserAccount.Builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
-                .roles(new HashSet<>())
+                .roles(roles) // przypisz rolę
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
 
         System.out.println("AuthResponse register username :"+user.getUsername());
+        System.out.println("AuthResponse register Roles :"+user.getRoles());
 
         var savedUser = userRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
@@ -122,6 +137,7 @@ public class AuthService {
             }
         }
     }
+
 
     public ValidateResponse validateToken(String token) {
         Object username = jwtService.extractUsername(token);

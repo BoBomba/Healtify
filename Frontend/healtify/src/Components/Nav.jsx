@@ -1,3 +1,4 @@
+
 import React, { useEffect , useState} from 'react'
 import { Link } from 'react-router-dom'
 import '../css/dashboard.css'
@@ -15,19 +16,20 @@ function Nav() {
         async function checkCondition() {
             const adminStatus = await checkAdminStatus();
             setIsAdmin(adminStatus);
-            console.log(adminStatus);
+            console.log("Admin status:", adminStatus);
         }
         checkCondition();
     }, []);
+
   return (
     <div>
         <nav>
                 <a id="navMenu" onClick={toggleMenu}>
                     <img id="settings" src={SettingsIcon} alt="Settings" onClick={toggleMenu} />
                 </a>
-                {/* TODO zrobic wyswietlanie zdjec */}
                 <img id="textlogo" src={TextLogo} alt="Logo" />
                 <img id="logo" src={logo} alt="Logo" />
+
         </nav>
 
         <div className="navbar" id="myNavbar">
