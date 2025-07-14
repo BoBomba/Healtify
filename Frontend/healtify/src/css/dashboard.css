@@ -80,7 +80,9 @@ main>.elements {
 }
 
 .main>.main-container {
-    justify-content: center;
+    display:flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
 }
   
 #settings {

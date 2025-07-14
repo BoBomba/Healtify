@@ -20,6 +20,11 @@ function Login() {
         validateLoginData(email, password);
     };
 
+    const handleReset = () => {
+        setEmail('');
+        setPassword('');
+    };
+
     return (
         <div className="login">
             <div id="powrot">
@@ -27,7 +32,7 @@ function Login() {
             </div>
             <div className="main-container">
                 <h1>Login</h1>
-                <form action="/login" onSubmit={loginSubmit}>
+                <form action="/login" onSubmit={loginSubmit} onReset={handleReset}>
                     <div id="input">
                         <img src={User} alt="user" />
                         <input type="email" name="email" placeholder="Wprowadź email" value={email} onChange={e => setEmail(e.target.value)}/>
