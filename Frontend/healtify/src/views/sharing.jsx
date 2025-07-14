@@ -21,8 +21,15 @@ function Sharing() {
               <div className="datablock"></div>
             </div>
           </div>
-          
         </main> 
+
+function sharing() {
+  return (
+    <div>
+        
+        <Nav />
+        sharing
+    
     </div>
   )
 }
