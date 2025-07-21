@@ -22,16 +22,8 @@ function Sharing() {
             </div>
           </div>
         </main> 
-
-function sharing() {
-  return (
-    <div>
-        
-        <Nav />
-        sharing
-    
     </div>
-  )
+  );
 }
 
 export default Sharing

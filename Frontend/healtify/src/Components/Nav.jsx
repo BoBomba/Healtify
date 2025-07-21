@@ -16,7 +16,7 @@ function Nav() {
         async function checkCondition() {
             const adminStatus = await checkAdminStatus();
             setIsAdmin(adminStatus);
-            console.log(adminStatus);
+            console.log("Admin status:", adminStatus);
         }
         checkCondition();
     }, []);
