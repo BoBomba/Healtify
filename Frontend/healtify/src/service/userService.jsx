@@ -2,16 +2,8 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api/user'; // Zmień na adres URL swojego serwera
 
-class User {
-    constructor(username, email, password) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-    }
-}
-
 export const createUser = async (user) => {
-    const response = await axios.post(`${API_URL}/add`, User);
+    const response = await axios.post(`${API_URL}/add`, user);
     return response.data;
 };
 
