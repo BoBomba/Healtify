@@ -24,9 +24,9 @@ function Nav() {
   return (
     <div>
         <nav>
-                <a id="navMenu" onClick={toggleMenu}>
+                <button id="navMenu" onClick={toggleMenu}>
                     <img id="settings" src={SettingsIcon} alt="Settings" onClick={toggleMenu} />
-                </a>
+                </button>
                 <img id="textlogo" src={TextLogo} alt="Logo" />
                 <img id="logo" src={logo} alt="Logo" />
 

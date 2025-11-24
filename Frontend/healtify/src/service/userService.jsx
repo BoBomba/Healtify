@@ -11,7 +11,6 @@ class User {
 }
 
 export const createUser = async (user) => {
-    const token = localStorage.getItem('token');
     const response = await axios.post(`${API_URL}/add`, User);
     return response.data;
 };

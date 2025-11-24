@@ -10,7 +10,6 @@ import '../css/settings.css';
 
 
 function Settings() {
-  const [data, setData] = useState(null);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [Password, setPassword] = useState("");
@@ -20,7 +19,6 @@ function Settings() {
     validateToken();
     GetGeneralData().then(fetchedData => {
       console.log(fetchedData);
-      setData(fetchedData);
       setUsername(fetchedData.userAccount.username);
       setEmail(fetchedData.userAccount.email);
     });
