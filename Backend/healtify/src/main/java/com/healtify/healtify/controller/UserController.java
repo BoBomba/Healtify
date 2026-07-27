@@ -5,7 +5,6 @@ import com.healtify.healtify.dto.ChangeUsernameRequest;
 import com.healtify.healtify.dto.UserDTO;
 import com.healtify.healtify.models.UserAccount;
 import com.healtify.healtify.repository.UserAccountRepository;
-import com.healtify.healtify.security.service.JwtService;
 import com.healtify.healtify.security.service.UserService;
 import com.healtify.healtify.security.token.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +15,7 @@ import com.healtify.healtify.security.service.RoleEnum;
 
 import java.util.List;
 import java.util.Optional;
+import java.security.Principal;
 
 import static com.healtify.healtify.dto.UserDTO.mapToUserDto;
 
@@ -25,19 +25,16 @@ public class UserController {
     private final UserService userService;
     private final UserAccountRepository userAccountRepository;
     private final TokenRepository tokenRepository;
-    private final JwtService jwtService;
 
     @Autowired
     public UserController(
             UserService userService,
             UserAccountRepository userAccountRepository,
-            TokenRepository tokenRepository,
-            JwtService jwtService
+            TokenRepository tokenRepository
     ) {
         this.userService = userService;
         this.userAccountRepository = userAccountRepository;
         this.tokenRepository = tokenRepository;
-        this.jwtService = jwtService;
     }
 
     @PostMapping(path = "/add")
@@ -50,9 +47,8 @@ public class UserController {
     }
 
     @GetMapping(path = "/getall")
-    public ResponseEntity<List<UserDTO>> getAllUsers(@RequestHeader("Authorization") String token) {
-        System.out.println("token: " + token);
-        String username = jwtService.extractUsername(token.replace("Bearer ", ""));
+    public ResponseEntity<List<UserDTO>> getAllUsers(Principal principal) {
+        String username = principal.getName();
         UserAccount user = userService.findAccByUsername(username);
 
         // Sprawdź, czy użytkownik ma rolę Admin
@@ -67,16 +63,15 @@ public class UserController {
     }
 
     @GetMapping(path = "/get")
-    public ResponseEntity<UserDTO> getUser(@RequestHeader("Authorization") String token) {
-        String username = jwtService.extractUsername(token);
+    public ResponseEntity<UserDTO> getUser(Principal principal) {
+        String username = principal.getName();
         UserDTO userDto = userService.findDTOByUsername(username);
         return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 
     @PostMapping(path = "/update")
-    public ResponseEntity<UserDTO> updateUser(@RequestHeader("Authorization") String token,@RequestBody UserAccount user) {
-
-        String username = jwtService.extractUsername(token);
+    public ResponseEntity<UserDTO> updateUser(Principal principal, @RequestBody UserAccount user) {
+        String username = principal.getName();
 
         UserAccount userAccount = userService.findAccByUsername(username);
         // Check if the username matches
@@ -92,11 +87,10 @@ public class UserController {
 
 
     @PatchMapping(path = "/update-username")
-    public ResponseEntity<Void> updateUsername(@RequestHeader("Authorization") String token, @RequestBody ChangeUsernameRequest changeUsernameRequest) {
-        System.out.println("token: " + token);
+    public ResponseEntity<Void> updateUsername(Principal principal, @RequestBody ChangeUsernameRequest changeUsernameRequest) {
         System.out.println("username: " + changeUsernameRequest.getUsername());
 
-        String oldusername = jwtService.extractUsername(token.replace("Bearer ", ""));
+        String oldusername = principal.getName();
         UserAccount user = userService.findAccByUsername(oldusername);
         if(userAccountRepository.existsByUsername(changeUsernameRequest.getUsername())) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
@@ -108,11 +102,10 @@ public class UserController {
     }
 
     @PatchMapping(path = "/update-email")
-    public ResponseEntity<Void> updateEmail(@RequestHeader("Authorization") String token, @RequestBody ChangeEmailRequest changeEmailRequest) {
-        System.out.println("token: " + token);
+    public ResponseEntity<Void> updateEmail(Principal principal, @RequestBody ChangeEmailRequest changeEmailRequest) {
         System.out.println("email: " + changeEmailRequest.getEmail());
 
-        String username = jwtService.extractUsername(token.replace("Bearer ", ""));
+        String username = principal.getName();
         UserAccount user = userService.findAccByUsername(username);
         user.setEmail(changeEmailRequest.getEmail());
         if(userAccountRepository.existsByEmail(changeEmailRequest.getEmail())) {
@@ -125,8 +118,8 @@ public class UserController {
     }
 
     @DeleteMapping(path = "/delete")
-    public ResponseEntity<UserDTO> deleteUser(@RequestHeader("Authorization") String token) {
-        String username = jwtService.extractUsername(token);
+    public ResponseEntity<UserDTO> deleteUser(Principal principal) {
+        String username = principal.getName();
         Optional<Long> userId = userService.getUserIdByUsername(username);
         if (userId.isPresent()) {
             tokenRepository.deleteByUserId(userId.get());
@@ -138,8 +131,8 @@ public class UserController {
     }
 
     @GetMapping("/checkadmin")
-    public ResponseEntity<Boolean> checkAdmin(@RequestHeader("Authorization") String token) {
-        String username = jwtService.extractUsername(token.replace("Bearer ", ""));
+    public ResponseEntity<Boolean> checkAdmin(Principal principal) {
+        String username = principal.getName();
         // Optional<UserAccount> userAccount = userAccountRepository.findByUsername(username);
 
         UserAccount userAccount = userService.findAccByUsername(username);
