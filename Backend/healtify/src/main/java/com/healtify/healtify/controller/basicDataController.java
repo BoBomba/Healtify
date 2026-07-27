@@ -2,14 +2,13 @@ package com.healtify.healtify.controller;
 import com.healtify.healtify.models.*;
 
 import com.healtify.healtify.repository.*;
-import com.healtify.healtify.security.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
+import java.security.Principal;
 
 
 @RestController
@@ -29,8 +28,6 @@ public class basicDataController {
     private final SharingRepository sharingRepository;
 //    private final SettingsRepository settingsRepository;
 
-    private final JwtService jwtService;
-
     public basicDataController(
             UserAccountRepository userAccountRepository,
             UserProfileRepository userProfileRepository,
@@ -43,9 +40,7 @@ public class basicDataController {
             MedHistoryRepository historyRepository,
             FoodRepository foodRepository,
             ActivityRepository activityRepository,
-            SharingRepository sharingRepository,
-//            SettingsRepository settingsRepository,
-            JwtService jwtService)
+            SharingRepository sharingRepository)
     {
         this.userAccountRepository = userAccountRepository;
         this.userProfileRepository = userProfileRepository;
@@ -60,12 +55,11 @@ public class basicDataController {
         this.activityRepository = activityRepository;
         this.sharingRepository = sharingRepository;
 //        this.settingsRepository = settingsRepository;
-        this.jwtService = jwtService;
     }
 
     @GetMapping("/general")
-    public ResponseEntity<?> getGeneralData(@RequestParam("token") String token) {
-        String username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getGeneralData(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())) {
@@ -82,8 +76,8 @@ public class basicDataController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<?> getUserData(@RequestParam("token") String token) {
-        String username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getUserData(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())) {
@@ -95,8 +89,8 @@ public class basicDataController {
     }
 
     @GetMapping("/heart")
-    public ResponseEntity<?> getHeartData(@RequestParam("token") String token) {
-        String username = jwtService.extractUsername(token);
+    public ResponseEntity<?> getHeartData(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())) {
@@ -113,8 +107,8 @@ public class basicDataController {
     }
 
     @GetMapping("/symptoms")
-    public ResponseEntity<?> getSymptoms(@RequestParam("token") String token) {
-        String username = (String) jwtService.extractUsername(token);
+    public ResponseEntity<?> getSymptoms(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
@@ -131,8 +125,8 @@ public class basicDataController {
     }
 
     @GetMapping("/medications")
-    public ResponseEntity<?> getMedications(@RequestParam("token") String token) {
-        String username = (String) jwtService.extractUsername(token);
+    public ResponseEntity<?> getMedications(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
@@ -149,8 +143,8 @@ public class basicDataController {
     }
 
     @GetMapping("/calendar")
-    public ResponseEntity<?> getCalendar(@RequestParam("token") String token) {
-        String username = (String) jwtService.extractUsername(token);
+    public ResponseEntity<?> getCalendar(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
@@ -167,8 +161,8 @@ public class basicDataController {
     }
 
     @GetMapping("/mood")
-    public ResponseEntity<?> getMood(@RequestParam("token") String token) {
-        String username = (String) jwtService.extractUsername(token);
+    public ResponseEntity<?> getMood(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
@@ -185,8 +179,8 @@ public class basicDataController {
     }
 
     @GetMapping("/sleep")
-    public ResponseEntity<?> getSleep(@RequestParam("token") String token) {
-        String username = (String) jwtService.extractUsername(token);
+    public ResponseEntity<?> getSleep(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
@@ -203,8 +197,8 @@ public class basicDataController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<?> getMedHistory (@RequestParam("token") String token) {
-        String username = (String) jwtService.extractUsername(token);
+    public ResponseEntity<?> getMedHistory(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
@@ -221,8 +215,8 @@ public class basicDataController {
     }
 
     @GetMapping("/food")
-    public ResponseEntity<?> getFood(@RequestParam("token") String token) {
-        String username = (String) jwtService.extractUsername(token);
+    public ResponseEntity<?> getFood(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
@@ -239,8 +233,8 @@ public class basicDataController {
     }
 
     @GetMapping("/activity")
-    public ResponseEntity<?> getActivity(@RequestParam("token") String token) {
-        String username = (String) jwtService.extractUsername(token);
+    public ResponseEntity<?> getActivity(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
@@ -257,8 +251,8 @@ public class basicDataController {
     }
 
     @GetMapping("/sharing")
-    public ResponseEntity<?> getSharing(@RequestParam("token") String token) {
-        String username = (String) jwtService.extractUsername(token);
+    public ResponseEntity<?> getSharing(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
@@ -275,8 +269,8 @@ public class basicDataController {
     }
 
     @GetMapping("/settings")
-    public ResponseEntity<?> getSettings(@RequestParam("token") String token) {
-        String username = (String) jwtService.extractUsername(token);
+    public ResponseEntity<?> getSettings(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){

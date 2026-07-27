@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.LockedException;
@@ -54,9 +55,10 @@ public class AuthController {
 
     @PostMapping("/validate")
     public ResponseEntity<?> validateToken(
-            @RequestParam String token
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
         try {
+            String token = authorization.replaceFirst("^Bearer\\s+", "");
             return ResponseEntity.ok(service.validateToken(token));
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
