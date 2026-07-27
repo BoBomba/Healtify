@@ -2,10 +2,15 @@ import axios from "axios";
 
 const API_URL = 'http://localhost:8080/api/data';
 
+const authConfig = () => ({
+    headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+    }
+});
+
 export const GetGeneralData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/general?token=${token}`);
+        const response = await axios.get(`${API_URL}/general`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -17,9 +22,8 @@ export const GetGeneralData = async () => {
 }
 
 export const GetUserData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/user?token=${token}`);
+        const response = await axios.get(`${API_URL}/user`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -31,9 +35,8 @@ export const GetUserData = async () => {
 }
 
 export const GetHeartData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/heart?token=${token}`);
+        const response = await axios.get(`${API_URL}/heart`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -44,9 +47,8 @@ export const GetHeartData = async () => {
 }
 
 export const GetSymptomsData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/symptoms?token=${token}`);
+        const response = await axios.get(`${API_URL}/symptoms`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -57,9 +59,8 @@ export const GetSymptomsData = async () => {
 }
 
 export const GetCalendarData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/calendar?token=${token}`);
+        const response = await axios.get(`${API_URL}/calendar`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -70,9 +71,8 @@ export const GetCalendarData = async () => {
 }
 
 export const GetMoodData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/mood?token=${token}`);
+        const response = await axios.get(`${API_URL}/mood`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -83,9 +83,8 @@ export const GetMoodData = async () => {
 }
 
 export const GetSleepData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/sleep?token=${token}`);
+        const response = await axios.get(`${API_URL}/sleep`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -96,9 +95,8 @@ export const GetSleepData = async () => {
 }
 
 export const GetMedicationsData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/medications?token=${token}`);
+        const response = await axios.get(`${API_URL}/medications`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -109,9 +107,8 @@ export const GetMedicationsData = async () => {
 }
 
 export const GetHistoryData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/history?token=${token}`);
+        const response = await axios.get(`${API_URL}/history`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -122,9 +119,8 @@ export const GetHistoryData = async () => {
 }
 
 export const GetFoodData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/food?token=${token}`);
+        const response = await axios.get(`${API_URL}/food`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -135,9 +131,8 @@ export const GetFoodData = async () => {
 }
 
 export const GetActivityData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`${API_URL}/activity?token=${token}`);
+        const response = await axios.get(`${API_URL}/activity`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -148,9 +143,8 @@ export const GetActivityData = async () => {
 }
 
 export const GetSharingData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`http://localhost:8080/api/sharing?token=${token}`);
+        const response = await axios.get(`${API_URL}/sharing`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -161,9 +155,8 @@ export const GetSharingData = async () => {
 }
 
 export const GetSettingsData = async () => {
-    const token = localStorage.getItem('token');
     try {
-        const response = await axios.get(`http://localhost:8080/api/settings?token=${token}`);
+        const response = await axios.get(`${API_URL}/settings`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -172,5 +165,4 @@ export const GetSettingsData = async () => {
         throw error;
     }
 }
-
 
