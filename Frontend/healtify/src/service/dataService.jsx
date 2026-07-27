@@ -34,18 +34,6 @@ export const GetUserData = async () => {
     }
 }
 
-export const GetHeartData = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/heart`, authConfig());
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 204) {
-            return "Brak danych";
-        }
-        throw error;
-    }
-}
-
 export const GetSymptomsData = async () => {
     try {
         const response = await axios.get(`${API_URL}/symptoms`, authConfig());
@@ -85,54 +73,6 @@ export const GetMoodData = async () => {
 export const GetSleepData = async () => {
     try {
         const response = await axios.get(`${API_URL}/sleep`, authConfig());
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 204) {
-            return "Brak danych";
-        }
-        throw error;
-    }
-}
-
-export const GetMedicationsData = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/medications`, authConfig());
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 204) {
-            return "Brak danych";
-        }
-        throw error;
-    }
-}
-
-export const GetHistoryData = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/history`, authConfig());
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 204) {
-            return "Brak danych";
-        }
-        throw error;
-    }
-}
-
-export const GetFoodData = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/food`, authConfig());
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 204) {
-            return "Brak danych";
-        }
-        throw error;
-    }
-}
-
-export const GetActivityData = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/activity`, authConfig());
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {

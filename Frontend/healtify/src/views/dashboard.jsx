@@ -5,14 +5,12 @@ import { useEffect, useState } from "react";
 import { validateToken } from "../service/authService";
 import {
   GetGeneralData,
-  GetHeartData,
   GetSymptomsData,
 } from "../service/dataService";
 import { RenderData } from "../Components/RenderData";
 
 function Dashboard() {
   const [generalData, setGeneralData] = useState(null);
-  const [heartData, setHeartData] = useState(null);
   const [symptomsData, setSymptomsData] = useState(null);
 
   useEffect(() => {
@@ -23,14 +21,6 @@ function Dashboard() {
         setGeneralData(null);
       } else {
         setGeneralData(fetchedData);
-      }
-    });
-    GetHeartData().then((fetchedData) => {
-      console.log(fetchedData);
-      if (fetchedData === "null") {
-        setHeartData(null);
-      } else {
-        setHeartData(fetchedData);
       }
     });
     GetSymptomsData().then((fetchedData) => {
@@ -53,12 +43,6 @@ function Dashboard() {
           <div className="datablock">
             {generalData && RenderData(generalData)}
           </div>
-        </div>
-        <div className="main-container">
-          <div className="datablock">Serce</div>
-          <div className="datablock">
-            {heartData && RenderData(heartData)}
-            </div>
         </div>
         <div className="main-container">
           <div className="datablock">Symptomy</div>
