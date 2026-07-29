@@ -58,6 +58,24 @@ export const GetCalendarData = async () => {
     }
 }
 
+// Zwraca listę wydarzeń kalendarza (wpisy pacjenta i wizyty u psychologa) dla zalogowanego użytkownika.
+export const GetCalendarEvents = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/calendar/events`, authConfig());
+        return response.data;
+    } catch (error) {
+        if (error.response && error.response.status === 204) {
+            return [];
+        }
+        throw error;
+    }
+}
+
+export const AddCalendarEvent = async (event) => {
+    const response = await axios.post(`${API_URL}/calendar/events`, event, authConfig());
+    return response.data;
+}
+
 export const GetMoodData = async () => {
     try {
         const response = await axios.get(`${API_URL}/mood`, authConfig());
