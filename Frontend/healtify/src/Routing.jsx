@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 
 import Main from './views/App';
@@ -7,6 +7,7 @@ import Test from './views/test';
 import Err404 from './views/NotFoundPage';
 import Login from './views/login';
 import Register from './views/register';
+import ForgotPassword from './views/ForgotPassword';
 import Dashboard from './views/dashboard';
 import Data from './views/data';
 import Sharing from './views/sharing';
@@ -18,6 +19,7 @@ import CalendarData from './views/dataFolder/calendarData';
 import MoodData from './views/dataFolder/moodData';
 import SleepData from './views/dataFolder/sleepData';
 import AdminPanel from './views/AdminPanel';
+import CalendarPage from './views/Calendar';
 
 
 import './index.css';
@@ -45,6 +47,10 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/forgotpasswd',
+    element: <ForgotPassword />,
   },
   {
     path: '/logout',
@@ -83,6 +89,10 @@ const router = createBrowserRouter([
     element: <SleepData />,
   },
   {
+    path: '/calendar',
+    element: <CalendarPage />,
+  },
+  {
     path: '/sharing',
     element: <Sharing />,
   },
@@ -96,7 +106,7 @@ const router = createBrowserRouter([
   },
   {
     path: '*',
-    redirectTo: '/404',
+    element: <Navigate to="/404" replace />,
   }
 ]);
 
