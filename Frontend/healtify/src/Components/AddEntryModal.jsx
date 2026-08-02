@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../css/calendar.css';
-import { AddCalendarEvent } from '../service/dataService';
+import { AddJournalEntry } from '../service/dataService';
+import { formatDateKey } from '../utils/calendarUtils';
 
 const SYMPTOM_OPTIONS = [
     'Lęk', 'Smutek', 'Bezsenność', 'Zmęczenie', 'Drażliwość',
@@ -10,8 +11,13 @@ const SYMPTOM_OPTIONS = [
 
 const SCALE_FACES = ['😞', '🙁', '😐', '🙂', '😄'];
 
-function AddEventModal({ isOpen, onClose, onSaved, defaultDate }) {
-    const [eventType, setEventType] = useState('PATIENT_ENTRY');
+const MAX_TITLE_LENGTH = 120;
+const MAX_DESCRIPTION_LENGTH = 5000;
+const MAX_CUSTOM_SYMPTOM_LENGTH = 60;
+
+// Wizyty u psychologa nie są zakładane przez pacjenta, więc modal obsługuje
+// wyłącznie wpisy do dziennika (tabela journal_entries po stronie backendu).
+function AddEntryModal({ isOpen, onClose, onSaved, defaultDate }) {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
@@ -26,10 +32,10 @@ function AddEventModal({ isOpen, onClose, onSaved, defaultDate }) {
     useEffect(() => {
         if (isOpen) {
             const base = defaultDate || new Date();
-            setEventType('PATIENT_ENTRY');
             setTitle('');
-            setDate(base.toISOString().slice(0, 10));
-            setTime(base.toTimeString().slice(0, 5));
+            // formatDateKey liczy datę lokalnie - toISOString() potrafiłoby cofnąć dzień o jeden.
+            setDate(formatDateKey(base));
+            setTime(new Date().toTimeString().slice(0, 5));
             setScale(null);
             setSymptoms([]);
             setCustomSymptom('');
@@ -81,23 +87,26 @@ function AddEventModal({ isOpen, onClose, onSaved, defaultDate }) {
             setError('Wybierz samopoczucie w skali od 1 do 5.');
             return;
         }
+        if (date === '' || time === '') {
+            setError('Podaj datę i godzinę wpisu.');
+            return;
+        }
 
         setSaving(true);
         setError('');
 
         const payload = {
-            eventType,
-            eventTitle: title.trim(),
-            eventDescription: description.trim(),
-            eventStart: `${date}T${time}`,
+            title: title.trim(),
+            description: description.trim(),
+            entryAt: `${date}T${time}`,
             moodScale: scale,
             symptoms,
             reminder,
         };
 
         try {
-            const saved = await AddCalendarEvent(payload);
-            onSaved(saved || payload);
+            const saved = await AddJournalEntry(payload);
+            onSaved(saved);
             onClose();
         } catch (err) {
             console.log(err);
@@ -111,32 +120,16 @@ function AddEventModal({ isOpen, onClose, onSaved, defaultDate }) {
         <div className="modal-overlay" onMouseDown={handleOverlayClick}>
             <div className="modal-card" role="dialog" aria-modal="true">
                 <div className="modal-header">
-                    <h2>Nowy wpis w kalendarzu</h2>
+                    <h2>Nowy wpis w dzienniku</h2>
                     <button type="button" className="modal-close" onClick={onClose} aria-label="Zamknij">×</button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="modal-form">
-                    <div className="event-type-toggle">
-                        <button
-                            type="button"
-                            className={eventType === 'PATIENT_ENTRY' ? 'type-btn active' : 'type-btn'}
-                            onClick={() => setEventType('PATIENT_ENTRY')}
-                        >
-                            Wpis dziennika
-                        </button>
-                        <button
-                            type="button"
-                            className={eventType === 'THERAPY_VISIT' ? 'type-btn active' : 'type-btn'}
-                            onClick={() => setEventType('THERAPY_VISIT')}
-                        >
-                            Wizyta u psychologa
-                        </button>
-                    </div>
-
-                    <label className="field-label" htmlFor="event-title">Tytuł</label>
+                    <label className="field-label" htmlFor="entry-title">Tytuł</label>
                     <input
-                        id="event-title"
+                        id="entry-title"
                         type="text"
+                        maxLength={MAX_TITLE_LENGTH}
                         placeholder="Np. Trudny dzień w pracy"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
@@ -144,18 +137,18 @@ function AddEventModal({ isOpen, onClose, onSaved, defaultDate }) {
 
                     <div className="field-row">
                         <div>
-                            <label className="field-label" htmlFor="event-date">Data</label>
+                            <label className="field-label" htmlFor="entry-date">Data</label>
                             <input
-                                id="event-date"
+                                id="entry-date"
                                 type="date"
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
                             />
                         </div>
                         <div>
-                            <label className="field-label" htmlFor="event-time">Godzina</label>
+                            <label className="field-label" htmlFor="entry-time">Godzina</label>
                             <input
-                                id="event-time"
+                                id="entry-time"
                                 type="time"
                                 value={time}
                                 onChange={(e) => setTime(e.target.value)}
@@ -208,6 +201,7 @@ function AddEventModal({ isOpen, onClose, onSaved, defaultDate }) {
                     <div className="custom-tag-input">
                         <input
                             type="text"
+                            maxLength={MAX_CUSTOM_SYMPTOM_LENGTH}
                             placeholder="Dodaj własny objaw..."
                             value={customSymptom}
                             onChange={(e) => setCustomSymptom(e.target.value)}
@@ -216,11 +210,12 @@ function AddEventModal({ isOpen, onClose, onSaved, defaultDate }) {
                         <button type="button" onClick={addCustomSymptom}>Dodaj</button>
                     </div>
 
-                    <label className="field-label" htmlFor="event-description">Opis</label>
+                    <label className="field-label" htmlFor="entry-description">Opis</label>
                     <textarea
-                        id="event-description"
+                        id="entry-description"
                         rows="3"
-                        placeholder="Opisz swój dzień, myśli albo przebieg wizyty..."
+                        maxLength={MAX_DESCRIPTION_LENGTH}
+                        placeholder="Opisz swój dzień, myśli albo to, co Cię dziś poruszyło..."
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
@@ -231,7 +226,7 @@ function AddEventModal({ isOpen, onClose, onSaved, defaultDate }) {
                             checked={reminder}
                             onChange={(e) => setReminder(e.target.checked)}
                         />
-                        Przypomnij mi o tym wydarzeniu
+                        Przypomnij mi o tym wpisie
                     </label>
 
                     {error && <div id="messages">{error}</div>}
@@ -248,4 +243,4 @@ function AddEventModal({ isOpen, onClose, onSaved, defaultDate }) {
     );
 }
 
-export default AddEventModal;
+export default AddEntryModal;

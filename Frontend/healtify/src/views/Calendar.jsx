@@ -1,41 +1,51 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Nav from '../Components/Nav';
-import AddEventModal from '../Components/AddEventModal';
+import AddEntryModal from '../Components/AddEntryModal';
 import '../css/dashboard.css';
 import '../css/calendar.css';
 import { validateToken } from '../service/authService';
-import { GetCalendarEvents } from '../service/dataService';
+import { GetJournalEntries } from '../service/dataService';
 import { MONTH_NAMES, WEEKDAY_NAMES, getMonthMatrix, formatDateKey, isSameDay } from '../utils/calendarUtils';
 
-const normalizeEvents = (data) => {
-    if (!data || data === 'Brak danych' || data === 'null') {
-        return [];
-    }
-    return Array.isArray(data) ? data : [data];
+// Ile wpisów mieści się w kratce dnia - resztę pokazujemy jako "+N".
+const MAX_CHIPS_PER_DAY = 3;
+
+// Kolor prostokąta zależy od samopoczucia, żeby miesiąc dawał się czytać jednym spojrzeniem.
+const moodClass = (moodScale) => {
+    if (moodScale <= 2) return 'mood-low';
+    if (moodScale === 3) return 'mood-mid';
+    return 'mood-high';
 };
 
 function CalendarPage() {
     const today = useMemo(() => new Date(), []);
     const [visibleMonth, setVisibleMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
-    const [events, setEvents] = useState([]);
+    const [entries, setEntries] = useState([]);
     const [selectedDate, setSelectedDate] = useState(today);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loadError, setLoadError] = useState('');
 
     useEffect(() => {
         validateToken();
-        GetCalendarEvents().then((data) => setEvents(normalizeEvents(data)));
+        GetJournalEntries()
+            .then((data) => setEntries(data))
+            .catch((error) => {
+                console.log(error);
+                setLoadError('Nie udało się pobrać wpisów.');
+            });
     }, []);
 
-    const eventsByDay = useMemo(() => {
+    const entriesByDay = useMemo(() => {
         const map = {};
-        events.forEach((event) => {
-            if (!event.eventStart) return;
-            const key = event.eventStart.slice(0, 10);
+        entries.forEach((entry) => {
+            if (!entry.entryAt) return;
+            const key = entry.entryAt.slice(0, 10);
             if (!map[key]) map[key] = [];
-            map[key].push(event);
+            map[key].push(entry);
         });
+        Object.values(map).forEach((dayEntries) => dayEntries.sort((a, b) => a.entryAt.localeCompare(b.entryAt)));
         return map;
-    }, [events]);
+    }, [entries]);
 
     const weeks = useMemo(
         () => getMonthMatrix(visibleMonth.getFullYear(), visibleMonth.getMonth()),
@@ -55,11 +65,16 @@ function CalendarPage() {
         setSelectedDate(today);
     };
 
-    const handleEventSaved = (savedEvent) => {
-        setEvents((prev) => [...prev, savedEvent]);
+    const handleEntrySaved = (savedEntry) => {
+        setEntries((prev) => [...prev, savedEntry]);
+        if (savedEntry.entryAt) {
+            const saved = new Date(savedEntry.entryAt);
+            setSelectedDate(saved);
+            setVisibleMonth(new Date(saved.getFullYear(), saved.getMonth(), 1));
+        }
     };
 
-    const selectedDayEvents = selectedDate ? (eventsByDay[formatDateKey(selectedDate)] || []) : [];
+    const selectedDayEntries = selectedDate ? (entriesByDay[formatDateKey(selectedDate)] || []) : [];
 
     return (
         <div className="dashboard">
@@ -81,9 +96,12 @@ function CalendarPage() {
                     </div>
 
                     <div className="calendar-legend">
-                        <span><span className="legend-dot entry-dot" /> Wpis dziennika</span>
-                        <span><span className="legend-dot visit-dot" /> Wizyta u psychologa</span>
+                        <span><span className="legend-dot mood-low" /> Samopoczucie 1-2</span>
+                        <span><span className="legend-dot mood-mid" /> Samopoczucie 3</span>
+                        <span><span className="legend-dot mood-high" /> Samopoczucie 4-5</span>
                     </div>
+
+                    {loadError && <div id="messages">{loadError}</div>}
 
                     <div className="calendar-grid">
                         {WEEKDAY_NAMES.map((day) => (
@@ -94,7 +112,8 @@ function CalendarPage() {
                                 if (!day) {
                                     return <div className="calendar-cell empty" key={`${weekIndex}-${dayIndex}`} />;
                                 }
-                                const dayEvents = eventsByDay[formatDateKey(day)] || [];
+                                const dayEntries = entriesByDay[formatDateKey(day)] || [];
+                                const hiddenCount = dayEntries.length - MAX_CHIPS_PER_DAY;
                                 const cellClasses = [
                                     'calendar-cell',
                                     isSameDay(day, today) ? 'is-today' : '',
@@ -109,14 +128,20 @@ function CalendarPage() {
                                         onClick={() => setSelectedDate(day)}
                                     >
                                         <span className="calendar-day-number">{day.getDate()}</span>
-                                        <div className="calendar-day-dots">
-                                            {dayEvents.slice(0, 3).map((event, index) => (
+                                        <span className="calendar-day-entries">
+                                            {dayEntries.slice(0, MAX_CHIPS_PER_DAY).map((entry) => (
                                                 <span
-                                                    key={index}
-                                                    className={`legend-dot ${event.eventType === 'THERAPY_VISIT' ? 'visit-dot' : 'entry-dot'}`}
-                                                />
+                                                    className={`day-entry-chip ${moodClass(entry.moodScale)}`}
+                                                    key={entry.entryId}
+                                                    title={entry.title}
+                                                >
+                                                    {entry.title}
+                                                </span>
                                             ))}
-                                        </div>
+                                            {hiddenCount > 0 && (
+                                                <span className="day-entry-more">+{hiddenCount}</span>
+                                            )}
+                                        </span>
                                     </button>
                                 );
                             })
@@ -135,34 +160,34 @@ function CalendarPage() {
                             </button>
                         </div>
 
-                        {selectedDayEvents.length === 0 && <p>Brak zdarzeń tego dnia.</p>}
+                        {selectedDayEntries.length === 0 && <p>Brak wpisów tego dnia.</p>}
 
-                        {selectedDayEvents.map((event, index) => (
-                            <div className="day-event-item" key={index}>
+                        {selectedDayEntries.map((entry) => (
+                            <div className="day-event-item" key={entry.entryId}>
                                 <div className="day-event-title">
-                                    <span className={`legend-dot ${event.eventType === 'THERAPY_VISIT' ? 'visit-dot' : 'entry-dot'}`} />
-                                    <strong>{event.eventTitle}</strong>
-                                    {event.eventStart && <span className="day-event-time">{event.eventStart.slice(11, 16)}</span>}
+                                    <span className={`legend-dot ${moodClass(entry.moodScale)}`} />
+                                    <strong>{entry.title}</strong>
+                                    <span className="day-event-time">{entry.entryAt.slice(11, 16)}</span>
                                 </div>
-                                {event.moodScale && <p>Samopoczucie: {event.moodScale}/5</p>}
-                                {event.symptoms && event.symptoms.length > 0 && (
+                                <p>Samopoczucie: {entry.moodScale}/5</p>
+                                {entry.symptoms && entry.symptoms.length > 0 && (
                                     <div className="tag-list">
-                                        {event.symptoms.map((symptom, i) => (
+                                        {entry.symptoms.map((symptom, i) => (
                                             <span className="tag-chip active" key={i}>{symptom}</span>
                                         ))}
                                     </div>
                                 )}
-                                {event.eventDescription && <p>{event.eventDescription}</p>}
+                                {entry.description && <p>{entry.description}</p>}
                             </div>
                         ))}
                     </div>
                 </div>
             </main>
 
-            <AddEventModal
+            <AddEntryModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onSaved={handleEventSaved}
+                onSaved={handleEntrySaved}
                 defaultDate={selectedDate || today}
             />
         </div>
