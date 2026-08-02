@@ -21,10 +21,7 @@ function Data() {
         <div className="block-container">
           <div className="block-row">
             <Link to="/data/general" className="datablock">Ogólne Dane</Link>
-            <Link to="/data/sleep" className="datablock">Sen</Link>
-            <Link to="/data/mood" className="datablock">Samopoczucie</Link>
-            <Link to="/data/calendar" className="datablock">Kalendarz</Link>
-            <Link to="/data/symptoms" className="datablock">Symptomy</Link>
+            <Link to="/data/journal" className="datablock">Dziennik</Link>
           </div>
         </div>
       </main> 

@@ -14,10 +14,7 @@ import Sharing from './views/sharing';
 import Settings from './views/settings';
 import Logout from './utils/logout';
 import GeneralData from './views/dataFolder/generalData';
-import SymptomsData from './views/dataFolder/symptomsData';
-import CalendarData from './views/dataFolder/calendarData';
-import MoodData from './views/dataFolder/moodData';
-import SleepData from './views/dataFolder/sleepData';
+import JournalData from './views/dataFolder/journalData';
 import AdminPanel from './views/AdminPanel';
 import CalendarPage from './views/Calendar';
 
@@ -73,20 +70,8 @@ const router = createBrowserRouter([
     element: <GeneralData />,
   },
   {
-    path: '/data/symptoms',
-    element: <SymptomsData />,
-  },
-  {
-    path: '/data/calendar',
-    element: <CalendarData />,
-  },
-  {
-    path: '/data/mood',
-    element: <MoodData />,
-  },
-  {
-    path: '/data/sleep',
-    element: <SleepData />,
+    path: '/data/journal',
+    element: <JournalData />,
   },
   {
     path: '/calendar',

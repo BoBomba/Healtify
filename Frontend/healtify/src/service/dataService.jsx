@@ -34,70 +34,16 @@ export const GetUserData = async () => {
     }
 }
 
-export const GetSymptomsData = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/symptoms`, authConfig());
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 204) {
-            return "Brak danych";
-        }
-        throw error;
-    }
+// Wpisy dziennika zalogowanego pacjenta - backend zawsze filtruje po użytkowniku z tokenu,
+// więc nie ma tu (i nie może być) żadnego parametru z id użytkownika.
+export const GetJournalEntries = async () => {
+    const response = await axios.get(`${API_URL}/journal`, authConfig());
+    return Array.isArray(response.data) ? response.data : [];
 }
 
-export const GetCalendarData = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/calendar`, authConfig());
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 204) {
-            return "Brak danych";
-        }
-        throw error;
-    }
-}
-
-// Zwraca listę wydarzeń kalendarza (wpisy pacjenta i wizyty u psychologa) dla zalogowanego użytkownika.
-export const GetCalendarEvents = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/calendar/events`, authConfig());
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 204) {
-            return [];
-        }
-        throw error;
-    }
-}
-
-export const AddCalendarEvent = async (event) => {
-    const response = await axios.post(`${API_URL}/calendar/events`, event, authConfig());
+export const AddJournalEntry = async (entry) => {
+    const response = await axios.post(`${API_URL}/journal`, entry, authConfig());
     return response.data;
-}
-
-export const GetMoodData = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/mood`, authConfig());
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 204) {
-            return "Brak danych";
-        }
-        throw error;
-    }
-}
-
-export const GetSleepData = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/sleep`, authConfig());
-        return response.data;
-    } catch (error) {
-        if (error.response && error.response.status === 204) {
-            return "Brak danych";
-        }
-        throw error;
-    }
 }
 
 export const GetSharingData = async () => {
@@ -123,4 +69,3 @@ export const GetSettingsData = async () => {
         throw error;
     }
 }
-
