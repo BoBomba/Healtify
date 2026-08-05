@@ -2,7 +2,7 @@
 
 # Healtify
 
-Welcome to Healtify! This project aims to provide a comprehensive health tracking solution.
+Welcome to Healtify! This project aims to provide a comprehensive mental health tracking solution.
 
 ## Installation
 
