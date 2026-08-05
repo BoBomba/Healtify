@@ -7,6 +7,14 @@
 /dataSources/
 /dataSources.local.xml
 
+### IntelliJ IDEA ###
 .idea
-.vscode
+
+#### VS Code ###
+.vscode/
+
+### DS_Store ###
 .DS_Store
+
+### Claude ###
+.claude/
