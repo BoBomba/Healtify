@@ -1,5 +1,6 @@
 package com.healtify.healtify.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -39,6 +40,10 @@ public class Role {
     //     return users;
     // }
 
+    // Bez tego endpointy zwracajace cala encje UserAccount (np. /api/data/user)
+    // serializowaly role -> uzytkownikow tej roli -> ich role -> ... : ~100 KB JSON-a
+    // z kontami INNYCH uzytkownikow. Relacja zwrotna nie moze wychodzic na zewnatrz.
+    @JsonIgnore
     public Set<UserAccount> getUsers() {
     if (users == null) {
         users = new HashSet<>();

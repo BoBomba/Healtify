@@ -17,7 +17,7 @@ axios.interceptors.request.use(
 
 export const checkAdminStatus = async () => {
     try {
-        const response = await axios.get(`${API_URL}/checkadmin`, { headers: { Authorization: localStorage.getItem("token") } });
+        const response = await axios.get(`${API_URL}/checkadmin`);
         // console.log(response.data);
         return response.data;
     } catch (error) {

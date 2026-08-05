@@ -1,5 +1,6 @@
 package com.healtify.healtify.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -98,10 +99,14 @@ public class UserAccount implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
     }
 
+    // Hash hasla nigdy nie moze wyjsc w JSON-ie (endpointy /api/data/user i /api/data/settings
+    // zwracaja cala encje) - Jackson pomija to pole przy serializacji.
+    @JsonIgnore
     public String getPassword() {
         return password;
     }

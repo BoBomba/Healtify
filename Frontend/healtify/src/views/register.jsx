@@ -19,6 +19,13 @@ function Register() {
         validateRegisterData(username, email, password, confirmPassword);
     };
 
+    const handleReset = () => {
+        setUsername('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+    };
+
     return (
         <div className="register">
             <div id="powrot">
@@ -27,7 +34,7 @@ function Register() {
             <div className="main-container" style={{ gap: 0 }}>
                 <h1>Rejestracja</h1>
 
-                <form method="POST" onSubmit={registerSubmit}>
+                <form method="POST" onSubmit={registerSubmit} onReset={handleReset}>
 
                     <div id="input">
                         <img src={User} alt="user" />

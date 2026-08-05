@@ -1,0 +1,376 @@
+/* ---------- Layout strony /calendar ---------- */
+
+.calendar-page {
+    width: 70%;
+    margin: 2em auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.calendar-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1em;
+}
+
+.calendar-nav-buttons {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+
+.calendar-nav-buttons h2 {
+    margin: 0;
+    min-width: 12em;
+    text-align: center;
+}
+
+.calendar-nav-buttons button {
+    background: #FFF;
+    border-radius: 50%;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    width: 2.5em;
+    height: 2.5em;
+    font-size: 1.2em;
+    padding: 0;
+}
+
+.calendar-toolbar-actions {
+    display: flex;
+    gap: 0.75em;
+}
+
+.calendar-legend {
+    display: flex;
+    gap: 1.5em;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    border-radius: 50%;
+    margin-right: 0.4em;
+}
+
+/* Kolory samopoczucia - używane i przez kropki legendy, i przez prostokąty wpisów. */
+.mood-low {
+    background-color: #FF2424;
+}
+
+.mood-mid {
+    background-color: #FF9F1C;
+}
+
+.mood-high {
+    background-color: #2EB872;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5em;
+    background: #FFF;
+    border-radius: 1.25rem;
+    box-shadow: 0px 10px 15px 5px rgba(0, 0, 0, 0.15);
+    padding: 1.5em;
+}
+
+.calendar-weekday {
+    text-align: center;
+    font-weight: 700;
+    color: #777;
+    padding-bottom: 0.5em;
+}
+
+.calendar-cell {
+    aspect-ratio: 1 / 1;
+    border: none;
+    background: #F7F7F7;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 0.4em;
+    cursor: pointer;
+    gap: 0.25em;
+    /* wpisy, które nie mieszczą się w kratce, są ucinane zamiast rozpychać siatkę */
+    overflow: hidden;
+}
+
+.calendar-cell:hover {
+    background: #EDEDED;
+}
+
+.calendar-cell.empty {
+    background: transparent;
+    cursor: default;
+}
+
+.calendar-cell.is-today {
+    box-shadow: inset 0 0 0 2px #FF2424;
+}
+
+.calendar-cell.is-selected {
+    background: #FFDCDC;
+}
+
+.calendar-day-number {
+    font-weight: 700;
+    font-size: 0.9em;
+    padding-left: 0.15em;
+}
+
+/* Lista wpisów w kratce dnia: zaokrąglone prostokąty z początkiem tytułu. */
+.calendar-day-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.day-entry-chip {
+    border-radius: 0.4rem;
+    padding: 0.15em 0.4em;
+    font-size: 0.7em;
+    line-height: 1.5;
+    color: #FFF;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+}
+
+.day-entry-more {
+    font-size: 0.65em;
+    color: #666;
+    padding-left: 0.3em;
+}
+
+.calendar-day-panel {
+    width: 100%;
+    align-items: stretch;
+    text-align: left;
+}
+
+.calendar-day-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.day-event-item {
+    border-top: 1px solid #EEE;
+    padding: 0.75em 0;
+}
+
+.day-event-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.day-event-time {
+    color: #777;
+    font-size: 0.85em;
+}
+
+/* ---------- Modal dodawania wpisu ---------- */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1em;
+}
+
+.modal-card {
+    background: #FFF;
+    border-radius: 1.25rem;
+    box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.35);
+    width: 30em;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5em 2em 2em;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.3em;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.2em 0.5em;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+    margin-top: 0.5em;
+}
+
+.modal-form input[type="text"],
+.modal-form input[type="date"],
+.modal-form input[type="time"],
+.modal-form textarea {
+    border-radius: 0.625rem;
+    background-color: #EEE;
+    border: none;
+    width: 100%;
+    padding: 0.6em;
+    font-family: inherit;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.field-label {
+    font-weight: 700;
+    font-size: 0.9em;
+    margin-top: 0.4em;
+}
+
+.field-row {
+    display: flex;
+    gap: 1em;
+}
+
+.field-row > div {
+    flex: 1;
+}
+
+.scale-picker {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.4em;
+}
+
+.scale-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #EEE;
+    border-radius: 0.625rem;
+    padding: 0.5em 0.2em;
+}
+
+.scale-btn.active {
+    background: #FF2424;
+    color: #FFF;
+}
+
+.scale-face {
+    font-size: 1.3em;
+}
+
+.scale-number {
+    font-size: 0.75em;
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+}
+
+.tag-chip {
+    background: #EEE;
+    border-radius: 999px;
+    padding: 0.4em 0.9em;
+    font-size: 0.85em;
+}
+
+.tag-chip.active {
+    background: #FF2424;
+    color: #FFF;
+}
+
+.custom-tag-input {
+    display: flex;
+    gap: 0.5em;
+}
+
+.custom-tag-input input {
+    flex: 1;
+    border-radius: 0.625rem;
+    background-color: #EEE;
+    border: none;
+    padding: 0.6em;
+}
+
+.custom-tag-input button {
+    background: #DDD;
+    border-radius: 0.625rem;
+    padding: 0.6em 1em;
+}
+
+.reminder-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.9em;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1em;
+    margin-top: 0.5em;
+}
+
+.modal-btn {
+    border-radius: 25px;
+    font-family: Lexend, sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 0.8em 1.4em;
+}
+
+.modal-btn.primary {
+    background: #FF2424;
+    color: #FFF;
+}
+
+.modal-btn.primary:hover {
+    background: #d72020;
+}
+
+.modal-btn.secondary {
+    background: #DDD;
+    color: #333;
+}
+
+.modal-btn.small {
+    padding: 0.5em 1em;
+    font-size: 0.85em;
+}

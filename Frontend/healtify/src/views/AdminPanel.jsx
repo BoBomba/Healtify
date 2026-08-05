@@ -29,9 +29,9 @@ function AdminPanel() {
 
     // Pobierz listę użytkowników z serwera
 
-    const token = localStorage.getItem('token');
-    console.log(token);
-    axios.get('http://localhost:8080/api/user/getall', { headers: { Authorization: token } }) 
+    axios.get('http://localhost:8080/api/user/getall', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
       .then(response => {
         console.log(response.data);
         setUsers(response.data);

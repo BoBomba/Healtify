@@ -2,7 +2,6 @@ package com.healtify.healtify.controller;
 
 import com.healtify.healtify.dto.UserDTO;
 import com.healtify.healtify.models.UserAccount;
-import com.healtify.healtify.security.service.JwtService;
 import com.healtify.healtify.security.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.security.Principal;
 
 import static com.healtify.healtify.dto.UserDTO.mapToUserDto;
 
@@ -18,17 +18,15 @@ import static com.healtify.healtify.dto.UserDTO.mapToUserDto;
 public class AdminController {
 
     private final UserService userService;
-    private final JwtService jwtService;
 
     @Autowired
-    public AdminController(UserService userService, JwtService jwtService) {
+    public AdminController(UserService userService) {
         this.userService = userService;
-        this.jwtService = jwtService;
     }
 
     @GetMapping("/getall")
-    public ResponseEntity<List<UserDTO>> getAllUsers(@RequestHeader("Authorization") String token) {
-        String username = jwtService.extractUsername(token.replace("Bearer ", ""));
+    public ResponseEntity<List<UserDTO>> getAllUsers(Principal principal) {
+        String username = principal.getName();
         UserAccount user = userService.findAccByUsername(username);
 
         // Sprawdź, czy użytkownik ma rolę Admin
@@ -41,8 +39,8 @@ public class AdminController {
     }
 
     @GetMapping("/checkadmin")
-    public ResponseEntity<Boolean> checkAdmin(@RequestHeader("Authorization") String token) {
-        String username = jwtService.extractUsername(token.replace("Bearer ", ""));
+    public ResponseEntity<Boolean> checkAdmin(Principal principal) {
+        String username = principal.getName();
         UserAccount userAccount = userService.findAccByUsername(username);
 
         boolean isAdmin = userAccount.getRoles().stream()
@@ -52,8 +50,8 @@ public class AdminController {
     }
 
     @GetMapping("/changeRole/{userId}")
-    public ResponseEntity<String> changeUserRole(@PathVariable Long userId, @RequestParam String role, @RequestHeader("Authorization") String token) {
-        String username = jwtService.extractUsername(token.replace("Bearer ", ""));
+    public ResponseEntity<String> changeUserRole(@PathVariable Long userId, @RequestParam String role, Principal principal) {
+        String username = principal.getName();
         UserAccount user = userService.findAccByUsername(username);
 
         // Sprawdź, czy użytkownik ma rolę Admin

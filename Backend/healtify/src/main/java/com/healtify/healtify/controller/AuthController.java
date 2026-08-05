@@ -8,8 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,7 +46,10 @@ public class AuthController {
             return new ResponseEntity<>("Access denied", HttpStatus.FORBIDDEN);
         } 
         catch (LockedException e) {
-        return new ResponseEntity<>("User account is locked", HttpStatus.UNAUTHORIZED); 
+        return new ResponseEntity<>("User account is locked", HttpStatus.UNAUTHORIZED);
+        }
+        catch (BadCredentialsException e) {
+            return new ResponseEntity<>("Invalid email or password", HttpStatus.UNAUTHORIZED);
         }
         catch (Exception e) {
             e.printStackTrace(); // log the exception
@@ -54,9 +59,10 @@ public class AuthController {
 
     @PostMapping("/validate")
     public ResponseEntity<?> validateToken(
-            @RequestParam String token
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
         try {
+            String token = authorization.replaceFirst("^Bearer\\s+", "");
             return ResponseEntity.ok(service.validateToken(token));
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);

@@ -14,9 +14,13 @@ function Nav() {
     const username = localStorage.getItem('username');
     useEffect(() => {
         async function checkCondition() {
-            const adminStatus = await checkAdminStatus();
-            setIsAdmin(adminStatus);
-            console.log("Admin status:", adminStatus);
+            try {
+                const adminStatus = await checkAdminStatus();
+                setIsAdmin(adminStatus);
+                console.log("Admin status:", adminStatus);
+            } catch (error) {
+                setIsAdmin(false);
+            }
         }
         checkCondition();
     }, []);
@@ -37,6 +41,7 @@ function Nav() {
                 {username}
                 </p>
                 <Link to="/dashboard">Dashboard</Link>
+                <Link to="/calendar">Kalendarz</Link>
                 <Link to="/data">Przeglądaj Dane</Link>
                 <Link to="/sharing">Udostepnianie</Link>
                 <Link to="/Settings">Ustawienia</Link>
