@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 
 import Main from './views/App';
@@ -7,22 +7,16 @@ import Test from './views/test';
 import Err404 from './views/NotFoundPage';
 import Login from './views/login';
 import Register from './views/register';
+import ForgotPassword from './views/ForgotPassword';
 import Dashboard from './views/dashboard';
 import Data from './views/data';
 import Sharing from './views/sharing';
 import Settings from './views/settings';
 import Logout from './utils/logout';
 import GeneralData from './views/dataFolder/generalData';
-import HeartData from './views/dataFolder/heartData';
-import SymptomsData from './views/dataFolder/symptomsData';
-import CalendarData from './views/dataFolder/calendarData';
-import MoodData from './views/dataFolder/moodData';
-import SleepData from './views/dataFolder/sleepData';
-import MedicationsData from './views/dataFolder/medicationsData';
-import HistoryData from './views/dataFolder/historyData';
-import FoodData from './views/dataFolder/foodData';
-import ActivityData from './views/dataFolder/activityData';
+import JournalData from './views/dataFolder/journalData';
 import AdminPanel from './views/AdminPanel';
+import CalendarPage from './views/Calendar';
 
 
 import './index.css';
@@ -52,6 +46,10 @@ const router = createBrowserRouter([
     element: <Login />,
   },
   {
+    path: '/forgotpasswd',
+    element: <ForgotPassword />,
+  },
+  {
     path: '/logout',
     element: <Logout />,
   },
@@ -72,40 +70,12 @@ const router = createBrowserRouter([
     element: <GeneralData />,
   },
   {
-    path: '/data/heart',
-    element: <HeartData />,
+    path: '/data/journal',
+    element: <JournalData />,
   },
   {
-    path: '/data/symptoms',
-    element: <SymptomsData />,
-  },
-  {
-    path: '/data/calendar',
-    element: <CalendarData />,
-  },
-  {
-    path: '/data/mood',
-    element: <MoodData />,
-  },
-  {
-    path: '/data/sleep',
-    element: <SleepData />,
-  },
-  {
-    path: '/data/medications',
-    element: <MedicationsData />,
-  },
-  {
-    path: '/data/history',
-    element: <HistoryData />,
-  },
-  {
-    path: '/data/food',
-    element: <FoodData />,
-  },
-  {
-    path: '/data/activity',
-    element: <ActivityData />,
+    path: '/calendar',
+    element: <CalendarPage />,
   },
   {
     path: '/sharing',
@@ -121,7 +91,7 @@ const router = createBrowserRouter([
   },
   {
     path: '*',
-    redirectTo: '/404',
+    element: <Navigate to="/404" replace />,
   }
 ]);
 

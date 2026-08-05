@@ -1,6 +1,7 @@
 package com.healtify.healtify.security.service;
 
 import com.healtify.healtify.dto.UserDTO;
+import com.healtify.healtify.models.Role;
 import com.healtify.healtify.models.UserAccount;
 import com.healtify.healtify.repository.UserAccountRepository;
 import com.healtify.healtify.security.token.TokenRepository;
@@ -25,7 +26,8 @@ public class UserService {
     public UserService(
             UserAccountRepository userRepository,
             TokenRepository tokenRepository,
-            UserAccountRepository userAccountRepository) {
+            UserAccountRepository userAccountRepository
+        ) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.userAccountRepository = userAccountRepository;
@@ -34,6 +36,29 @@ public class UserService {
 
     public Boolean UserExists(String username) {
         return userRepository.existsByUsername(username);
+    }
+
+    public UserAccount changeUserRole(UserAccount user, String role) {
+        // Sprawdź czy rola istnieje w RoleEnum
+        boolean isValidRole = false;
+        for (RoleEnum r : RoleEnum.values()) {
+            if (r.name().equals(role)) {
+                isValidRole = true;
+                break;
+            }
+        }
+        if (!isValidRole) {
+            throw new RuntimeException("Nieprawidłowa rola: " + role);
+        }
+
+        if (user.getRoles().stream().anyMatch(r -> r.getName().equals(role))) {
+            throw new RuntimeException("User already has this role");
+        } else {
+            Role newRole = new Role();
+            newRole.setName(role);
+            user.getRoles().add(newRole);
+            return userRepository.save(user);
+        }
     }
 
 

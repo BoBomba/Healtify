@@ -8,7 +8,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 
+// public interface SettingsRepository extends JpaRepository<UserAccount, Long>
+// {
+//     Optional<UserAccount> findByEmail(String email);    
+//     Optional<UserAccount> findByUserAccount(UserAccount userAccount);
+// }
+
 public interface SettingsRepository extends JpaRepository<UserAccount, Long>
 {
-//    Optional<UserAccount> findByUserAccount(UserAccount userAccount);
+    Optional<UserAccount> findByEmail(String email);
 }

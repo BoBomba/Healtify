@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { validateToken } from '../service/authService';
-import { GetGeneralData } from '../service/dataService';
+import { GetUserData } from '../service/dataService';
 import * as UserService from '../service/userService';
 import Nav from '../Components/Nav';
 import Avatar from '../images/Avatar.png';
@@ -18,11 +18,17 @@ function Settings() {
 
   useEffect(() => {
     validateToken();
-    GetGeneralData().then(fetchedData => {
+    GetUserData().then(fetchedData => {
       console.log(fetchedData);
-      setData(fetchedData);
-      setUsername(fetchedData.userAccount.username);
-      setEmail(fetchedData.userAccount.email);
+      if (fetchedData && fetchedData.username && fetchedData.email) {
+        setData(fetchedData);
+        setUsername(fetchedData.username);
+        setEmail(fetchedData.email);
+      } else {
+        setData(null);
+        setUsername("");
+        setEmail("");
+      }
     });
   }, []);
 

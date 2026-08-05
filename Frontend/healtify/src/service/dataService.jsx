@@ -2,109 +2,70 @@ import axios from "axios";
 
 const API_URL = 'http://localhost:8080/api/data';
 
-export const GetGeneralData = async () => {
-    const token = localStorage.getItem('token')
-
-    const response = await axios.get(`${API_URL}/general?token=${token}`);
-        console.log(response);
-        console.log(response.data);
-        const data = response.data;
-    return data;
-}
-
-export const GetHeartData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/data/heart?token=${token}`, { 
+const authConfig = () => ({
+    headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+    }
 });
-    return response.data;
+
+export const GetGeneralData = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/general`, authConfig());
+        return response.data;
+    } catch (error) {
+        if (error.response && error.response.status === 204) {
+            console.log("Brak danych dla użytkownika");
+            return "Brak danych";
+        }
+        throw error;
+    }
 }
 
-export const GetSymptomsData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/data/symptoms?token=${token}`, { 
-        });
-    return response.data;
+export const GetUserData = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/user`, authConfig());
+        return response.data;
+    } catch (error) {
+        if (error.response && error.response.status === 204) {
+            console.log("Brak danych dla użytkownika");
+            return "Brak danych";
+        }
+        throw error;
+    }
 }
 
-export const GetCalendarData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/data/calendar?token=${token}`, { 
-        });
-    return response.data;
+// Wpisy dziennika zalogowanego pacjenta - backend zawsze filtruje po użytkowniku z tokenu,
+// więc nie ma tu (i nie może być) żadnego parametru z id użytkownika.
+export const GetJournalEntries = async () => {
+    const response = await axios.get(`${API_URL}/journal`, authConfig());
+    return Array.isArray(response.data) ? response.data : [];
 }
 
-
-export const GetMoodData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/data/mood?token=${token}`, { 
-        });
-    return response.data;
-}
-
-
-export const GetSleepData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/data/sleep?token=${token}`, { 
-        });
-    return response.data;
-}
-
-
-export const GetMedicationsData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/data/medications?token=${token}`, { 
-        });
-    return response.data;
-}
-
-
-export const GetHistoryData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/data/history?token=${token}`, { 
-        });
-    return response.data;
-}
-
-
-export const GetFoodData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/data/food?token=${token}`, { 
-       });
-    return response.data;
-}
-
-
-export const GetActivityData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/data/activity?token=${token}`, { 
-       });
+export const AddJournalEntry = async (entry) => {
+    const response = await axios.post(`${API_URL}/journal`, entry, authConfig());
     return response.data;
 }
 
 export const GetSharingData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/sharing?token=${token}`, { 
-        });
-    return response.data;
+    try {
+        const response = await axios.get(`${API_URL}/sharing`, authConfig());
+        return response.data;
+    } catch (error) {
+        if (error.response && error.response.status === 204) {
+            return "Brak danych";
+        }
+        throw error;
+    }
 }
-
 
 export const GetSettingsData = async () => {
-    const token = localStorage.getItem('token');
-
-    let response = await axios.get(`http://localhost:8080/api/settings?token=${token}`, { 
-        });
-    return response.data;
+    try {
+        const response = await axios.get(`${API_URL}/settings`, authConfig());
+        return response.data;
+    } catch (error) {
+        if (error.response && error.response.status === 204) {
+            return "Brak danych";
+        }
+        throw error;
+    }
 }
-
-
