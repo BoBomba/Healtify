@@ -3,6 +3,7 @@ package com.healtify.healtify.security.service;
 import com.healtify.healtify.dto.UserDTO;
 import com.healtify.healtify.models.Role;
 import com.healtify.healtify.models.UserAccount;
+import com.healtify.healtify.repository.RoleRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
 import com.healtify.healtify.security.token.TokenRepository;
 import com.healtify.healtify.mapper.UserMapper;
@@ -21,16 +22,19 @@ public class UserService {
     private final UserAccountRepository userRepository;
     private final TokenRepository tokenRepository;
     private final UserAccountRepository userAccountRepository;
+    private final RoleRepository roleRepository;
 
     @Autowired
     public UserService(
             UserAccountRepository userRepository,
             TokenRepository tokenRepository,
-            UserAccountRepository userAccountRepository
+            UserAccountRepository userAccountRepository,
+            RoleRepository roleRepository
         ) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.userAccountRepository = userAccountRepository;
+        this.roleRepository = roleRepository;
     }
 
 
@@ -38,8 +42,13 @@ public class UserService {
         return userRepository.existsByUsername(username);
     }
 
+    /**
+     * Dodaje role wskazanemu uzytkownikowi.
+     *
+     * Rola musi byc pobrana z tabeli roles (a nie tworzona na nowo przy kazdym nadaniu) -
+     * inaczej powstawaly duplikaty wierszy w roles i zapis konczyl sie bledem na unique(name).
+     */
     public UserAccount changeUserRole(UserAccount user, String role) {
-        // Sprawdź czy rola istnieje w RoleEnum
         boolean isValidRole = false;
         for (RoleEnum r : RoleEnum.values()) {
             if (r.name().equals(role)) {
@@ -48,17 +57,22 @@ public class UserService {
             }
         }
         if (!isValidRole) {
-            throw new RuntimeException("Nieprawidłowa rola: " + role);
+            throw new IllegalArgumentException("Nieprawidłowa rola: " + role);
         }
 
-        if (user.getRoles().stream().anyMatch(r -> r.getName().equals(role))) {
-            throw new RuntimeException("User already has this role");
-        } else {
-            Role newRole = new Role();
-            newRole.setName(role);
-            user.getRoles().add(newRole);
-            return userRepository.save(user);
+        if (user.getRoles().stream().anyMatch(r -> role.equals(r.getName()))) {
+            throw new IllegalStateException("Użytkownik ma już tę rolę");
         }
+
+        Role existingRole = roleRepository.findByName(role)
+                .orElseGet(() -> {
+                    Role created = new Role();
+                    created.setName(role);
+                    return roleRepository.save(created);
+                });
+
+        user.getRoles().add(existingRole);
+        return userRepository.save(user);
     }
 
 

@@ -1,7 +1,23 @@
 import axios from "axios";
+import { getCurrentUser } from "./userService";
 // import { useNavigate } from "react-router-dom";
 
 //TODO Zmienić window.location.href na useNavigate
+
+/**
+ * Dokąd trafia użytkownik zaraz po zalogowaniu. Gdyby zapytanie o role padło,
+ * lądujemy na panelu pacjenta - to bezpieczniejszy wybór niż wpuszczanie kogoś
+ * na /doctor/* na podstawie zgadywania.
+ */
+const landingPageForCurrentUser = async () => {
+    try {
+        const user = await getCurrentUser();
+        return user.doctor === true ? "/doctor/dashboard" : "/dashboard";
+    } catch (error) {
+        console.log(error);
+        return "/dashboard";
+    }
+};
 
 export const registerService = async (username, email, password) => {
     const data = {
@@ -39,7 +55,7 @@ export const loginService = async (email, password) => {
 
 
     await axios.post("http://localhost:8080/api/auth/authenticate", data)
-        .then((response) => {
+        .then(async (response) => {
             if (response.data) {
                 // console.log(response);
                 console.log("User logged in successfully");
@@ -52,7 +68,9 @@ export const loginService = async (email, password) => {
                 // saving token in local storage
                 localStorage.setItem('token', token);
 
-                window.location.href = "/dashboard";
+                // Lekarz ma własny panel (/doctor/*) - o roli decyduje backend,
+                // a nie cokolwiek, co dałoby się podmienić w localStorage.
+                window.location.href = await landingPageForCurrentUser();
             } else {
                 alert("Invalid password");
             }

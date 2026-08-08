@@ -24,6 +24,15 @@ export const getUser = async (token) => {
     return response.data;
 };
 
+/**
+ * dane uzytkownika z rolami i gotowymi flagami admin/doctor.
+ * Na tej podstawie Nav dobiera linki, a logowanie decyduje gdzie przekierować.
+ */
+export const getCurrentUser = async (token) => {
+    const response = await axios.get(`${API_URL}/me`, authConfig(token));
+    return response.data;
+};
+
 export const updateUsername = async (username) => {
     const token = localStorage.getItem('token');
     console.log({username});

@@ -71,6 +71,12 @@
     background-color: #2EB872;
 }
 
+/* Wizyty są zawsze niebieskie - żeby na pierwszy rzut oka odróżnić je od wpisów
+   z dziennika (te są kolorowane samopoczuciem). */
+.appointment {
+    background-color: #2D6CDF;
+}
+
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -242,6 +248,7 @@
 .modal-form input[type="text"],
 .modal-form input[type="date"],
 .modal-form input[type="time"],
+.modal-form select,
 .modal-form textarea {
     border-radius: 0.625rem;
     background-color: #EEE;

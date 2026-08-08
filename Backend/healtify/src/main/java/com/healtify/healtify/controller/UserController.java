@@ -2,6 +2,7 @@ package com.healtify.healtify.controller;
 
 import com.healtify.healtify.dto.ChangeEmailRequest;
 import com.healtify.healtify.dto.ChangeUsernameRequest;
+import com.healtify.healtify.dto.CurrentUserResponse;
 import com.healtify.healtify.dto.UserDTO;
 import com.healtify.healtify.models.UserAccount;
 import com.healtify.healtify.repository.UserAccountRepository;
@@ -128,6 +129,16 @@ public class UserController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    /**
+     * Tozsamosc zalogowanego uzytkownika razem z rolami. Front woła to zaraz po
+     * zalogowaniu, zeby wiedziec czy kierowac na panel pacjenta czy lekarza.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<CurrentUserResponse> getCurrentUser(Principal principal) {
+        UserAccount userAccount = userService.findAccByUsername(principal.getName());
+        return ResponseEntity.ok(CurrentUserResponse.from(userAccount));
     }
 
     @GetMapping("/checkadmin")

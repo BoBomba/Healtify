@@ -1,12 +1,14 @@
 package com.healtify.healtify.controller;
 import com.healtify.healtify.models.*;
 
+import com.healtify.healtify.dto.SharingResponse;
 import com.healtify.healtify.repository.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.security.Principal;
 
@@ -65,19 +67,22 @@ public class basicDataController {
         }
     }
 
+    /**
+     * Podglad powiazan pacjenta z lekarzami. Pacjent moze miec ich wielu, wiec zwracamy liste
+     * (operacje na zaproszeniach maja wlasny kontroler - /api/sharing).
+     */
     @GetMapping("/sharing")
     public ResponseEntity<?> getSharing(Principal principal) {
         String username = principal.getName();
         UserAccount userAccount = userAccountRepository.findByUsername(username).orElse(null);
 
         if (userAccount != null && username.equals(userAccount.getUsername())){
-            Optional<DataSharing> dataSharingOpt = sharingRepository.findByUserAccount(userAccount);
-            if (dataSharingOpt.isPresent()) {
-                return ResponseEntity.ok(dataSharingOpt.get());
-            } else {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                        .body("Brak danych: " + username);
-            }
+            List<SharingResponse> sharings = sharingRepository
+                    .findByUserAccountOrderByRequestSentDateDesc(userAccount)
+                    .stream()
+                    .map(SharingResponse::from)
+                    .toList();
+            return ResponseEntity.ok(sharings);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Brak autoryzacji");
         }

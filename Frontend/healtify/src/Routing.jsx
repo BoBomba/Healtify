@@ -17,6 +17,10 @@ import GeneralData from './views/dataFolder/generalData';
 import JournalData from './views/dataFolder/journalData';
 import AdminPanel from './views/AdminPanel';
 import CalendarPage from './views/Calendar';
+import DoctorDashboard from './views/doctor/DoctorDashboard';
+import DoctorCalendar from './views/doctor/DoctorCalendar';
+import DoctorData from './views/doctor/DoctorData';
+import DoctorSharing from './views/doctor/DoctorSharing';
 
 
 import './index.css';
@@ -88,6 +92,29 @@ const router = createBrowserRouter([
   {
     path: '/admin',
     element: <AdminPanel />,
+  },
+  // Panel lekarza. Osobne ścieżki zamiast wariantów widoków pacjenta - lekarz nie ma
+  // dziennika ani danych ogólnych, więc te strony nie mają ze sobą prawie nic wspólnego.
+  // Dostępu pilnuje backend (rola ROLE_DOCTOR), front tylko nie pokazuje linków.
+  {
+    path: '/doctor',
+    element: <Navigate to="/doctor/dashboard" replace />,
+  },
+  {
+    path: '/doctor/dashboard',
+    element: <DoctorDashboard />,
+  },
+  {
+    path: '/doctor/calendar',
+    element: <DoctorCalendar />,
+  },
+  {
+    path: '/doctor/data',
+    element: <DoctorData />,
+  },
+  {
+    path: '/doctor/sharing',
+    element: <DoctorSharing />,
   },
   {
     path: '*',
