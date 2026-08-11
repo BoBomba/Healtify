@@ -248,6 +248,7 @@
 .modal-form input[type="text"],
 .modal-form input[type="date"],
 .modal-form input[type="time"],
+.modal-form input[type="password"],
 .modal-form select,
 .modal-form textarea {
     border-radius: 0.625rem;
@@ -380,4 +381,44 @@
 .modal-btn.small {
     padding: 0.5em 1em;
     font-size: 0.85em;
+}
+
+/* Akcje nieodwracalne (kasowanie konta). Ciemniejsza czerwien niz .primary,
+   zeby nie wygladalo jak zwykly przycisk akcji. */
+.modal-btn.danger {
+    background: #8B0000;
+    color: #FFF;
+}
+
+.modal-btn.danger:hover:enabled {
+    background: #6D0000;
+}
+
+.modal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.modal-warning {
+    background: #FDF0F0;
+    border-radius: 0.625rem;
+    color: #444;
+    font-size: 0.9em;
+    line-height: 1.5;
+    margin: 0.5em 0 0;
+    padding: 0.9em 1em;
+}
+
+/* Pole hasla z ikona klodki - jak #input na stronach logowania, ale w stylu modala. */
+.modal-password {
+    display: flex;
+    align-items: center;
+    background: #EEE;
+    border-radius: 0.625rem;
+    padding: 0 0.6em;
+}
+
+.modal-password input[type="password"] {
+    background: none;
+    padding-left: 0.5em;
 }

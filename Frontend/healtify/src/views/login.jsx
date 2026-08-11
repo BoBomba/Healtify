@@ -9,14 +9,20 @@ import {validateLoginData} from "../utils/validateAuthData";
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    console.log(email, password);
+    // Komunikat zostawiony przez stronę, z której tu trafiliśmy - wylogowanie albo
+    // usunięcie konta. Czytany raz i od razu kasowany by nie został na kolejne wejście na stronę.
+    const [notice] = useState(() => {
+        const message = sessionStorage.getItem('authNotice');
+        sessionStorage.removeItem('authNotice');
+        return message;
+    });
+    //console.log(email, password);
 
-    //remove unnecessary token
     localStorage.removeItem('token');
 
     const loginSubmit = (event) => {
         event.preventDefault();
-        console.log("Wysyłanie danych do validatora logowania...");
+        console.log("Wysyłanie danych do logowania...");
         validateLoginData(email, password);
     };
 
@@ -32,6 +38,7 @@ function Login() {
             </div>
             <div className="main-container">
                 <h1>Login</h1>
+                {notice && <div id="notice">{notice}</div>}
                 <form action="/login" onSubmit={loginSubmit} onReset={handleReset}>
                     <div id="input">
                         <img src={User} alt="user" />
@@ -42,10 +49,7 @@ function Login() {
                         <input type="password" name="password" placeholder="Wprowadź hasło" value={password} onChange={e => setPassword(e.target.value)}/>
                     </div>
                     <div id="messages">
-                        {/* {messages &&
-                            messages.map((message, index) => (
-                                <span key={index}>{message}</span>
-                            ))} */}
+                        // TODO: komunikaty o błędach walidacji.
                     </div>
                     <button id="logreg" type="submit">Zaloguj się</button>
                     <button id="logreg" type="reset">reset</button>

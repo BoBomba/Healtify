@@ -8,8 +8,7 @@ const authConfig = () => ({
     }
 });
 
-// Backend filtruje wszystko po lekarzu z tokenu, więc żaden z tych wywołań
-// nie przyjmuje (i nie może przyjmować) id lekarza.
+// Backend filtruje wszystko po lekarzu z tokenu, więc nie ma id lekarza.
 
 export const GetDoctorProfile = async () => {
     const response = await axios.get(`${API_URL}/me`, authConfig());
@@ -38,6 +37,14 @@ export const SearchPatients = async (query) => {
 export const InvitePatient = async (patientId) => {
     const response = await axios.post(`${API_URL}/patients/${patientId}/invite`, {}, authConfig());
     return response.data;
+}
+
+/**
+ * Zakończenie opieki nad pacjentem. Lekarz traci dostęp do jego danych, a umówione
+ * wizyty tej pary znikają - terminy wracają do kalendarza. Da się odnowić zaproszeniem.
+ */
+export const RemovePatient = async (patientId) => {
+    await axios.delete(`${API_URL}/patients/${patientId}`, authConfig());
 }
 
 export const AcceptRequest = async (sharingId) => {

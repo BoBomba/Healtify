@@ -9,4 +9,7 @@ import java.util.Optional;
 public interface UserProfileRepository extends JpaRepository<UserProfile, Long> {
     Optional<UserProfile> findByUserAccount(UserAccount userAccount);
     Optional<UserAccount> findAllByUserAccount(UserAccount userAccount);
+
+    /** Kasowanie konta (patrz AccountDeletionService). */
+    void deleteByUserAccount(UserAccount userAccount);
 }

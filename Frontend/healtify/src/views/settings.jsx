@@ -3,6 +3,7 @@ import { validateToken } from '../service/authService';
 import { GetUserData } from '../service/dataService';
 import * as UserService from '../service/userService';
 import Nav from '../Components/Nav';
+import DeleteAccountModal from '../Components/DeleteAccountModal';
 import Avatar from '../images/Avatar.png';
 import User from '../images/user.svg';
 import Lock from '../images/lock.svg';
@@ -15,6 +16,7 @@ function Settings() {
   const [email, setEmail] = useState("");
   const [Password, setPassword] = useState("");
   const [NewPassword, setNewPassword] = useState('');
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     validateToken();
@@ -52,6 +54,17 @@ function Settings() {
     console.log(Password);
     console.log(NewPassword);
     await UserService.updatePassword(Password, NewPassword);
+  }
+
+  /**
+   * Potwierdzenie zostawiamy w sessionStorage pod tym samym kluczem co wylogowanie - 
+   * strona logowania pokaże je po przeładowaniu.
+   */
+  const handleDeleted = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    sessionStorage.setItem('authNotice', 'Konto zostało usunięte razem ze wszystkimi danymi.');
+    window.location.href = '/login';
   }
 
   return (
@@ -93,8 +106,35 @@ function Settings() {
               </form>
             </div>
           </div>
+
+          <div className="block-row">
+            <div className="datablock danger-zone">
+              <h3>Usuwanie konta</h3>
+              <p>
+                Usunięcie konta kasuje wszystkie Twoje dane: wpisy w dzienniku, umówione
+                wizyty (terminy u lekarzy się zwolnią), powiązania z lekarzami i dane profilu.
+                Tej operacji nie da się cofnąć.
+              </p>
+                /* Hasło pytamy dopiero w modalu */
+              <button
+                type="button"
+                className="danger-btn"
+                onClick={() => setDeleteOpen(true)}
+                disabled={username === ''}
+              >
+                Usuń konto
+              </button>
+            </div>
+          </div>
         </div>
       </main>
+
+      <DeleteAccountModal
+        isOpen={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={handleDeleted}
+        username={username}
+      />
     </div>
   );
 }

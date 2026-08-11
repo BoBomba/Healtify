@@ -32,4 +32,12 @@ public interface SharingRepository extends JpaRepository<DataSharing, Long> {
 
     boolean existsByUserAccountAndDoctorAndRequestStatus(
             UserAccount userAccount, Doctor doctor, SharingStatus requestStatus);
+
+    // --- kasowanie konta (patrz AccountDeletionService) ---
+
+    /** Powiazania, w ktorych kasowane konto wystepuje jako pacjent. */
+    void deleteByUserAccount(UserAccount userAccount);
+
+    /** Powiazania, w ktorych kasowane konto wystepuje jako lekarz. */
+    void deleteByDoctor(Doctor doctor);
 }

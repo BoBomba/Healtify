@@ -15,4 +15,7 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
     List<JournalEntry> findByUserAccountOrderByEntryAtAsc(UserAccount userAccount);
 
     long countByUserAccount(UserAccount userAccount);
+
+    /** Kasowanie konta - dziennik jest danymi wrazliwymi, wiec znika razem z kontem. */
+    void deleteByUserAccount(UserAccount userAccount);
 }

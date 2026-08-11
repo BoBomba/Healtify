@@ -21,6 +21,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -181,6 +182,34 @@ public class DoctorController {
         sharing.setRequestStatus(SharingStatus.REJECTED);
         sharing.setRequestAcceptedDate(null);
         return ResponseEntity.ok(SharingResponse.from(sharingRepository.save(sharing)));
+    }
+
+    /**
+     * Zakonczenie opieki nad pacjentem - odpowiednik rezygnacji po stronie pacjenta
+     * (DELETE /api/sharing/doctors/{doctorId}). Lekarz traci dostep do danych pacjenta,
+     * a umowione wizyty tej pary znikaja, wiec terminy wracaja do jego kalendarza.
+     *
+     * Powiazanie zostaje jako REJECTED (a nie kasujemy wiersza), aby obie strony
+     * mogly je pozniej odnowic zaproszeniem.
+     */
+    @Transactional
+    @DeleteMapping("/patients/{patientId}")
+    public ResponseEntity<Void> removePatient(@PathVariable Long patientId, Principal principal) {
+        Doctor doctor = currentDoctor(principal);
+        UserAccount patient = userAccountRepository.findById(patientId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiego pacjenta"));
+
+        DataSharing sharing = sharingRepository.findByUserAccountAndDoctor(patient, doctor)
+                .filter(s -> s.getRequestStatus() == SharingStatus.ACCEPTED)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Ten pacjent nie jest przypisany do lekarza"));
+
+        appointmentRepository.deleteAll(appointmentRepository.findByPatientAndDoctor(patient, doctor));
+
+        sharing.setRequestStatus(SharingStatus.REJECTED);
+        sharing.setRequestAcceptedDate(null);
+        sharingRepository.save(sharing);
+        return ResponseEntity.noContent().build();
     }
 
     // --- wizyty ---

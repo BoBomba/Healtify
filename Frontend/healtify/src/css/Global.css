@@ -110,6 +110,18 @@ button {
   color: red;
 }
 
+/* Potwierdzenie akcji wykonanej na poprzedniej stronie, nie na czerwono */
+#notice {
+  background: #EEE;
+  border-radius: 0.625rem;
+  color: #333;
+  font-size: 0.9em;
+  margin-bottom: 1em;
+  max-width: 15em;
+  padding: 0.8em 1em;
+  text-align: center;
+}
+
 #lock {
   padding-left: 5px;
   padding-right: 5px;

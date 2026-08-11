@@ -8,11 +8,13 @@ import com.healtify.healtify.models.Doctor;
 import com.healtify.healtify.models.SharingInitiator;
 import com.healtify.healtify.models.SharingStatus;
 import com.healtify.healtify.models.UserAccount;
+import com.healtify.healtify.repository.AppointmentRepository;
 import com.healtify.healtify.repository.DoctorRepository;
 import com.healtify.healtify.repository.SharingRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,8 +28,7 @@ import java.util.List;
  * w /api/doctor. Pacjent decyduje, kto ma dostep do jego danych: sam prosi lekarza
  * o opieke albo akceptuje/odrzuca zaproszenie, ktore dostal.
  *
- * Wszystko dziala w kontekscie uzytkownika z tokenu - nie ma tu zadnego parametru
- * pozwalajacego dzialac "za kogos".
+ * Wszystko dziala w kontekscie uzytkownika z tokenu - nie ma tu zadnego "za kogos".
  */
 @RestController
 @RequestMapping("/api/sharing")
@@ -38,15 +39,18 @@ public class SharingController {
     private final DoctorRepository doctorRepository;
     private final SharingRepository sharingRepository;
     private final UserAccountRepository userAccountRepository;
+    private final AppointmentRepository appointmentRepository;
 
     public SharingController(
             DoctorRepository doctorRepository,
             SharingRepository sharingRepository,
-            UserAccountRepository userAccountRepository
+            UserAccountRepository userAccountRepository,
+            AppointmentRepository appointmentRepository
     ) {
         this.doctorRepository = doctorRepository;
         this.sharingRepository = sharingRepository;
         this.userAccountRepository = userAccountRepository;
+        this.appointmentRepository = appointmentRepository;
     }
 
     /** Lekarze, ktorzy maja dostep do danych pacjenta. */
@@ -141,7 +145,14 @@ public class SharingController {
         return ResponseEntity.ok(SharingResponse.from(sharingRepository.save(sharing)));
     }
 
-    /** Cofniecie zgody - pacjent w kazdej chwili moze odciac lekarza od swoich danych. */
+    /**
+     * Cofniecie zgody - pacjent w kazdej chwili moze odciac lekarza od swoich danych.
+     *
+     * Razem z dostepem znikaja wizyty umowione u tego lekarza: pacjent, ktory rezygnuje
+     * z opieki, nie ma po co blokowac jego terminow, a lekarz nie moze trzymac wizyty
+     * pacjenta, ktorego danych juz nie widzi. Zwolnione godziny wracaja do jego kalendarza.
+     */
+    @Transactional
     @DeleteMapping("/doctors/{doctorId}")
     public ResponseEntity<Void> revokeAccess(@PathVariable Long doctorId, Principal principal) {
         UserAccount user = currentUser(principal);
@@ -150,6 +161,8 @@ public class SharingController {
 
         DataSharing sharing = sharingRepository.findByUserAccountAndDoctor(user, doctor)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ten lekarz nie ma dostepu"));
+
+        appointmentRepository.deleteAll(appointmentRepository.findByPatientAndDoctor(user, doctor));
 
         sharing.setRequestStatus(SharingStatus.REJECTED);
         sharing.setRequestAcceptedDate(null);

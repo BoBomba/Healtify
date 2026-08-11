@@ -7,7 +7,7 @@ import { useState } from 'react';
 import Nav from '../Components/Nav';
 import { useEffect } from 'react';
 import { validateToken } from '../service/authService';
-import { checkAdminStatus, getUsersWithRoles, grantDoctorRole } from '../service/adminService';
+import { checkAdminStatus, deleteUserAccount, getUsersWithRoles, grantDoctorRole } from '../service/adminService';
 
 function AdminPanel() {
 
@@ -70,6 +70,30 @@ function AdminPanel() {
     }
   };
 
+  const handleDelete = async (user) => {
+    
+    const confirmed = window.confirm(
+      `Usunąć konto ${user.username} (${user.email})?\n\n` +
+      'Znikną razem z nim: wpisy w dzienniku, wizyty (także te umówione jako lekarz), ' +
+      'powiązania z lekarzami i pacjentami oraz profil lekarza.\n\n' +
+      'Tej operacji nie da się cofnąć.'
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteUserAccount(user.userId);
+      setMessage(`Konto ${user.username} zostało usunięte.`);
+      // Formularz nadania roli mógł być otwarty właśnie dla tego konta.
+      if (grantingFor === user.userId) {
+        setGrantingFor(null);
+      }
+      loadUsers();
+    } catch (error) {
+      console.log(error);
+      setMessage(error.response?.data?.message || 'Nie udało się usunąć konta.');
+    }
+  };
+
   return (
     <div className="dashboard">
       <Nav />
@@ -92,17 +116,26 @@ function AdminPanel() {
                         {user.email} - {user.roles.join(', ')}
                       </span>
                     </div>
-                    {isDoctor ? (
-                      <span className="doctor-badge">Lekarz</span>
-                    ) : (
+                    <div className="doctor-list-actions">
+                      {isDoctor ? (
+                        <span className="doctor-badge">Lekarz</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="modal-btn primary small"
+                          onClick={() => openGrantForm(user)}
+                        >
+                          Nadaj rolę lekarza
+                        </button>
+                      )}
                       <button
                         type="button"
-                        className="modal-btn primary small"
-                        onClick={() => openGrantForm(user)}
+                        className="modal-btn danger small"
+                        onClick={() => handleDelete(user)}
                       >
-                        Nadaj rolę lekarza
+                        Usuń konto
                       </button>
-                    )}
+                    </div>
                   </div>
                 );
               })}

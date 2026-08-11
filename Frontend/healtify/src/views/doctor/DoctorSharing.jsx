@@ -11,6 +11,7 @@ import {
     GetPendingRequests,
     InvitePatient,
     RejectRequest,
+    RemovePatient,
     SearchPatients,
 } from '../../service/doctorService';
 import { formatAppointmentDateTime } from '../../utils/appointmentUtils';
@@ -18,7 +19,7 @@ import { formatAppointmentDateTime } from '../../utils/appointmentUtils';
 // Backend i tak odsiewa krótsze frazy - tu tylko nie zawracamy mu głowy.
 const MIN_QUERY_LENGTH = 2;
 
-// Co pokazać zamiast przycisku "Zaproś" przy kimś, kto już jest w relacji z lekarzem.
+// To pokazać gdy już jest w relacji z lekarzem.
 const STATUS_LABELS = {
     ACCEPTED: 'Już Twój pacjent',
     PENDING: 'Zaproszenie w toku',
@@ -26,8 +27,8 @@ const STATUS_LABELS = {
 
 /**
  * Udostepnianie po stronie lekarza: wyszukiwarka nowych pacjentów, lista przypisanych
- * i - na dole, osobno - wiszące zaproszenia. Zaproszenie może wyjść z obu stron,
- * ale dostęp powstaje dopiero, gdy druga strona je zaakceptuje.
+ * i wiszące zaproszenia. Zaproszenie może wyjść z obu stron,
+ * ale dostęp tylko, gdy druga strona je zaakceptuje.
  */
 function DoctorSharing() {
     const { doctor } = useDoctorGuard();
@@ -77,8 +78,8 @@ function DoctorSharing() {
     const handleInvite = async (patient) => {
         try {
             await InvitePatient(patient.userId);
-            // Wynik wyszukiwania od razu odzwierciedla nowy stan, żeby nie dało się
-            // kliknąć "Zaproś" drugi raz zanim lista się odświeży.
+            // Wynik wyszukiwania od razu ma nowy stan, żeby nie dało się
+            // kliknąć "Zaproś" zanim lista się odświeży.
             setResults((prev) => prev.map((item) =>
                 item.userId === patient.userId
                     ? { ...item, status: 'PENDING', initiatedBy: 'DOCTOR' }
@@ -111,6 +112,28 @@ function DoctorSharing() {
         } catch (error) {
             console.log(error);
             setMessage('Nie udało się odrzucić prośby.');
+        }
+    };
+
+    const handleRemove = async (patient) => {
+
+        const confirmed = window.confirm(
+            `Zakończyć opiekę nad pacjentem ${patient.username}?\n\n` +
+            'Stracisz dostęp do jego danych, a umówione z nim wizyty zostaną odwołane - ' +
+            'te terminy zwolnią się w Twoim kalendarzu.'
+        );
+        if (!confirmed) return;
+
+        try {
+            await RemovePatient(patient.userId);
+            setMessage(`${patient.username} nie jest już Twoim pacjentem.`);
+            setResults((prev) => prev.map((item) =>
+                item.userId === patient.userId ? { ...item, status: 'REJECTED', initiatedBy: null } : item
+            ));
+            reload();
+        } catch (error) {
+            console.log(error);
+            setMessage(error.response?.data?.message || 'Nie udało się zakończyć opieki.');
         }
     };
 
@@ -173,6 +196,13 @@ function DoctorSharing() {
                                         <strong>{patient.username}</strong>
                                         <span className="doctor-list-sub">{patient.email}</span>
                                     </div>
+                                    <button
+                                        type="button"
+                                        className="modal-btn secondary small"
+                                        onClick={() => handleRemove(patient)}
+                                    >
+                                        Zakończ opiekę
+                                    </button>
                                 </div>
                             ))}
                         </div>

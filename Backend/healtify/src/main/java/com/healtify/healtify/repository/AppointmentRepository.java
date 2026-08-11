@@ -21,4 +21,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByPatientOrderByAppointmentAtAsc(UserAccount patient);
 
     long countByDoctor(Doctor doctor);
+
+    /**
+     * Wizyty konkretnej pary pacjent-lekarz. Uzywane przy rezygnacji pacjenta z lekarza -
+     * wraz z powiazaniem znikaja tez zarezerwowane terminy, wiec lekarz odzyskuje np. wolne godziny.
+     */
+    List<Appointment> findByPatientAndDoctor(UserAccount patient, Doctor doctor);
+
+    // --- kasowanie konta (patrz AccountDeletionService) ---
+
+    void deleteByPatient(UserAccount patient);
+
+    void deleteByDoctor(Doctor doctor);
 }

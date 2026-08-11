@@ -8,6 +8,7 @@ import com.healtify.healtify.models.Doctor;
 import com.healtify.healtify.models.UserAccount;
 import com.healtify.healtify.repository.DoctorRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
+import com.healtify.healtify.security.service.AccountDeletionService;
 import com.healtify.healtify.security.service.RoleEnum;
 import com.healtify.healtify.security.service.UserService;
 import jakarta.validation.Valid;
@@ -34,16 +35,19 @@ public class AdminController {
     private final UserService userService;
     private final UserAccountRepository userAccountRepository;
     private final DoctorRepository doctorRepository;
+    private final AccountDeletionService accountDeletionService;
 
     @Autowired
     public AdminController(
             UserService userService,
             UserAccountRepository userAccountRepository,
-            DoctorRepository doctorRepository
+            DoctorRepository doctorRepository,
+            AccountDeletionService accountDeletionService
     ) {
         this.userService = userService;
         this.userAccountRepository = userAccountRepository;
         this.doctorRepository = doctorRepository;
+        this.accountDeletionService = accountDeletionService;
     }
 
     @GetMapping("/getall")
@@ -68,9 +72,6 @@ public class AdminController {
 
     /**
      * Nadanie roli wskazanemu uzytkownikowi.
-     *
-     * Wczesniej ta metoda zmieniala role temu, kto ja wywolal (adminowi), a nie
-     * uzytkownikowi z {userId} - stad poprawka na lookup po id.
      */
     @PostMapping("/users/{userId}/roles")
     public ResponseEntity<String> changeUserRole(@PathVariable Long userId, @RequestParam String role) {
@@ -120,6 +121,25 @@ public class AdminController {
         Doctor saved = doctorRepository.save(doctor);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DoctorResponse.from(saved));
+    }
+
+    /**
+     * Skasowanie cudzego konta razem z jego danymi (dziennik, wizyty po obu stronach,
+     * powiazania pacjent-lekarz, profil lekarza, tokeny) -> AccountDeletionService.
+     * Wlasnego konta admin tedy nie skasuje
+     */
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId, Principal principal) {
+        UserAccount target = requireUser(userId);
+        UserAccount admin = userService.findAccByUsername(principal.getName());
+
+        if (target.getUserId().equals(admin.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Własnego konta nie kasuje się z panelu admina - zrób to w ustawieniach");
+        }
+
+        accountDeletionService.deleteAccount(target);
+        return ResponseEntity.noContent().build();
     }
 
     private UserAccount requireUser(Long userId) {

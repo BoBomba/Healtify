@@ -5,7 +5,6 @@ import com.healtify.healtify.models.Role;
 import com.healtify.healtify.models.UserAccount;
 import com.healtify.healtify.repository.RoleRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
-import com.healtify.healtify.security.token.TokenRepository;
 import com.healtify.healtify.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,19 +19,16 @@ import static com.healtify.healtify.mapper.UserMapper.mapToUserDto;
 @Service
 public class UserService {
     private final UserAccountRepository userRepository;
-    private final TokenRepository tokenRepository;
     private final UserAccountRepository userAccountRepository;
     private final RoleRepository roleRepository;
 
     @Autowired
     public UserService(
             UserAccountRepository userRepository,
-            TokenRepository tokenRepository,
             UserAccountRepository userAccountRepository,
             RoleRepository roleRepository
         ) {
         this.userRepository = userRepository;
-        this.tokenRepository = tokenRepository;
         this.userAccountRepository = userAccountRepository;
         this.roleRepository = roleRepository;
     }
@@ -45,8 +41,7 @@ public class UserService {
     /**
      * Dodaje role wskazanemu uzytkownikowi.
      *
-     * Rola musi byc pobrana z tabeli roles (a nie tworzona na nowo przy kazdym nadaniu) -
-     * inaczej powstawaly duplikaty wierszy w roles i zapis konczyl sie bledem na unique(name).
+     * Rola musi byc pobrana z tabeli roles.
      */
     public UserAccount changeUserRole(UserAccount user, String role) {
         boolean isValidRole = false;
@@ -111,12 +106,6 @@ public class UserService {
         }
     }
 
-    public void deleteById(Long userId) {
-        Integer intId = userId.intValue();
-        tokenRepository.deleteById(intId);
-        userRepository.deleteById(userId);
-        System.out.println("User deleted");
-    }
 
     public List<UserDTO> findAllUsers() {
         List<UserAccount> users = userRepository.findAll();
