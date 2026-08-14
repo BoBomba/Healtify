@@ -6,6 +6,7 @@ import Nav from '../../Components/Nav';
 import { useEffect, useState } from 'react';
 import { validateToken } from '../../service/authService';
 import { GetJournalEntries } from '../../service/dataService';
+import { moodClass } from '../../utils/calendarUtils';
 
 // Wszystkie wpisy dziennika zalogowanego pacjenta, od najnowszego.
 function JournalData() {
@@ -37,6 +38,7 @@ function JournalData() {
                 {entries.map((entry) => (
                   <div className="day-event-item" key={entry.entryId}>
                     <div className="day-event-title">
+                      <span className={`legend-dot ${moodClass(entry.moodScale)}`} />
                       <strong>{entry.title}</strong>
                       <span className="day-event-time">{entry.entryAt.slice(0, 16).replace('T', ' ')}</span>
                     </div>
@@ -44,7 +46,7 @@ function JournalData() {
                     {entry.symptoms && entry.symptoms.length > 0 && (
                       <div className="tag-list">
                         {entry.symptoms.map((symptom, i) => (
-                          <span className="tag-chip active" key={i}>{symptom}</span>
+                          <span className={`tag-chip ${moodClass(entry.moodScale)}`} key={i}>{symptom}</span>
                         ))}
                       </div>
                     )}

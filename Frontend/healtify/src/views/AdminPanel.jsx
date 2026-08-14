@@ -4,6 +4,7 @@ import '../css/data.css';
 import '../css/calendar.css';
 import '../css/doctor.css';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Nav from '../Components/Nav';
 import { useEffect } from 'react';
 import { validateToken } from '../service/authService';
@@ -17,16 +18,27 @@ function AdminPanel() {
   const [doctorName, setDoctorName] = useState('');
   const [specialization, setSpecialization] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   async function checkCondition() {
-    const isAdmin = await checkAdminStatus();
+    // 403 z /checkadmin to zwykłe "nie jesteś adminem", ale checkAdminStatus
+    // zamienia je na wyjątek, więc trzeba go tu złapać. Bez tego leciał dalej jako 
+    // nieobsłużony i przekierowanie w ogóle nie działało.
+    let isAdmin = false;
+    try {
+      isAdmin = await checkAdminStatus();
+    } catch (error) {
+      console.log(error);
+    }
     console.log(isAdmin);
+
     if (isAdmin === true) {
       console.log("You are an admin");
-    } else {
-      alert("You are not an admin");
-      window.location.href = '/dashboard';
+      return;
     }
+
+    alert("You are not an admin");
+    navigate('/dashboard', { replace: true });
   }
 
   const loadUsers = () => {
@@ -59,8 +71,7 @@ function AdminPanel() {
 
     try {
       await grantDoctorRole(grantingFor, doctorName.trim(), specialization.trim());
-      // Role są czytane z bazy przy każdym żądaniu, więc działa to od razu -
-      // bez wylogowywania i bez wymiany tokenu.
+      // Role są czytane z bazy przy każdym żądaniu, więc działa to od razu bez reloga i bez wymiany tokenu.
       setMessage('Rola lekarza nadana. Panel lekarza jest dostępny od razu.');
       setGrantingFor(null);
       loadUsers();

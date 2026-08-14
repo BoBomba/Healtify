@@ -110,7 +110,12 @@ button {
   color: red;
 }
 
-/* Potwierdzenie akcji wykonanej na poprzedniej stronie, nie na czerwono */
+.login #messages,
+.register #messages {
+  padding: 0 1.5em;
+  text-align: center;
+}
+
 #notice {
   background: #EEE;
   border-radius: 0.625rem;

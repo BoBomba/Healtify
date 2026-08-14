@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { validateToken } from '../service/authService';
 import { GetUserData } from '../service/dataService';
 import * as UserService from '../service/userService';
@@ -17,6 +18,7 @@ function Settings() {
   const [Password, setPassword] = useState("");
   const [NewPassword, setNewPassword] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     validateToken();
@@ -57,14 +59,14 @@ function Settings() {
   }
 
   /**
-   * Potwierdzenie zostawiamy w sessionStorage pod tym samym kluczem co wylogowanie - 
-   * strona logowania pokaże je po przeładowaniu.
+   * Potwierdzenie zostawiamy w sessionStorage tak jak wylogowanie -
+   * strona logowania pokaże je po wejściu.
    */
   const handleDeleted = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     sessionStorage.setItem('authNotice', 'Konto zostało usunięte razem ze wszystkimi danymi.');
-    window.location.href = '/login';
+    navigate('/login', { replace: true });
   }
 
   return (
@@ -115,7 +117,7 @@ function Settings() {
                 wizyty (terminy u lekarzy się zwolnią), powiązania z lekarzami i dane profilu.
                 Tej operacji nie da się cofnąć.
               </p>
-                /* Hasło pytamy dopiero w modalu */
+               {/* Hasło pytamy dopiero w modalu */}
               <button
                 type="button"
                 className="danger-btn"

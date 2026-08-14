@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { navigateTo } from '../utils/navigation';
 
-const API_URL = 'http://localhost:8080/api/user'; // Zmień na adres URL swojego serwera
+const API_URL = 'http://localhost:8080/api/user'; 
 
 const authConfig = (token = localStorage.getItem('token')) => ({
     headers: { Authorization: `Bearer ${token}` }
@@ -43,7 +44,7 @@ export const updateUsername = async (username) => {
 
         const data = response.data;
         alert("Username updated successfully, you must relogin: " + data);
-        window.location.href = "/login";
+        navigateTo("/login");
     } catch (error) {
         alert("error: " + error);
     }
@@ -59,7 +60,7 @@ export const updateEmail = async (email) => {
 
         const data = response.data;
         alert("Email updated successfully, you must relogin: " + data);
-        window.location.href = "/login";
+        navigateTo("/login");
     } catch (error) {
         alert("error: " + error);
     }
@@ -75,7 +76,7 @@ export const updatePassword = async (password, newPassword) => {
 
         const data = response.data;
         alert("Password updated successfully, you must relogin: " + data);
-        window.location.href = "/login";
+        navigateTo("/login");
     } catch (error) {
         alert("error: " + error);
     }

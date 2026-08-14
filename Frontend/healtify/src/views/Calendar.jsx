@@ -6,17 +6,10 @@ import '../css/calendar.css';
 import { validateToken } from '../service/authService';
 import { GetJournalEntries } from '../service/dataService';
 import { GetMyAppointments } from '../service/sharingService';
-import { MONTH_NAMES, WEEKDAY_NAMES, getMonthMatrix, formatDateKey, isSameDay } from '../utils/calendarUtils';
+import { MONTH_NAMES, WEEKDAY_NAMES, getMonthMatrix, formatDateKey, isSameDay, moodClass } from '../utils/calendarUtils';
 
 // Ile wpisów mieści się w kratce dnia - resztę pokazujemy jako "+N".
 const MAX_CHIPS_PER_DAY = 3;
-
-// Kolor prostokąta zależy od samopoczucia, żeby miesiąc dawał się czytać jednym spojrzeniem.
-const moodClass = (moodScale) => {
-    if (moodScale <= 2) return 'mood-low';
-    if (moodScale === 3) return 'mood-mid';
-    return 'mood-high';
-};
 
 function CalendarPage() {
     const today = useMemo(() => new Date(), []);
@@ -41,8 +34,8 @@ function CalendarPage() {
             .catch((error) => console.log(error));
     }, []);
 
-    // Wpisy i wizyty lądują w jednej mapie dni, bo kratka pokazuje jedno i drugie.
-    // Pole kind decyduje potem o kolorze prostokąta i o tym, co się w nim wyświetli.
+    // Wpisy i wizyty lądują razem w kalendarzu, bo kratka pokazuje i to i to.
+    // Pole kind decyduje o kolorze prostokąta i o tym, co się w nim wyświetli.
     const entriesByDay = useMemo(() => {
         const map = {};
         const push = (at, item) => {
@@ -211,7 +204,9 @@ function CalendarPage() {
                                     {item.entry.symptoms && item.entry.symptoms.length > 0 && (
                                         <div className="tag-list">
                                             {item.entry.symptoms.map((symptom, i) => (
-                                                <span className="tag-chip active" key={i}>{symptom}</span>
+                                                <span className={`tag-chip ${moodClass(item.entry.moodScale)}`} key={i}>
+                                                    {symptom}
+                                                </span>
                                             ))}
                                         </div>
                                     )}

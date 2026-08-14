@@ -34,8 +34,11 @@ function Nav() {
   return (
     <div>
         <nav>
+                {/* Uchwyt tylko na <a> - ten sam onClick na ikonie w środku przełączał
+                    menu drugi raz (zdarzenie bąbelkuje), więc klik w samą ikonę
+                    otwierał i od razu zamykał panel. */}
                 <a id="navMenu" onClick={toggleMenu}>
-                    <img id="settings" src={SettingsIcon} alt="Settings" onClick={toggleMenu} />
+                    <img id="settings" src={SettingsIcon} alt="Settings" />
                 </a>
                 <img id="textlogo" src={TextLogo} alt="Logo" />
                 <img id="logo" src={logo} alt="Logo" />
