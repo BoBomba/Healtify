@@ -10,6 +10,7 @@ import {
   GetJournalEntries,
 } from "../service/dataService";
 import { RenderData } from "../Components/RenderData";
+import { moodClass } from "../utils/calendarUtils";
 
 // Ile ostatnich wpisów pokazujemy na dashboardzie.
 const RECENT_ENTRIES_COUNT = 3;
@@ -54,6 +55,7 @@ function Dashboard() {
             {recentEntries.map((entry) => (
               <div className="day-event-item" key={entry.entryId}>
                 <div className="day-event-title">
+                  <span className={`legend-dot ${moodClass(entry.moodScale)}`} />
                   <strong>{entry.title}</strong>
                   <span className="day-event-time">{entry.entryAt.slice(0, 16).replace('T', ' ')}</span>
                 </div>

@@ -1,0 +1,149 @@
+/* ---------- Panel lekarza i panel udostepniania ---------- */
+
+/* Szerokość i odstępy takie same jak .calendar-page, żeby strony się nie rozjeżdżały. */
+.doctor-page {
+    width: 70%;
+    margin: 2em auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.doctor-page h2 {
+    margin: 0;
+}
+
+/* Dwa panele obok siebie, na wąskim ekranie jeden pod drugim. */
+.doctor-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20em, 1fr));
+    gap: 1em;
+    align-items: start;
+}
+
+/* .datablock domyślnie centruje treść - listy i formularze mają być do lewej. */
+.doctor-panel {
+    width: 100%;
+    align-items: stretch;
+    text-align: left;
+    padding: 1.5em;
+    box-sizing: border-box;
+}
+
+.doctor-panel h3 {
+    margin: 0 0 0.5em;
+}
+
+/* Oczekujące zaproszenia siedzą w osobnym bloku pod panelami. */
+.doctor-pending {
+    margin-top: 0.5em;
+}
+
+.doctor-search {
+    display: flex;
+    gap: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.doctor-search input {
+    flex: 1;
+    border-radius: 0.625rem;
+    background-color: #EEE;
+    border: none;
+    padding: 0.6em;
+    font-family: inherit;
+    font-size: 1em;
+}
+
+.doctor-list-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    border-top: 1px solid #EEE;
+    padding: 0.75em 0;
+}
+
+.doctor-list-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.doctor-list-sub {
+    color: #777;
+    font-size: 0.85em;
+}
+
+.doctor-list-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+/* Etykieta zamiast przycisku tam, gdzie nie ma już nic do kliknięcia. */
+.doctor-badge {
+    background: #EEE;
+    color: #555;
+    border-radius: 999px;
+    padding: 0.4em 0.9em;
+    font-size: 0.8em;
+    white-space: nowrap;
+}
+
+.doctor-row-action {
+    margin-left: auto;
+}
+
+/* ---------- Dashboard lekarza ---------- */
+
+.doctor-stats {
+    flex-direction: row;
+    gap: 2em;
+}
+
+.doctor-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.doctor-stat-value {
+    font-size: 2em;
+    font-weight: 700;
+    color: #FF2424;
+}
+
+.doctor-stat-label {
+    font-size: 0.85em;
+    color: #777;
+}
+
+.doctor-subtitle {
+    display: block;
+    color: #777;
+    font-size: 0.85em;
+}
+
+.nav-role-badge {
+    background: #2D6CDF;
+    color: #FFF;
+    border-radius: 999px;
+    padding: 0.1em 0.6em;
+    font-size: 0.6em;
+    margin-left: 0.5em;
+    vertical-align: middle;
+}
+
+/* ---------- Lista wizyt pogrupowana w dni ---------- */
+
+.doctor-day-group {
+    margin-bottom: 1em;
+}
+
+.doctor-day-heading {
+    margin: 0.5em 0 0;
+    font-size: 1em;
+    color: #555;
+}

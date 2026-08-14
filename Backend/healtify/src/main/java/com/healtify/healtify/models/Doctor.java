@@ -1,7 +1,12 @@
 package com.healtify.healtify.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
+/**
+ * Profil lekarza. Powstaje dopiero w momencie nadania konta roli ROLE_DOCTOR przez admina
+ * (patrz AdminController#changeUserRole) - jedno konto = najwyzej jeden profil lekarza.
+ */
 @Entity
 @Table(name = "doctors")
 public class Doctor {
@@ -11,8 +16,10 @@ public class Doctor {
     @Column(name = "doctor_id")
     private Long doctorId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    /** Konto, do ktorego nalezy profil. Nigdy nie serializujemy go w calosci - patrz DoctorDTO. */
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private UserAccount userAccount;
 
     @Column(name = "doctor_name")
@@ -55,7 +62,18 @@ public class Doctor {
         this.userAccount = userAccount;
     }
 
-    // constructor
+    // constructors
+
+    // JPA wymaga konstruktora bezargumentowego - bez niego Hibernate nie potrafi
+    // zmaterializowac encji i kazde zapytanie o lekarza konczy sie bledem.
+    public Doctor() {
+    }
+
+    public Doctor(UserAccount userAccount, String doctorName, String specialization) {
+        this.userAccount = userAccount;
+        this.doctorName = doctorName;
+        this.specialization = specialization;
+    }
 
     public Doctor(Long doctorId, UserAccount userAccount, String doctorName, String specialization) {
         this.doctorId = doctorId;

@@ -1,7 +1,43 @@
 import axios from "axios";
-// import { useNavigate } from "react-router-dom";
+import { getCurrentUser } from "./userService";
+import { navigateTo } from "../utils/navigation";
 
-//TODO Zmienić window.location.href na useNavigate
+const API_URL = "http://localhost:8080/api/auth"; // Zmień na adres URL swojego serwera
+
+// Zwraca ścieżkę do panelu użytkownika w zależności od jego roli.
+
+const landingPageForCurrentUser = async () => {
+    try {
+        const user = await getCurrentUser();
+        // if else czy doktor czy nie 
+        return user.doctor === true ? "/doctor/dashboard" : "/dashboard";
+    } catch (error) {
+        console.log(error);
+        return "/dashboard";
+    }
+};
+
+/**
+ * Handling z Axiosa 
+ * Bo np. przy braku połączenia jest samo error.request - czytanie
+ * wtedy error.response.status wywalało aplikację zamiast pokazać komunikat.
+ */
+const describeRequestError = (error) => {
+    // obsluga bledow z logowania i rejestracji
+    if (error.response) {
+        const details = error.response.data?.message ?? error.response.data;
+        const status = `Kod błędu: ${error.response.status}`;
+        return typeof details === "string" && details ? `${status}\n${details}` : status;
+    }
+
+    if (error.request) {
+        return "Brak połączenia z serwerem. Sprawdź, czy backend działa, i spróbuj ponownie.";
+    }
+
+    return error.message || "Nieznany błąd.";
+};
+
+// Zwraca null przy udanej rejestracji albo komunikat do pokazania w form.
 
 export const registerService = async (username, email, password) => {
     const data = {
@@ -9,25 +45,33 @@ export const registerService = async (username, email, password) => {
         email: email,
         password: password,
     };
-    
+
     console.log("wysylane dane " + data.username);
 
-    await axios.post("http://localhost:8080/api/auth/register", data)
+    return axios.post(`${API_URL}/register`, data)
         .then((response) => {
             if (response.data) {
-                alert("User registered successfully Status:" + response.status);
-
-                window.location.href = "/login";
+                // Potwierdzenie rzuca na ekran logowania + #notice 
+                sessionStorage.setItem('authNotice', 'Konto zostało utworzone. Możesz się teraz zalogować.');
+                navigateTo("/login");
+                return null;
             }
+
+            return "Rejestracja się nie powiodła. Spróbuj ponownie.";
         })
         .catch((error) => {
+            console.log(error);
+
             if (error.response && error.response.status === 409) {
-                alert("Conflict: User with this email already exists.");
-            } else {
-                console.log(error);
+                return "Konto z tym adresem e-mail lub nazwą użytkownika już istnieje.";
             }
+
+            return "Rejestracja się nie powiodła.\n" + describeRequestError(error);
         });
 };
+
+
+// Zwraca null przy poprawnym logowaniu albo komunikat do pokazania w form. (jak w registerService)
 
 export const loginService = async (email, password) => {
     const data = {
@@ -37,29 +81,28 @@ export const loginService = async (email, password) => {
 
     console.log("Wysylane dane: " , data);
 
-
-    await axios.post("http://localhost:8080/api/auth/authenticate", data)
-        .then((response) => {
+    return axios.post(`${API_URL}/authenticate`, data)
+        .then(async (response) => {
             if (response.data) {
-                // console.log(response);
                 console.log("User logged in successfully");
-                alert("User logged in successfully");
 
-                // Odbieranie tokena z odpowiedzi
+                // Odbieranie tokena 
                 const token = response.data.access_token;
                 console.log("Token: ", token);
 
                 // saving token in local storage
                 localStorage.setItem('token', token);
 
-                window.location.href = "/dashboard";
-            } else {
-                alert("Invalid password");
+                // Lekarz ma własny panel (/doctor/*) - o roli decyduje backend.
+                await navigateTo(await landingPageForCurrentUser());
+                return null;
             }
+
+            return "Nieprawidłowy e-mail lub hasło.";
         })
         .catch((error) => {
             console.log(error);
-            alert("Logowanie się nie powiodło\nKod Błędu: " + error.response.status + "\n" + error.response.data);
+            return "Logowanie się nie powiodło.\n" + describeRequestError(error);
         });
 };
 
@@ -70,7 +113,7 @@ export const validateToken = async () => {
 
     if (token) {
         await axios.post(
-            "http://localhost:8080/api/auth/validate",
+            `${API_URL}/validate`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
         )
@@ -85,11 +128,11 @@ export const validateToken = async () => {
             .catch((error) => {
                 alert("Token is invalid");
                 localStorage.removeItem('token');
-                window.location.href = "/login";
+                navigateTo("/login");
             });
     } else {
         alert("Token is invalid - error");
         localStorage.removeItem('token');
-        window.location.href = "/login";
+        navigateTo("/login");
     }
 }

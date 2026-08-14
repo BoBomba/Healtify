@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Zapisuje liste krotkich tekstow (objawy) w jednej kolumnie TEXT, po jednym na linie.
+ * Zapisuje liste objawy w jednej kolumnie TEXT, po jednym na linie.
  * Dzieki temu wpisy dziennika mieszcza sie w JEDNEJ tabeli, bez tabeli pomocniczej.
  * Znaki nowej linii w elementach sa zamieniane na spacje, zeby nie rozjechac separatora.
  */

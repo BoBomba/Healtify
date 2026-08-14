@@ -2,15 +2,20 @@ package com.healtify.healtify.controller;
 
 import com.healtify.healtify.dto.ChangeEmailRequest;
 import com.healtify.healtify.dto.ChangeUsernameRequest;
+import com.healtify.healtify.dto.CurrentUserResponse;
+import com.healtify.healtify.dto.DeleteAccountRequest;
 import com.healtify.healtify.dto.UserDTO;
 import com.healtify.healtify.models.UserAccount;
 import com.healtify.healtify.repository.UserAccountRepository;
+import com.healtify.healtify.security.service.AccountDeletionService;
 import com.healtify.healtify.security.service.UserService;
-import com.healtify.healtify.security.token.TokenRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import com.healtify.healtify.security.service.RoleEnum;
 
 import java.util.List;
@@ -24,17 +29,20 @@ import static com.healtify.healtify.dto.UserDTO.mapToUserDto;
 public class UserController {
     private final UserService userService;
     private final UserAccountRepository userAccountRepository;
-    private final TokenRepository tokenRepository;
+    private final AccountDeletionService accountDeletionService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserController(
             UserService userService,
             UserAccountRepository userAccountRepository,
-            TokenRepository tokenRepository
+            AccountDeletionService accountDeletionService,
+            PasswordEncoder passwordEncoder
     ) {
         this.userService = userService;
         this.userAccountRepository = userAccountRepository;
-        this.tokenRepository = tokenRepository;
+        this.accountDeletionService = accountDeletionService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping(path = "/add")
@@ -117,17 +125,42 @@ public class UserController {
         }
     }
 
+    /**
+     * Skasowanie wlasnego konta razem z calym kompletem danych - dziennikiem, wizytami
+     * (po obu stronach, jesli to konto lekarza), powiazaniami z lekarzami i tokenami.
+     * Szczegoly kolejnosci kasowania siedza w AccountDeletionService.
+     *
+     * Wymaga podania hasla (patrz DeleteAccountRequest). Sprawdzamy je przez
+     * passwordEncoder.matches(), a nie przez AuthService.authenticate()
+     * bo authenticate() przy okazji uniewaznia wszystkie tokeny
+     * i wystawia nowe, a tu chodzi wylacznie o potwierdzenie tozsamosci.
+     */
     @DeleteMapping(path = "/delete")
-    public ResponseEntity<UserDTO> deleteUser(Principal principal) {
-        String username = principal.getName();
-        Optional<Long> userId = userService.getUserIdByUsername(username);
-        if (userId.isPresent()) {
-            tokenRepository.deleteByUserId(userId.get());
-            userService.deleteById(userId.get());
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } else {
+    public ResponseEntity<Void> deleteUser(
+            Principal principal,
+            @Valid @RequestBody DeleteAccountRequest request
+    ) {
+        Optional<UserAccount> user = userAccountRepository.findByUsername(principal.getName());
+        if (user.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nieprawidłowe hasło");
+        }
+
+        accountDeletionService.deleteAccount(user.get());
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    /**
+     * Tozsamosc zalogowanego uzytkownika razem z rolami. Front woła to zaraz po
+     * zalogowaniu, zeby wiedziec czy kierowac na panel pacjenta czy lekarza.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<CurrentUserResponse> getCurrentUser(Principal principal) {
+        UserAccount userAccount = userService.findAccByUsername(principal.getName());
+        return ResponseEntity.ok(CurrentUserResponse.from(userAccount));
     }
 
     @GetMapping("/checkadmin")

@@ -1,14 +1,17 @@
 package com.healtify.healtify.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.healtify.healtify.security.service.RoleEnum;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "user_account")
@@ -98,10 +101,25 @@ public class UserAccount implements UserDetails {
         this.email = email;
     }
 
+    // Role musza wyjsc na zewnatrz jako GrantedAuthority, inaczej hasRole()/@PreAuthorize
+    // nie widzi nic i kazdy chroniony endpoint konczy sie 403 (wczesniej bylo tu List.of()).
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        if (roles == null) {
+            return List.of();
+        }
+        return roles.stream()
+                .map(Role::getName)
+                .filter(name -> name != null)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
+    }
+
+    /** Skrot uzywany w kontrolerach - nazwy rol sa trzymane z prefiksem ROLE_ (patrz RoleEnum). */
+    @JsonIgnore
+    public boolean hasRole(RoleEnum role) {
+        return roles != null && roles.stream().anyMatch(r -> role.name().equals(r.getName()));
     }
 
     // Hash hasla nigdy nie moze wyjsc w JSON-ie (endpointy /api/data/user i /api/data/settings

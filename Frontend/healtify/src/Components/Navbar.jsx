@@ -1,9 +1,10 @@
 // navbar.js
 import { useEffect } from 'react';
 
+// Stan menu trzyma .open, a nie transform - dzięki temu CSS może
+// menu schować (przesunięcie zostawiało jego cień na stronie).
 export function toggleMenu() {
-    var navbar = document.getElementById("myNavbar");
-    navbar.style.transform = navbar.style.transform === "translateX(0)" ? "translateX(-101%)" : "translateX(0)";
+    document.getElementById("myNavbar")?.classList.toggle("open");
 }
 
 export function useOutsideClick() {
@@ -14,7 +15,7 @@ export function useOutsideClick() {
             var settings = document.querySelector('#settings');
         
             if (event.target !== navbar && event.target !== button && event.target !== settings) {
-                navbar.style.transform = "translateX(-101%)";
+                navbar?.classList.remove("open");
             }
         }
 

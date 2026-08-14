@@ -1,4 +1,4 @@
-/* ---------- Layout strony /calendar ---------- */
+/* --- Layout /calendar --- */
 
 .calendar-page {
     width: 70%;
@@ -58,17 +58,30 @@
     margin-right: 0.4em;
 }
 
-/* Kolory samopoczucia - używane i przez kropki legendy, i przez prostokąty wpisów. */
+/* Kolory samopoczucia - źródło dla kropek legendy, prostokątów w kratkach
+   dnia i plakietek z objawami. */
+:root {
+    --mood-low: #FF2424;
+    --mood-mid: #FF9F1C;
+    --mood-high: #2EB872;
+    --appointment: #2D6CDF;
+}
+
 .mood-low {
-    background-color: #FF2424;
+    background-color: var(--mood-low);
 }
 
 .mood-mid {
-    background-color: #FF9F1C;
+    background-color: var(--mood-mid);
 }
 
 .mood-high {
-    background-color: #2EB872;
+    background-color: var(--mood-high);
+}
+
+/* Wizyty zawsze niebieskie */
+.appointment {
+    background-color: var(--appointment);
 }
 
 .calendar-grid {
@@ -128,7 +141,7 @@
     padding-left: 0.15em;
 }
 
-/* Lista wpisów w kratce dnia: zaokrąglone prostokąty z początkiem tytułu. */
+/* Lista wpisów w kratce dnia: zaokrąglone prostokąty z tytułem */
 .calendar-day-entries {
     display: flex;
     flex-direction: column;
@@ -155,10 +168,21 @@
     padding-left: 0.3em;
 }
 
-.calendar-day-panel {
-    width: 100%;
+/* Panel z wpisami wybranego dnia / listą dziennika.
+   width: auto (nie 100%) - blok i tak wypełnia rodzica, a przy 100% doliczały się
+   jeszcze marginesy .datablock i panel wystawał poza rząd.
+   Selektor podwójny, bo .datablock ustawia wyśrodkowanie i stoi w innym pliku -
+   przy samym .calendar-day-panel o wyniku decydowała kolejność importów CSS. */
+.datablock.calendar-day-panel {
+    width: auto;
     align-items: stretch;
     text-align: left;
+}
+
+/* Na stronie kalendarza panel ma trzymać dokładnie szerokość siatki, a tam marginesu nie ma. */
+.calendar-page > .calendar-day-panel {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .calendar-day-panel-header {
@@ -186,7 +210,7 @@
     font-size: 0.85em;
 }
 
-/* ---------- Modal dodawania wpisu ---------- */
+/* --- Modal dodawania wpisu --- */
 
 .modal-overlay {
     position: fixed;
@@ -242,6 +266,8 @@
 .modal-form input[type="text"],
 .modal-form input[type="date"],
 .modal-form input[type="time"],
+.modal-form input[type="password"],
+.modal-form select,
 .modal-form textarea {
     border-radius: 0.625rem;
     background-color: #EEE;
@@ -315,6 +341,27 @@
     color: #FFF;
 }
 
+/* Objawy przy wpisie biorą kolor od samopoczucia wpisu - ta sama skala co
+   prostokąty w kalendarzu.
+   Selektory podwójne, bo .mood-* stoi wyżej niż .tag-chip. */
+.tag-chip.mood-low,
+.tag-chip.mood-mid,
+.tag-chip.mood-high {
+    color: #FFF;
+}
+
+.tag-chip.mood-low {
+    background: var(--mood-low);
+}
+
+.tag-chip.mood-mid {
+    background: var(--mood-mid);
+}
+
+.tag-chip.mood-high {
+    background: var(--mood-high);
+}
+
 .custom-tag-input {
     display: flex;
     gap: 0.5em;
@@ -373,4 +420,44 @@
 .modal-btn.small {
     padding: 0.5em 1em;
     font-size: 0.85em;
+}
+
+/* Akcje nieodwracalne (kasowanie konta). Ciemniejsza czerwien niz .primary,
+   zeby nie wygladalo jak zwykly przycisk akcji. */
+.modal-btn.danger {
+    background: #8B0000;
+    color: #FFF;
+}
+
+.modal-btn.danger:hover:enabled {
+    background: #6D0000;
+}
+
+.modal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.modal-warning {
+    background: #FDF0F0;
+    border-radius: 0.625rem;
+    color: #444;
+    font-size: 0.9em;
+    line-height: 1.5;
+    margin: 0.5em 0 0;
+    padding: 0.9em 1em;
+}
+
+/* Pole hasla z ikona klodki - jak #input na stronach logowania, ale w stylu modala. */
+.modal-password {
+    display: flex;
+    align-items: center;
+    background: #EEE;
+    border-radius: 0.625rem;
+    padding: 0 0.6em;
+}
+
+.modal-password input[type="password"] {
+    background: none;
+    padding-left: 0.5em;
 }

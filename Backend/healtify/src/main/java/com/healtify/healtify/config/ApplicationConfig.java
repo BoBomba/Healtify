@@ -9,14 +9,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 @Configuration
@@ -44,7 +42,10 @@ public class ApplicationConfig {
                 if (userAccount.isEmpty()) {
                     throw new UsernameNotFoundException("User with username/email " + username + " not found");
                 }
-                return new User(userAccount.get().getUsername(), userAccount.get().getPassword(), new ArrayList<>());
+                // Zwracamy sama encje (implementuje UserDetails), a nie kopie w springowym User
+                // z pusta lista uprawnien - inaczej role gina po drodze i hasRole()/@PreAuthorize
+                // odrzuca nawet admina. Nazwa principala sie nie zmienia: to nadal username.
+                return userAccount.get();
             }
         };
     }

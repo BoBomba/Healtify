@@ -5,22 +5,17 @@ import '../css/dashboard.css';
 import '../css/calendar.css';
 import { validateToken } from '../service/authService';
 import { GetJournalEntries } from '../service/dataService';
-import { MONTH_NAMES, WEEKDAY_NAMES, getMonthMatrix, formatDateKey, isSameDay } from '../utils/calendarUtils';
+import { GetMyAppointments } from '../service/sharingService';
+import { MONTH_NAMES, WEEKDAY_NAMES, getMonthMatrix, formatDateKey, isSameDay, moodClass } from '../utils/calendarUtils';
 
 // Ile wpisów mieści się w kratce dnia - resztę pokazujemy jako "+N".
 const MAX_CHIPS_PER_DAY = 3;
-
-// Kolor prostokąta zależy od samopoczucia, żeby miesiąc dawał się czytać jednym spojrzeniem.
-const moodClass = (moodScale) => {
-    if (moodScale <= 2) return 'mood-low';
-    if (moodScale === 3) return 'mood-mid';
-    return 'mood-high';
-};
 
 function CalendarPage() {
     const today = useMemo(() => new Date(), []);
     const [visibleMonth, setVisibleMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
     const [entries, setEntries] = useState([]);
+    const [appointments, setAppointments] = useState([]);
     const [selectedDate, setSelectedDate] = useState(today);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loadError, setLoadError] = useState('');
@@ -33,19 +28,37 @@ function CalendarPage() {
                 console.log(error);
                 setLoadError('Nie udało się pobrać wpisów.');
             });
+        // Wizyty zakłada lekarz - pacjent widzi je tu tylko do odczytu.
+        GetMyAppointments()
+            .then((data) => setAppointments(data))
+            .catch((error) => console.log(error));
     }, []);
 
+    // Wpisy i wizyty lądują razem w kalendarzu, bo kratka pokazuje i to i to.
+    // Pole kind decyduje o kolorze prostokąta i o tym, co się w nim wyświetli.
     const entriesByDay = useMemo(() => {
         const map = {};
-        entries.forEach((entry) => {
-            if (!entry.entryAt) return;
-            const key = entry.entryAt.slice(0, 10);
+        const push = (at, item) => {
+            if (!at) return;
+            const key = at.slice(0, 10);
             if (!map[key]) map[key] = [];
-            map[key].push(entry);
-        });
-        Object.values(map).forEach((dayEntries) => dayEntries.sort((a, b) => a.entryAt.localeCompare(b.entryAt)));
+            map[key].push({ ...item, at });
+        };
+
+        entries.forEach((entry) => push(entry.entryAt, {
+            kind: 'entry',
+            key: `entry-${entry.entryId}`,
+            entry,
+        }));
+        appointments.forEach((appointment) => push(appointment.appointmentAt, {
+            kind: 'appointment',
+            key: `appointment-${appointment.appointmentId}`,
+            appointment,
+        }));
+
+        Object.values(map).forEach((dayItems) => dayItems.sort((a, b) => a.at.localeCompare(b.at)));
         return map;
-    }, [entries]);
+    }, [entries, appointments]);
 
     const weeks = useMemo(
         () => getMonthMatrix(visibleMonth.getFullYear(), visibleMonth.getMonth()),
@@ -99,6 +112,7 @@ function CalendarPage() {
                         <span><span className="legend-dot mood-low" /> Samopoczucie 1-2</span>
                         <span><span className="legend-dot mood-mid" /> Samopoczucie 3</span>
                         <span><span className="legend-dot mood-high" /> Samopoczucie 4-5</span>
+                        <span><span className="legend-dot appointment" /> Wizyta u lekarza</span>
                     </div>
 
                     {loadError && <div id="messages">{loadError}</div>}
@@ -129,13 +143,19 @@ function CalendarPage() {
                                     >
                                         <span className="calendar-day-number">{day.getDate()}</span>
                                         <span className="calendar-day-entries">
-                                            {dayEntries.slice(0, MAX_CHIPS_PER_DAY).map((entry) => (
+                                            {dayEntries.slice(0, MAX_CHIPS_PER_DAY).map((item) => (
                                                 <span
-                                                    className={`day-entry-chip ${moodClass(entry.moodScale)}`}
-                                                    key={entry.entryId}
-                                                    title={entry.title}
+                                                    className={`day-entry-chip ${item.kind === 'appointment'
+                                                        ? 'appointment'
+                                                        : moodClass(item.entry.moodScale)}`}
+                                                    key={item.key}
+                                                    title={item.kind === 'appointment'
+                                                        ? `Wizyta: ${item.appointment.title}`
+                                                        : item.entry.title}
                                                 >
-                                                    {entry.title}
+                                                    {item.kind === 'appointment'
+                                                        ? item.appointment.title
+                                                        : item.entry.title}
                                                 </span>
                                             ))}
                                             {hiddenCount > 0 && (
@@ -162,23 +182,37 @@ function CalendarPage() {
 
                         {selectedDayEntries.length === 0 && <p>Brak wpisów tego dnia.</p>}
 
-                        {selectedDayEntries.map((entry) => (
-                            <div className="day-event-item" key={entry.entryId}>
-                                <div className="day-event-title">
-                                    <span className={`legend-dot ${moodClass(entry.moodScale)}`} />
-                                    <strong>{entry.title}</strong>
-                                    <span className="day-event-time">{entry.entryAt.slice(11, 16)}</span>
-                                </div>
-                                <p>Samopoczucie: {entry.moodScale}/5</p>
-                                {entry.symptoms && entry.symptoms.length > 0 && (
-                                    <div className="tag-list">
-                                        {entry.symptoms.map((symptom, i) => (
-                                            <span className="tag-chip active" key={i}>{symptom}</span>
-                                        ))}
+                        {selectedDayEntries.map((item) => (
+                            item.kind === 'appointment' ? (
+                                <div className="day-event-item" key={item.key}>
+                                    <div className="day-event-title">
+                                        <span className="legend-dot appointment" />
+                                        <strong>{item.appointment.title}</strong>
+                                        <span className="day-event-time">{item.at.slice(11, 16)}</span>
                                     </div>
-                                )}
-                                {entry.description && <p>{entry.description}</p>}
-                            </div>
+                                    <p>Wizyta u: {item.appointment.doctor.doctorName}</p>
+                                    {item.appointment.notes && <p>{item.appointment.notes}</p>}
+                                </div>
+                            ) : (
+                                <div className="day-event-item" key={item.key}>
+                                    <div className="day-event-title">
+                                        <span className={`legend-dot ${moodClass(item.entry.moodScale)}`} />
+                                        <strong>{item.entry.title}</strong>
+                                        <span className="day-event-time">{item.at.slice(11, 16)}</span>
+                                    </div>
+                                    <p>Samopoczucie: {item.entry.moodScale}/5</p>
+                                    {item.entry.symptoms && item.entry.symptoms.length > 0 && (
+                                        <div className="tag-list">
+                                            {item.entry.symptoms.map((symptom, i) => (
+                                                <span className={`tag-chip ${moodClass(item.entry.moodScale)}`} key={i}>
+                                                    {symptom}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {item.entry.description && <p>{item.entry.description}</p>}
+                                </div>
+                            )
                         ))}
                     </div>
                 </div>
