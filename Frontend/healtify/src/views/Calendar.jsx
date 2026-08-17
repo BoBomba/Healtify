@@ -8,8 +8,10 @@ import { GetJournalEntries } from '../service/dataService';
 import { GetMyAppointments } from '../service/sharingService';
 import { MONTH_NAMES, WEEKDAY_NAMES, getMonthMatrix, formatDateKey, isSameDay, moodClass } from '../utils/calendarUtils';
 
-// Ile wpisów mieści się w kratce dnia - resztę pokazujemy jako "+N".
+// Ile wpisow miesci sie w kratce dnia - reszte pokazujemy jako "+N".
 const MAX_CHIPS_PER_DAY = 3;
+
+// TODO: dodac export do kalendarzy: .ics i jako sub do Google Calendar, Outlook itp.
 
 function CalendarPage() {
     const today = useMemo(() => new Date(), []);
@@ -28,14 +30,14 @@ function CalendarPage() {
                 console.log(error);
                 setLoadError('Nie udało się pobrać wpisów.');
             });
-        // Wizyty zakłada lekarz - pacjent widzi je tu tylko do odczytu.
+        // Wizyty zaklada lekarz - pacjent tylko do odczytu.
         GetMyAppointments()
             .then((data) => setAppointments(data))
             .catch((error) => console.log(error));
     }, []);
 
-    // Wpisy i wizyty lądują razem w kalendarzu, bo kratka pokazuje i to i to.
-    // Pole kind decyduje o kolorze prostokąta i o tym, co się w nim wyświetli.
+    // Wpisy i wizyty laduja razem w kalendarzu, bo kratka pokazuje i to i to.
+    // Pole kind decyduje o kolorze prostokata i o tym, co się w nim wyswietli.
     const entriesByDay = useMemo(() => {
         const map = {};
         const push = (at, item) => {

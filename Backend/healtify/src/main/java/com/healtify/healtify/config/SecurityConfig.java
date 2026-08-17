@@ -24,9 +24,14 @@ public class SecurityConfig {
     private static final String[] WHITE_LIST_URL = {
         "/", 
         "/api/auth/**", 
-        "/v3/api-docs/**", 
-        "/swagger-ui/**", 
-        "/error"
+        "/v3/api-docs/**",
+        "/swagger-ui/**",
+        "/error",
+        // Handshake WebSocketa. 
+        // Przegladarka nie doklada naglowka Authorization 
+        // do polaczenia WebSocket, wiec token jedzie dopiero w CONNECT -
+        // sprawdza go WebSocketAuthChannelInterceptor.
+        "/ws/**"
     };
 
 

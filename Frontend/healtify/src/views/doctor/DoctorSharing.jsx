@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../../css/dashboard.css';
 import '../../css/data.css';
 import '../../css/calendar.css';
 import '../../css/doctor.css';
+import '../../css/chat.css';
 import Nav from '../../Components/Nav';
+import { useConversations } from '../../utils/useConversations';
 import { useDoctorGuard } from '../../utils/useDoctorGuard';
 import {
     AcceptRequest,
@@ -16,7 +19,7 @@ import {
 } from '../../service/doctorService';
 import { formatAppointmentDateTime } from '../../utils/appointmentUtils';
 
-// Backend i tak odsiewa krótsze frazy - tu tylko nie zawracamy mu głowy.
+// Backend i tak odsiewa krótsze frazy - nie zawracamy mu głowy.
 const MIN_QUERY_LENGTH = 2;
 
 // To pokazać gdy już jest w relacji z lekarzem.
@@ -39,6 +42,10 @@ function DoctorSharing() {
     const [searching, setSearching] = useState(false);
     const [searched, setSearched] = useState(false);
     const [message, setMessage] = useState('');
+    const navigate = useNavigate();
+    // Lista pacjentow zna tylko userId - sharingId potrzebne do czatu (i licznik
+    // nieprzeczytanych) przychodzi osobno, razem z rozmowami tego konta.
+    const { byPartner, refresh: reloadConversations, clearUnread } = useConversations('DOCTOR');
 
     const reload = () => {
         GetMyPatients()
@@ -47,6 +54,13 @@ function DoctorSharing() {
         GetPendingRequests()
             .then((data) => setRequests(data))
             .catch((error) => console.log(error));
+        // Swiezo przyjety pacjent ma od razu dostać przycisk.
+        reloadConversations();
+    };
+
+    const openChat = (conversation) => {
+        clearUnread(conversation.sharingId);
+        navigate(`/sharing/chat/${conversation.sharingId}`);
     };
 
     useEffect(() => {
@@ -78,8 +92,8 @@ function DoctorSharing() {
     const handleInvite = async (patient) => {
         try {
             await InvitePatient(patient.userId);
-            // Wynik wyszukiwania od razu ma nowy stan, żeby nie dało się
-            // kliknąć "Zaproś" zanim lista się odświeży.
+            // Wynik wyszukiwania od razu ma inny stan, zeby nie dalo sie
+            // kliknac Invite zanim lista się odswiezy.
             setResults((prev) => prev.map((item) =>
                 item.userId === patient.userId
                     ? { ...item, status: 'PENDING', initiatedBy: 'DOCTOR' }
@@ -190,21 +204,37 @@ function DoctorSharing() {
                         <div className="datablock doctor-panel">
                             <h3>Twoi pacjenci</h3>
                             {patients.length === 0 && <p>Nie masz jeszcze przypisanych pacjentów.</p>}
-                            {patients.map((patient) => (
-                                <div className="doctor-list-row" key={patient.userId}>
-                                    <div className="doctor-list-main">
-                                        <strong>{patient.username}</strong>
-                                        <span className="doctor-list-sub">{patient.email}</span>
+                            {patients.map((patient) => {
+                                const conversation = byPartner.get(patient.userId);
+                                return (
+                                    <div className="doctor-list-row" key={patient.userId}>
+                                        <div className="doctor-list-main">
+                                            <strong>{patient.username}</strong>
+                                            <span className="doctor-list-sub">{patient.email}</span>
+                                        </div>
+                                        <div className="doctor-list-actions">
+                                            <button
+                                                type="button"
+                                                className="modal-btn primary small"
+                                                onClick={() => openChat(conversation)}
+                                                disabled={!conversation}
+                                            >
+                                                Czat
+                                                {conversation?.unreadCount > 0 && (
+                                                    <span className="chat-unread">{conversation.unreadCount}</span>
+                                                )}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="modal-btn secondary small"
+                                                onClick={() => handleRemove(patient)}
+                                            >
+                                                Zakończ opiekę
+                                            </button>
+                                        </div>
                                     </div>
-                                    <button
-                                        type="button"
-                                        className="modal-btn secondary small"
-                                        onClick={() => handleRemove(patient)}
-                                    >
-                                        Zakończ opiekę
-                                    </button>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
 

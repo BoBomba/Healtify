@@ -1,0 +1,248 @@
+/* --- Czat pacjent - lekarz --- */
+
+/* Ta sama szerokość co .doctor-page i .calendar-page, żeby strony się nie rozjechaly. */
+.chat-page {
+    width: 70%;
+    margin: 2em auto;
+}
+
+/* Czat jest kartą o stalej wysokości: przewija się jego wnetrze,
+   min() pilnuje, zeby sie nie rozjechal */
+.chat-box {
+    height: min(70vh, 40em);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    padding: 1.25em 1.5em;
+    gap: 0.75em;
+}
+
+.chat-box:hover {
+    transform: none;
+    box-shadow: 0px 10px 15px 5px rgba(0, 0, 0, 0.25);
+}
+
+.chat-box-empty {
+    height: auto;
+    align-items: center;
+    text-align: center;
+    gap: 1em;
+}
+
+/* --- Header --- */
+
+.chat-header {
+
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    border-bottom: 1px solid #EEE;
+    padding-bottom: 0.75em;
+}
+
+/* Kółko z szewronem powrotu. Ikona to SVG */
+.chat-back {
+    background: #EEE;
+    border: none;
+    border-radius: 999px;
+    width: 2.2em;
+    height: 2.2em;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    flex-shrink: 0;
+}
+
+.chat-back svg {
+    width: 1.1em;
+    height: 1.1em;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.chat-back:hover {
+    background: #DDD;
+}
+
+.chat-header-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.chat-header-sub {
+    color: #777;
+    font-size: 0.85em;
+}
+
+.chat-message {
+    margin: 0;
+}
+
+/* --- Lista dymków --- */
+
+.chat-scroll {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    padding-right: 0.25em;
+}
+
+.chat-empty {
+    color: #777;
+    text-align: center;
+    margin: auto 0;
+}
+
+/* Szewron do historii */
+.chat-older {
+    align-self: center;
+    background: #EEE;
+    border: none;
+    border-radius: 999px;
+    color: #555;
+    font-family: inherit;
+    font-size: 0.85em;
+    padding: 0.4em 1em;
+    margin-bottom: 0.25em;
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.chat-older:hover:enabled {
+    background: #DDD;
+}
+
+.chat-older:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.chat-chevron {
+    font-size: 1.1em;
+    line-height: 1;
+}
+
+.chat-row {
+    display: flex;
+}
+
+.chat-row.mine {
+    justify-content: flex-end;
+}
+
+.chat-row.theirs {
+    justify-content: flex-start;
+}
+
+.chat-bubble {
+    max-width: 70%;
+    border-radius: 1.25rem;
+    padding: 0.6em 0.9em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
+    color: #FFF;
+}
+
+/* Kolory stron rozmowy */
+.chat-bubble.patient {
+    background: #FF2424;
+}
+
+.chat-bubble.doctor {
+    background: #2D6CDF;
+}
+
+/* Długie słowo bez spacji  nie może rozpychać dymka poza */
+.chat-text {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.chat-time {
+    align-self: flex-end;
+    font-size: 0.7em;
+    opacity: 0.8;
+}
+
+/* --- Pole pisania --- */
+
+.chat-composer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.5em;
+    border-top: 1px solid #EEE;
+    padding-top: 0.75em;
+}
+
+.chat-composer input {
+    flex: 1;
+    min-width: 0;
+    border-radius: 0.625rem;
+    background-color: #EEE;
+    border: none;
+    padding: 0.7em;
+    font-family: inherit;
+    font-size: 1em;
+}
+
+/* Przycisk wysyłki ma kolor MOJEJ strony rozmowy - taki sam jak dymki. */
+.chat-send {
+    flex-shrink: 0;
+    white-space: nowrap;
+    border: none;
+    border-radius: 25px;
+    font-family: Lexend, sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 0.7em 1.4em;
+    color: #FFF;
+}
+
+.chat-send.patient {
+    background: #FF2424;
+}
+
+.chat-send.patient:hover:enabled {
+    background: #d72020;
+}
+
+.chat-send.doctor {
+    background: #2D6CDF;
+}
+
+.chat-send.doctor:hover:enabled {
+    background: #2557B0;
+}
+
+.chat-send:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --- Nieprzeczytane --- */
+
+.chat-unread {
+    background: #FFF;
+    color: #FF2424;
+    border-radius: 999px;
+    font-size: 0.75em;
+    font-weight: 700;
+    min-width: 1.6em;
+    padding: 0.15em 0.45em;
+    text-align: center;
+    margin-left: 0.4em;
+}

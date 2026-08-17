@@ -1,8 +1,10 @@
 package com.healtify.healtify.security.service;
 
+import com.healtify.healtify.models.DataSharing;
 import com.healtify.healtify.models.Doctor;
 import com.healtify.healtify.models.UserAccount;
 import com.healtify.healtify.repository.AppointmentRepository;
+import com.healtify.healtify.repository.ChatMessageRepository;
 import com.healtify.healtify.repository.DoctorRepository;
 import com.healtify.healtify.repository.JournalEntryRepository;
 import com.healtify.healtify.repository.SharingRepository;
@@ -50,6 +52,7 @@ public class AccountDeletionService {
     private final JournalEntryRepository journalEntryRepository;
     private final AppointmentRepository appointmentRepository;
     private final SharingRepository sharingRepository;
+    private final ChatMessageRepository chatMessageRepository;
     private final DoctorRepository doctorRepository;
     private final TokenRepository tokenRepository;
 
@@ -62,6 +65,7 @@ public class AccountDeletionService {
             JournalEntryRepository journalEntryRepository,
             AppointmentRepository appointmentRepository,
             SharingRepository sharingRepository,
+            ChatMessageRepository chatMessageRepository,
             DoctorRepository doctorRepository,
             TokenRepository tokenRepository
     ) {
@@ -70,6 +74,7 @@ public class AccountDeletionService {
         this.journalEntryRepository = journalEntryRepository;
         this.appointmentRepository = appointmentRepository;
         this.sharingRepository = sharingRepository;
+        this.chatMessageRepository = chatMessageRepository;
         this.doctorRepository = doctorRepository;
         this.tokenRepository = tokenRepository;
     }
@@ -89,12 +94,14 @@ public class AccountDeletionService {
         Optional<Doctor> doctor = doctorRepository.findByUserAccount(user);
         if (doctor.isPresent()) {
             appointmentRepository.deleteByDoctor(doctor.get());
+            deleteChatMessages(sharingRepository.findByDoctorOrderByRequestSentDateDesc(doctor.get()));
             sharingRepository.deleteByDoctor(doctor.get());
             doctorRepository.delete(doctor.get());
         }
 
         // 2. Strona pacjenta - wizyty zalozone temu kontu przez lekarzy i powiazania z nimi.
         appointmentRepository.deleteByPatient(user);
+        deleteChatMessages(sharingRepository.findByUserAccountOrderByRequestSentDateDesc(user));
         sharingRepository.deleteByUserAccount(user);
 
         // 3. Wlasne dane konta.
@@ -113,6 +120,17 @@ public class AccountDeletionService {
         // Kasowania sa mieszane (bulk + encje), wiec wymuszamy zapis w ustalonej kolejnosci
         // jeszcze wewnatrz transakcji - inaczej blad wyszedlby dopiero przy commicie.
         entityManager.flush();
+    }
+
+    /**
+     * Wiadomosci czatu wisza na data_sharing, wiec musza zniknac przed powiazaniami -
+     * inaczej kasowanie konta wywala sie na kluczu obcym chat_messages.sharing_id.
+     * Pusta lista jest odsiewana, bo "delete ... where sharing in ()" to nieprawidlowy SQL.
+     */
+    private void deleteChatMessages(List<DataSharing> sharings) {
+        if (!sharings.isEmpty()) {
+            chatMessageRepository.deleteBySharingIn(sharings);
+        }
     }
 
     private void deleteOrphanRows(UserAccount user) {

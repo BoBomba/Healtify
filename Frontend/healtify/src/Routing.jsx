@@ -21,6 +21,7 @@ import DoctorDashboard from './views/doctor/DoctorDashboard';
 import DoctorCalendar from './views/doctor/DoctorCalendar';
 import DoctorData from './views/doctor/DoctorData';
 import DoctorSharing from './views/doctor/DoctorSharing';
+import ChatPage from './views/ChatPage';
 
 
 import './index.css';
@@ -85,6 +86,11 @@ const router = createBrowserRouter([
     path: '/sharing',
     element: <Sharing />,
   },
+  // Jedna trasa dla obu rol. Przycisk powrotu wraca do wlasciwego panelu.
+  {
+    path: '/sharing/chat/:sharingId',
+    element: <ChatPage />,
+  },
   {
     path: '/settings',
     element: <Settings />,
@@ -93,9 +99,8 @@ const router = createBrowserRouter([
     path: '/admin',
     element: <AdminPanel />,
   },
-  // Panel lekarza. Osobne ścieżki zamiast wariantów widoków pacjenta - lekarz nie ma
-  // dziennika ani danych ogólnych, więc te strony nie mają ze sobą prawie nic wspólnego.
-  // Dostępu pilnuje backend (rola ROLE_DOCTOR), front tylko nie pokazuje linków.
+  // Panel lekarza. Osobne ścieżki dla dr i pacjent
+  // Dostępu pilnuje backend (ROLE_DOCTOR), front tylko nie pokazuje linków.
   {
     path: '/doctor',
     element: <Navigate to="/doctor/dashboard" replace />,
