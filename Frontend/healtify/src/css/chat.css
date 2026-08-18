@@ -170,10 +170,12 @@
     white-space: pre-wrap;
 }
 
+/* nowrap, żeby data z godziną nie łamała się na dwie linie w wąskim dymku. */
 .chat-time {
     align-self: flex-end;
     font-size: 0.7em;
     opacity: 0.8;
+    white-space: nowrap;
 }
 
 /* --- Pole pisania --- */

@@ -14,7 +14,7 @@ import {
     SendMessage,
 } from '../service/chatService';
 import { onChatError, onChatMessage, sendOverSocket } from '../service/chatSocket';
-import { formatAppointmentDateTime, formatAppointmentTime } from '../utils/appointmentUtils';
+import { formatAppointmentDateTime } from '../utils/appointmentUtils';
 
 /* Na tyle blisko dołu, by nowa wiadomosc mogla dociagnac widok bez wyrywania z czytania. */
 const STICK_TO_BOTTOM_PX = 80;
@@ -246,11 +246,9 @@ function ChatPage() {
                                 >
                                     <div className={`chat-bubble ${item.sender === 'DOCTOR' ? 'doctor' : 'patient'}`}>
                                         <span className="chat-text">{item.content}</span>
-                                        <span
-                                            className="chat-time"
-                                            title={formatAppointmentDateTime(item.sentAt)}
-                                        >
-                                            {formatAppointmentTime(item.sentAt)}
+                                        {/* Data + godzina, format ten sam co przy wizytach. */}
+                                        <span className="chat-time">
+                                            {formatAppointmentDateTime(item.sentAt)}
                                         </span>
                                     </div>
                                 </div>
