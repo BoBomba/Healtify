@@ -4,8 +4,9 @@ import '../../css/data.css';
 import '../../css/calendar.css';
 import '../../css/doctor.css';
 import Nav from '../../Components/Nav';
+import AddAppointmentModal from '../../Components/AddAppointmentModal';
 import { useDoctorGuard } from '../../utils/useDoctorGuard';
-import { DeleteAppointment, GetAppointments } from '../../service/doctorService';
+import { DeleteAppointment, GetAppointments, GetMyPatients } from '../../service/doctorService';
 import { formatAppointmentTime, groupAppointmentsByDay } from '../../utils/appointmentUtils';
 import { MONTH_NAMES } from '../../utils/calendarUtils';
 
@@ -16,13 +17,16 @@ const formatDayHeading = (dayKey) => {
 };
 
 /**
- * Zakładka "Wizyty" u lekarza - odpowiednik "Przeglądaj dane" u pacjenta.
+ * Zakładka "Wizyty" u lekarza.
  * Świadomie pokazuje TYLKO przyszłe wizyty (backend filtruje po dacie),
  * pogrupowane w dni, żeby dało się to czytać jak grafik.
  */
 function DoctorData() {
     const { doctor } = useDoctorGuard();
     const [appointments, setAppointments] = useState([]);
+    const [patients, setPatients] = useState([]);
+    // Wizyta otwarta do edycji - ten sam modal tylko z wypełnionymi polami.
+    const [editingAppointment, setEditingAppointment] = useState(null);
     const [loadError, setLoadError] = useState('');
 
     useEffect(() => {
@@ -34,7 +38,25 @@ function DoctorData() {
                 console.log(error);
                 setLoadError('Nie udało się pobrać wizyt.');
             });
+        // Lista pacjentów jest potrzebna modalowi edycji - 
+        // wizytę wolno przepiąć tylko na innego dodanego pacjenta.
+        GetMyPatients()
+            .then((data) => setPatients(data))
+            .catch((error) => console.log(error));
     }, [doctor]);
+
+    /**
+     * Ta strona pokazuje tylko przyszłe wizyty, więc przesunięcie wizyty w przeszłość
+     * usuwa ją z listy - inaczej wisiałaby tu wbrew nagłówkowi.
+     */
+    const handleAppointmentSaved = (saved) => {
+        setAppointments((prev) => {
+            const updated = prev
+                .map((item) => (item.appointmentId === saved.appointmentId ? saved : item))
+                .filter((item) => new Date(item.appointmentAt) >= new Date());
+            return updated.sort((a, b) => a.appointmentAt.localeCompare(b.appointmentAt));
+        });
+    };
 
     const days = useMemo(() => {
         const grouped = groupAppointmentsByDay(appointments);
@@ -81,13 +103,22 @@ function DoctorData() {
                                             <span className="day-event-time">
                                                 {formatAppointmentTime(appointment.appointmentAt)}
                                             </span>
-                                            <button
-                                                type="button"
-                                                className="modal-btn secondary small doctor-row-action"
-                                                onClick={() => handleDelete(appointment)}
-                                            >
-                                                Odwołaj
-                                            </button>
+                                            <div className="day-event-actions">
+                                                <button
+                                                    type="button"
+                                                    className="modal-btn secondary small"
+                                                    onClick={() => setEditingAppointment(appointment)}
+                                                >
+                                                    Edytuj
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="modal-btn danger small"
+                                                    onClick={() => handleDelete(appointment)}
+                                                >
+                                                    Odwołaj
+                                                </button>
+                                            </div>
                                         </div>
                                         <p>Pacjent: {appointment.patient.username} ({appointment.patient.email})</p>
                                         {appointment.notes && <p>{appointment.notes}</p>}
@@ -98,6 +129,15 @@ function DoctorData() {
                     </div>
                 </div>
             </main>
+
+            {/* Ta strona tylko edytuje - nowe wizyty zakłada się z kalendarza. */}
+            <AddAppointmentModal
+                isOpen={editingAppointment !== null}
+                onClose={() => setEditingAppointment(null)}
+                onSaved={handleAppointmentSaved}
+                patients={patients}
+                appointment={editingAppointment}
+            />
         </div>
     );
 }

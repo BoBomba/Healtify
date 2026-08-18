@@ -257,19 +257,31 @@ public class DoctorController {
         return ResponseEntity.status(HttpStatus.CREATED).body(AppointmentResponse.from(saved));
     }
 
+    /**
+     * Edycja wizyty przez lekarza, ktory ja zalozyl.
+     */
+    @PutMapping("/appointments/{appointmentId}")
+    public ResponseEntity<AppointmentResponse> updateAppointment(
+            @PathVariable Long appointmentId,
+            @Valid @RequestBody AppointmentRequest request,
+            Principal principal
+    ) {
+        Doctor doctor = currentDoctor(principal);
+        Appointment appointment = requireOwnAppointment(appointmentId, doctor);
+        UserAccount patient = requireLinkedPatient(request.getPatientId(), doctor);
+
+        appointment.setPatient(patient);
+        appointment.setAppointmentAt(request.getAppointmentAt());
+        appointment.setTitle(request.getTitle().trim());
+        appointment.setNotes(normalizeNotes(request.getNotes()));
+
+        return ResponseEntity.ok(AppointmentResponse.from(appointmentRepository.save(appointment)));
+    }
+
     /** Odwolanie wizyty przez lekarza, ktory ja zalozyl. */
     @DeleteMapping("/appointments/{appointmentId}")
     public ResponseEntity<Void> deleteAppointment(@PathVariable Long appointmentId, Principal principal) {
-        Doctor doctor = currentDoctor(principal);
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiej wizyty"));
-
-        // Cudzej wizyty nie wolno ruszac - i nie zdradzamy, ze w ogole istnieje.
-        if (!appointment.getDoctor().getDoctorId().equals(doctor.getDoctorId())) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiej wizyty");
-        }
-
-        appointmentRepository.delete(appointment);
+        appointmentRepository.delete(requireOwnAppointment(appointmentId, currentDoctor(principal)));
         return ResponseEntity.noContent().build();
     }
 
@@ -291,6 +303,17 @@ public class DoctorController {
                         HttpStatus.FORBIDDEN, "Konto ma role lekarza, ale nie ma profilu lekarza"));
     }
 
+    /** Wizyta zalozona przez tego lekarza. */
+    private Appointment requireOwnAppointment(Long appointmentId, Doctor doctor) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiej wizyty"));
+
+        if (!appointment.getDoctor().getDoctorId().equals(doctor.getDoctorId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiej wizyty");
+        }
+        return appointment;
+    }
+
     /** Pacjent, z ktorym lekarz ma zaakceptowane powiazanie. W kazdym innym wypadku 403. */
     private UserAccount requireLinkedPatient(Long patientId, Doctor doctor) {
         UserAccount patient = userAccountRepository.findById(patientId)
@@ -304,7 +327,7 @@ public class DoctorController {
         return patient;
     }
 
-    /** Wiszaca prosba skierowana DO tego lekarza (czyli zalozona przez pacjenta). */
+    /** Wiszaca prosba skierowana DO tego lekarza. */
     private DataSharing requireOwnPendingRequest(Long sharingId, Principal principal) {
         Doctor doctor = currentDoctor(principal);
         DataSharing sharing = sharingRepository.findById(sharingId)

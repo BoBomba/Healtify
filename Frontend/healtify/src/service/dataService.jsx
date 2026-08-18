@@ -46,6 +46,16 @@ export const AddJournalEntry = async (entry) => {
     return response.data;
 }
 
+/** Edycja wpisu - wysyłamy komplet pól, tak jak przy dodawaniu. */
+export const UpdateJournalEntry = async (entryId, entry) => {
+    const response = await axios.put(`${API_URL}/journal/${entryId}`, entry, authConfig());
+    return response.data;
+}
+
+export const DeleteJournalEntry = async (entryId) => {
+    await axios.delete(`${API_URL}/journal/${entryId}`, authConfig());
+}
+
 export const GetSharingData = async () => {
     try {
         const response = await axios.get(`${API_URL}/sharing`, authConfig());

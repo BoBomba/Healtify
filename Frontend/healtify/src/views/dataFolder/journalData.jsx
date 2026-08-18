@@ -3,9 +3,10 @@ import '../../css/dashboard.css';
 import '../../css/data.css';
 import '../../css/calendar.css';
 import Nav from '../../Components/Nav';
+import AddEntryModal from '../../Components/AddEntryModal';
 import { useEffect, useState } from 'react';
 import { validateToken } from '../../service/authService';
-import { GetJournalEntries } from '../../service/dataService';
+import { DeleteJournalEntry, GetJournalEntries } from '../../service/dataService';
 import { moodClass } from '../../utils/calendarUtils';
 
 // Wszystkie wpisy dziennika zalogowanego pacjenta, od najnowszego.
@@ -13,6 +14,8 @@ function JournalData() {
 
   const [entries, setEntries] = useState([]);
   const [error, setError] = useState('');
+  // Wpis otwarty do edycji - ten sam modal tylko z wypełnionymi polami.
+  const [editingEntry, setEditingEntry] = useState(null);
 
   useEffect(() => {
     validateToken();
@@ -23,6 +26,30 @@ function JournalData() {
         setError('Nie udało się pobrać wpisów.');
       });
   }, []);
+
+  // Lista jest od najnowszego, więc po edycji podmieniamy wpis w miejscu
+  // i przywracamy kolejność - zmiana daty może przesunąć go w czasie.
+  const handleEntrySaved = (savedEntry) => {
+    setEntries((prev) => {
+      const updated = prev.map((item) => (item.entryId === savedEntry.entryId ? savedEntry : item));
+      return updated.sort((a, b) => b.entryAt.localeCompare(a.entryAt));
+    });
+  };
+
+  const handleDelete = async (entry) => {
+    const confirmed = window.confirm(
+      `Usunąć wpis "${entry.title}"?\n\nTej operacji nie da się cofnąć.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await DeleteJournalEntry(entry.entryId);
+      setEntries((prev) => prev.filter((item) => item.entryId !== entry.entryId));
+    } catch (err) {
+      console.log(err);
+      setError('Nie udało się usunąć wpisu.');
+    }
+  };
 
   return (
     <div>
@@ -41,6 +68,22 @@ function JournalData() {
                       <span className={`legend-dot ${moodClass(entry.moodScale)}`} />
                       <strong>{entry.title}</strong>
                       <span className="day-event-time">{entry.entryAt.slice(0, 16).replace('T', ' ')}</span>
+                      <div className="day-event-actions">
+                        <button
+                          type="button"
+                          className="modal-btn secondary small"
+                          onClick={() => setEditingEntry(entry)}
+                        >
+                          Edytuj
+                        </button>
+                        <button
+                          type="button"
+                          className="modal-btn danger small"
+                          onClick={() => handleDelete(entry)}
+                        >
+                          Usuń
+                        </button>
+                      </div>
                     </div>
                     <p>Samopoczucie: {entry.moodScale}/5</p>
                     {entry.symptoms && entry.symptoms.length > 0 && (
@@ -58,6 +101,14 @@ function JournalData() {
           </div>
 
         </main>
+
+        {/* Strona tylko edytuje - nowe wpisy z kalendarza. */}
+        <AddEntryModal
+          isOpen={editingEntry !== null}
+          onClose={() => setEditingEntry(null)}
+          onSaved={handleEntrySaved}
+          entry={editingEntry}
+        />
     </div>
   )
 }

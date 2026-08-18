@@ -9,8 +9,11 @@ import com.healtify.healtify.repository.UserAccountRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,8 +28,8 @@ import java.util.List;
  * Wpisy do dziennika zalogowanego pacjenta.
  *
  * Zasady bezpieczenstwa:
- * - kazdy endpoint dziala tylko w kontekscie uzytkownika z tokenu JWT (Principal),
- * - GET zwraca wylacznie wpisy tego uzytkownika (filtr po user_id w zapytaniu),
+ * - kazdy endpoint dziala tylko w kontekscie usera z tokenu JWT (Principal),
+ * - GET zwraca tylko wpisy tego uzytkownika (filtr po user_id w zapytaniu),
  * - POST zapisuje wpis zawsze na tego uzytkownika; klient nie ma jak wskazac wlasciciela,
  * - dane wejsciowe sa walidowane (@Valid) i przycinane, a limit wpisow chroni przed zasypaniem bazy.
  */
@@ -87,6 +90,49 @@ public class JournalController {
 
         JournalEntry saved = journalEntryRepository.save(entry);
         return ResponseEntity.status(HttpStatus.CREATED).body(JournalEntryResponse.from(saved));
+    }
+
+    /**
+     * Edycja wlasnego wpisu. Pola sa nadpisywane w calosci, 
+     * modal wysyla komplet danych.
+     */
+    @PutMapping("/{entryId}")
+    public ResponseEntity<JournalEntryResponse> updateEntry(
+            @PathVariable Long entryId,
+            @Valid @RequestBody JournalEntryRequest request,
+            Principal principal
+    ) {
+        JournalEntry entry = requireOwnEntry(entryId, principal);
+
+        entry.setTitle(request.getTitle().trim());
+        entry.setDescription(normalizeDescription(request.getDescription()));
+        entry.setEntryAt(request.getEntryAt());
+        entry.setMoodScale(request.getMoodScale());
+        entry.setSymptoms(normalizeSymptoms(request.getSymptoms()));
+        entry.setReminder(request.isReminder());
+
+        return ResponseEntity.ok(JournalEntryResponse.from(journalEntryRepository.save(entry)));
+    }
+
+    @DeleteMapping("/{entryId}")
+    public ResponseEntity<Void> deleteEntry(@PathVariable Long entryId, Principal principal) {
+        journalEntryRepository.delete(requireOwnEntry(entryId, principal));
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Wpis nalezacy do zalogowanego uzytkownika. 
+     * Cudzy wpis dostaje 404, a nie 403 by nie zdradzac istnienia.
+     */
+    private JournalEntry requireOwnEntry(Long entryId, Principal principal) {
+        UserAccount userAccount = currentUser(principal);
+        JournalEntry entry = journalEntryRepository.findById(entryId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiego wpisu"));
+
+        if (!entry.getUserAccount().getUserId().equals(userAccount.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiego wpisu");
+        }
+        return entry;
     }
 
     /**

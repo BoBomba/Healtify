@@ -23,6 +23,8 @@ function DoctorCalendar() {
     const [patients, setPatients] = useState([]);
     const [selectedDate, setSelectedDate] = useState(today);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // Wizyta otwarta do edycji. null = modal działa w trybie zakładania nowej.
+    const [editingAppointment, setEditingAppointment] = useState(null);
     const [loadError, setLoadError] = useState('');
 
     useEffect(() => {
@@ -60,13 +62,34 @@ function DoctorCalendar() {
         setSelectedDate(today);
     };
 
+    // Ten sam handler obsługuje założenie i edycję - przy edycji podmieniamy wizytę
+    // w miejscu, żeby nie zdublowała się w kalendarzu.
     const handleAppointmentSaved = (saved) => {
-        setAppointments((prev) => [...prev, saved]);
+        setAppointments((prev) => (
+            prev.some((item) => item.appointmentId === saved.appointmentId)
+                ? prev.map((item) => (item.appointmentId === saved.appointmentId ? saved : item))
+                : [...prev, saved]
+        ));
         if (saved.appointmentAt) {
             const savedDate = new Date(saved.appointmentAt);
             setSelectedDate(savedDate);
             setVisibleMonth(new Date(savedDate.getFullYear(), savedDate.getMonth(), 1));
         }
+    };
+
+    const openAddModal = () => {
+        setEditingAppointment(null);
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (appointment) => {
+        setEditingAppointment(appointment);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setEditingAppointment(null);
     };
 
     const handleDelete = async (appointment) => {
@@ -103,7 +126,7 @@ function DoctorCalendar() {
                         </div>
                         <div className="calendar-toolbar-actions">
                             <button type="button" className="modal-btn secondary" onClick={goToToday}>Dziś</button>
-                            <button type="button" className="modal-btn primary" onClick={() => setIsModalOpen(true)}>
+                            <button type="button" className="modal-btn primary" onClick={openAddModal}>
                                 + Umów wizytę
                             </button>
                         </div>
@@ -166,7 +189,7 @@ function DoctorCalendar() {
                             <button
                                 type="button"
                                 className="modal-btn primary small"
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={openAddModal}
                             >
                                 + Umów na ten dzień
                             </button>
@@ -182,13 +205,22 @@ function DoctorCalendar() {
                                     <span className="day-event-time">
                                         {formatAppointmentTime(appointment.appointmentAt)}
                                     </span>
-                                    <button
-                                        type="button"
-                                        className="modal-btn secondary small doctor-row-action"
-                                        onClick={() => handleDelete(appointment)}
-                                    >
-                                        Odwołaj
-                                    </button>
+                                    <div className="day-event-actions">
+                                        <button
+                                            type="button"
+                                            className="modal-btn secondary small"
+                                            onClick={() => openEditModal(appointment)}
+                                        >
+                                            Edytuj
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="modal-btn danger small"
+                                            onClick={() => handleDelete(appointment)}
+                                        >
+                                            Odwołaj
+                                        </button>
+                                    </div>
                                 </div>
                                 <p>Pacjent: {appointment.patient.username} ({appointment.patient.email})</p>
                                 {appointment.notes && <p>{appointment.notes}</p>}
@@ -200,10 +232,11 @@ function DoctorCalendar() {
 
             <AddAppointmentModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={closeModal}
                 onSaved={handleAppointmentSaved}
                 defaultDate={selectedDate || today}
                 patients={patients}
+                appointment={editingAppointment}
             />
         </div>
     );

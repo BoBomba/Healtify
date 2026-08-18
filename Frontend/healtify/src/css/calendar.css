@@ -205,6 +205,12 @@
     gap: 0.5em;
 }
 
+.day-event-actions {
+    display: flex;
+    gap: 0.5em;
+    margin-left: auto;
+}
+
 .day-event-time {
     color: #777;
     font-size: 0.85em;

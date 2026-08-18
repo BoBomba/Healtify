@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../css/calendar.css';
-import { AddAppointment } from '../service/doctorService';
+import { AddAppointment, UpdateAppointment } from '../service/doctorService';
 import { formatDateKey } from '../utils/calendarUtils';
 
 const MAX_TITLE_LENGTH = 120;
@@ -8,7 +8,10 @@ const MAX_NOTES_LENGTH = 5000;
 
 // Wizytę zakłada wyłącznie lekarz i tylko pacjentowi z listy przypisanych -
 // backend i tak sprawdza powiązanie, ale nie ma sensu pokazywać kogoś, komu i tak się nie da.
-function AddAppointmentModal({ isOpen, onClose, onSaved, defaultDate, patients }) {
+//
+// Modal do zakładania i do edycji: przekazany `appointment` włącza tryb
+// edycji, czyli wypełnia pola istniejącymi danymi i zapisuje przez PUT zamiast POST.
+function AddAppointmentModal({ isOpen, onClose, onSaved, defaultDate, patients, appointment }) {
     const [patientId, setPatientId] = useState('');
     const [title, setTitle] = useState('');
     const [date, setDate] = useState('');
@@ -17,8 +20,22 @@ function AddAppointmentModal({ isOpen, onClose, onSaved, defaultDate, patients }
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
 
+    const isEdit = Boolean(appointment);
+
     useEffect(() => {
-        if (isOpen) {
+        if (!isOpen) {
+            return;
+        }
+
+        if (appointment) {
+            // appointmentAt: "2026-09-15T09:00:00" - rozcinamy bez Date(),
+            // aby strefa czasowa nie przesunęła dnia ani godziny.
+            setPatientId(String(appointment.patient.userId));
+            setTitle(appointment.title || '');
+            setDate(appointment.appointmentAt.slice(0, 10));
+            setTime(appointment.appointmentAt.slice(11, 16));
+            setNotes(appointment.notes || '');
+        } else {
             const base = defaultDate || new Date();
             setPatientId(patients.length === 1 ? String(patients[0].userId) : '');
             setTitle('');
@@ -26,9 +43,10 @@ function AddAppointmentModal({ isOpen, onClose, onSaved, defaultDate, patients }
             setDate(formatDateKey(base));
             setTime('12:00');
             setNotes('');
-            setError('');
         }
-    }, [isOpen, defaultDate, patients]);
+
+        setError('');
+    }, [isOpen, defaultDate, patients, appointment]);
 
     if (!isOpen) {
         return null;
@@ -67,7 +85,9 @@ function AddAppointmentModal({ isOpen, onClose, onSaved, defaultDate, patients }
         };
 
         try {
-            const saved = await AddAppointment(payload);
+            const saved = isEdit
+                ? await UpdateAppointment(appointment.appointmentId, payload)
+                : await AddAppointment(payload);
             onSaved(saved);
             onClose();
         } catch (err) {
@@ -82,7 +102,7 @@ function AddAppointmentModal({ isOpen, onClose, onSaved, defaultDate, patients }
         <div className="modal-overlay" onMouseDown={handleOverlayClick}>
             <div className="modal-card" role="dialog" aria-modal="true">
                 <div className="modal-header">
-                    <h2>Nowa wizyta</h2>
+                    <h2>{isEdit ? 'Edytuj wizytę' : 'Nowa wizyta'}</h2>
                     <button type="button" className="modal-close" onClick={onClose} aria-label="Zamknij">×</button>
                 </div>
 
@@ -153,7 +173,7 @@ function AddAppointmentModal({ isOpen, onClose, onSaved, defaultDate, patients }
                         <div className="modal-actions">
                             <button type="button" className="modal-btn secondary" onClick={onClose}>Anuluj</button>
                             <button type="submit" className="modal-btn primary" disabled={saving}>
-                                {saving ? 'Zapisywanie...' : 'Umów wizytę'}
+                                {saving ? 'Zapisywanie...' : (isEdit ? 'Zapisz zmiany' : 'Umów wizytę')}
                             </button>
                         </div>
                     </form>

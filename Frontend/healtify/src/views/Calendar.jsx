@@ -4,7 +4,7 @@ import AddEntryModal from '../Components/AddEntryModal';
 import '../css/dashboard.css';
 import '../css/calendar.css';
 import { validateToken } from '../service/authService';
-import { GetJournalEntries } from '../service/dataService';
+import { DeleteJournalEntry, GetJournalEntries } from '../service/dataService';
 import { GetMyAppointments } from '../service/sharingService';
 import { MONTH_NAMES, WEEKDAY_NAMES, getMonthMatrix, formatDateKey, isSameDay, moodClass } from '../utils/calendarUtils';
 
@@ -20,6 +20,8 @@ function CalendarPage() {
     const [appointments, setAppointments] = useState([]);
     const [selectedDate, setSelectedDate] = useState(today);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // Wpis otwarty do edycji. null = modal działa w trybie dodawania.
+    const [editingEntry, setEditingEntry] = useState(null);
     const [loadError, setLoadError] = useState('');
 
     useEffect(() => {
@@ -80,12 +82,47 @@ function CalendarPage() {
         setSelectedDate(today);
     };
 
+    // przy edycji podmieniamy wpis w miejscu, żeby nie zdublował się w kalendarzu.
     const handleEntrySaved = (savedEntry) => {
-        setEntries((prev) => [...prev, savedEntry]);
+        setEntries((prev) => (
+            prev.some((item) => item.entryId === savedEntry.entryId)
+                ? prev.map((item) => (item.entryId === savedEntry.entryId ? savedEntry : item))
+                : [...prev, savedEntry]
+        ));
         if (savedEntry.entryAt) {
             const saved = new Date(savedEntry.entryAt);
             setSelectedDate(saved);
             setVisibleMonth(new Date(saved.getFullYear(), saved.getMonth(), 1));
+        }
+    };
+
+    const openAddModal = () => {
+        setEditingEntry(null);
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (entry) => {
+        setEditingEntry(entry);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setEditingEntry(null);
+    };
+
+    const handleDeleteEntry = async (entry) => {
+        const confirmed = window.confirm(
+            `Usunąć wpis "${entry.title}"?\n\nTej operacji nie da się cofnąć.`
+        );
+        if (!confirmed) return;
+
+        try {
+            await DeleteJournalEntry(entry.entryId);
+            setEntries((prev) => prev.filter((item) => item.entryId !== entry.entryId));
+        } catch (error) {
+            console.log(error);
+            setLoadError('Nie udało się usunąć wpisu.');
         }
     };
 
@@ -104,7 +141,7 @@ function CalendarPage() {
                         </div>
                         <div className="calendar-toolbar-actions">
                             <button type="button" className="modal-btn secondary" onClick={goToToday}>Dziś</button>
-                            <button type="button" className="modal-btn primary" onClick={() => setIsModalOpen(true)}>
+                            <button type="button" className="modal-btn primary" onClick={openAddModal}>
                                 + Dodaj wpis
                             </button>
                         </div>
@@ -176,7 +213,7 @@ function CalendarPage() {
                             <button
                                 type="button"
                                 className="modal-btn primary small"
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={openAddModal}
                             >
                                 + Dodaj do tego dnia
                             </button>
@@ -201,6 +238,24 @@ function CalendarPage() {
                                         <span className={`legend-dot ${moodClass(item.entry.moodScale)}`} />
                                         <strong>{item.entry.title}</strong>
                                         <span className="day-event-time">{item.at.slice(11, 16)}</span>
+                                        {/* Wizyt pacjent nie rusza - zakłada je lekarz, więc przyciski
+                                            są tylko przy własnych wpisach. */}
+                                        <div className="day-event-actions">
+                                            <button
+                                                type="button"
+                                                className="modal-btn secondary small"
+                                                onClick={() => openEditModal(item.entry)}
+                                            >
+                                                Edytuj
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="modal-btn danger small"
+                                                onClick={() => handleDeleteEntry(item.entry)}
+                                            >
+                                                Usuń
+                                            </button>
+                                        </div>
                                     </div>
                                     <p>Samopoczucie: {item.entry.moodScale}/5</p>
                                     {item.entry.symptoms && item.entry.symptoms.length > 0 && (
@@ -222,9 +277,10 @@ function CalendarPage() {
 
             <AddEntryModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={closeModal}
                 onSaved={handleEntrySaved}
                 defaultDate={selectedDate || today}
+                entry={editingEntry}
             />
         </div>
     );

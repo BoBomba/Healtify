@@ -71,6 +71,12 @@ export const AddAppointment = async (appointment) => {
     return response.data;
 }
 
+/** Edycja wizyty - wysyłamy komplet pól, tak jak przy zakładaniu. */
+export const UpdateAppointment = async (appointmentId, appointment) => {
+    const response = await axios.put(`${API_URL}/appointments/${appointmentId}`, appointment, authConfig());
+    return response.data;
+}
+
 export const DeleteAppointment = async (appointmentId) => {
     await axios.delete(`${API_URL}/appointments/${appointmentId}`, authConfig());
 }
