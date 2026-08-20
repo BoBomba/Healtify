@@ -27,6 +27,25 @@ const STATUS_LABELS = {
 };
 
 /**
+ * Wizytówka lekarza sklejana z pól, które sam uzupełnił.
+ */
+const joinFilled = (parts, separator) => parts.filter(Boolean).join(separator);
+
+/** "dr n. med. Anna Lewamdowska" albo samo nazwisko, gdy nie ma tytułu. */
+const doctorFullName = (doctor) => joinFilled([doctor.title, doctor.doctorName], ' ');
+
+const doctorCredentials = (doctor) =>
+  joinFilled(
+    [doctor.specialization, doctor.licenseNumber && `PWZ ${doctor.licenseNumber}`],
+    ' · '
+  ) || 'Brak specjalizacji';
+
+const doctorLocation = (doctor) => joinFilled([doctor.workplace, doctor.workAddress], ', ');
+
+const doctorContact = (doctor) =>
+  joinFilled([doctor.phone && `tel. ${doctor.phone}`, doctor.email], ' · ');
+
+/**
  * Udostepnianie po stronie pacjenta - druga polowa panelu lekarza.
  * To pacjent decyduje, kto widzi jego dane: sam prosi lekarza o opiekę
  * albo odpowiada na zaproszenie i w każdej chwili może cofnąć zgodę.
@@ -148,7 +167,7 @@ function Sharing() {
       <Nav />
       <main>
         <div className="doctor-page">
-          <h2>Udostepnianie</h2>
+          <h2>Lekarze</h2>
 
           {message && <div id="messages">{message}</div>}
 
@@ -172,10 +191,14 @@ function Sharing() {
               {results.map((result) => (
                 <div className="doctor-list-row" key={result.doctorId}>
                   <div className="doctor-list-main">
-                    <strong>{result.doctorName}</strong>
-                    <span className="doctor-list-sub">
-                      {result.specialization || 'Brak specjalizacji'}
-                    </span>
+                    <strong>{doctorFullName(result)}</strong>
+                    <span className="doctor-list-sub">{doctorCredentials(result)}</span>
+                    {doctorLocation(result) && (
+                      <span className="doctor-list-sub">{doctorLocation(result)}</span>
+                    )}
+                    {doctorContact(result) && (
+                      <span className="doctor-list-sub">{doctorContact(result)}</span>
+                    )}
                   </div>
                   {STATUS_LABELS[result.status] ? (
                     <span className="doctor-badge">{STATUS_LABELS[result.status]}</span>
@@ -200,10 +223,14 @@ function Sharing() {
                 return (
                   <div className="doctor-list-row" key={doctor.doctorId}>
                     <div className="doctor-list-main">
-                      <strong>{doctor.doctorName}</strong>
-                      <span className="doctor-list-sub">
-                        {doctor.specialization || 'Brak specjalizacji'}
-                      </span>
+                      <strong>{doctorFullName(doctor)}</strong>
+                      <span className="doctor-list-sub">{doctorCredentials(doctor)}</span>
+                      {doctorLocation(doctor) && (
+                        <span className="doctor-list-sub">{doctorLocation(doctor)}</span>
+                      )}
+                      {doctorContact(doctor) && (
+                        <span className="doctor-list-sub">{doctorContact(doctor)}</span>
+                      )}
                     </div>
                     <div className="doctor-list-actions">
                       <button

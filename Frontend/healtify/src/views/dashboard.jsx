@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "../css/dashboard.css";
 // styl listy wpisów (.day-event-item) mieszka razem z resztą stylów dziennika
 import "../css/calendar.css";
@@ -6,29 +7,25 @@ import Nav from "../Components/Nav";
 import { useEffect, useState } from "react";
 import { validateToken } from "../service/authService";
 import {
-  GetGeneralData,
+  GetPatientProfile,
   GetJournalEntries,
 } from "../service/dataService";
-import { RenderData } from "../Components/RenderData";
+import PatientDetails from "../Components/PatientDetails";
 import { moodClass } from "../utils/calendarUtils";
 
 // Ile ostatnich wpisów pokazujemy na dashboardzie.
 const RECENT_ENTRIES_COUNT = 3;
 
 function Dashboard() {
-  const [generalData, setGeneralData] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [recentEntries, setRecentEntries] = useState([]);
 
   useEffect(() => {
     validateToken();
-    GetGeneralData().then((fetchedData) => {
-      console.log(fetchedData);
-      if (fetchedData === "null") {
-        setGeneralData(null);
-      } else {
-        setGeneralData(fetchedData);
-      }
-    });
+    // Backend zawsze zwraca komplet pól - brakujące przychodzą jako null.
+    GetPatientProfile()
+      .then((fetchedProfile) => setProfile(fetchedProfile))
+      .catch((error) => console.log(error));
     GetJournalEntries()
       .then((entries) => {
         // Backend zwraca wpisy rosnąco po dacie - tu chcemy najświeższe.
@@ -43,9 +40,10 @@ function Dashboard() {
 
       <main>
         <div className="main-container">
-          <div className="datablock">Ogólne Dane</div>
+          <div className="datablock">Szczegółowe dane</div>
           <div className="datablock">
-            {generalData && RenderData(generalData)}
+            <PatientDetails profile={profile} />
+            <Link to="/data/profile" className="big-btn secondary">Edytuj dane</Link>
           </div>
         </div>
         <div className="main-container">

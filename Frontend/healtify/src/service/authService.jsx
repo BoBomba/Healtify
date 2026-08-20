@@ -9,8 +9,16 @@ const API_URL = "http://localhost:8080/api/auth"; // Zmień na adres URL swojego
 const landingPageForCurrentUser = async () => {
     try {
         const user = await getCurrentUser();
-        // if else czy doktor czy nie 
-        return user.doctor === true ? "/doctor/dashboard" : "/dashboard";
+
+        // Konto, które nie uzupełniło jeszcze swoich danych, trafia najpierw na formularz.
+        const needsSetup = user.profileCompleted === false;
+
+        // if else czy doktor czy nie
+        if (user.doctor === true) {
+            return needsSetup ? "/doctor/profile?setup=1" : "/doctor/dashboard";
+        }
+
+        return needsSetup ? "/data/profile?setup=1" : "/dashboard";
     } catch (error) {
         console.log(error);
         return "/dashboard";
@@ -23,7 +31,7 @@ const landingPageForCurrentUser = async () => {
  * wtedy error.response.status wywalało aplikację zamiast pokazać komunikat.
  */
 const describeRequestError = (error) => {
-    // obsluga bledow z logowania i rejestracji
+
     if (error.response) {
         const details = error.response.data?.message ?? error.response.data;
         const status = `Kod błędu: ${error.response.status}`;
@@ -85,12 +93,10 @@ export const loginService = async (email, password) => {
         .then(async (response) => {
             if (response.data) {
                 console.log("User logged in successfully");
-
-                // Odbieranie tokena 
+ 
                 const token = response.data.access_token;
                 console.log("Token: ", token);
 
-                // saving token in local storage
                 localStorage.setItem('token', token);
 
                 // Lekarz ma własny panel (/doctor/*) - o roli decyduje backend.

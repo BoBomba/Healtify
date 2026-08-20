@@ -8,8 +8,14 @@ import com.healtify.healtify.models.SharingStatus;
 public record DoctorSearchResponse(
         Long doctorId,
         String doctorName,
+        String title,
         String specialization,
+        String licenseNumber,
+        String workplace,
+        String workAddress,
+        String phone,
         String username,
+        String email,
         SharingStatus status,
         SharingInitiator initiatedBy
 ) {
@@ -17,8 +23,14 @@ public record DoctorSearchResponse(
         return new DoctorSearchResponse(
                 doctor.getDoctorId(),
                 doctor.getDoctorName(),
+                doctor.getTitle(),
                 doctor.getSpecialization(),
+                doctor.getLicenseNumber(),
+                doctor.getWorkplace(),
+                doctor.getWorkAddress(),
+                doctor.getPhone(),
                 doctor.getUserAccount().getUsername(),
+                doctor.getUserAccount().getEmail(),
                 status,
                 initiatedBy
         );

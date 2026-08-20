@@ -7,9 +7,9 @@ import com.healtify.healtify.security.service.RoleEnum;
 import java.util.List;
 
 /**
- * Kim jest zalogowany uzytkownik. Front pyta o to raz po zalogowaniu i na tej podstawie
- * decyduje, czy pokazac panel pacjenta czy lekarza - stad gotowe flagi zamiast
- * przepisywania nazw rol w kilku miejscach w JS.
+ * Kim jest zalogowany uzytkownik. 
+ * profileCompleted mowi, czy pacjent wypelnil juz szczegolowe dane. Jesli nie, front
+ * kieruje go zaraz po zalogowaniu na formularz uzupelniania zamiast na dashboard.
  */
 public record CurrentUserResponse(
         Long userId,
@@ -17,16 +17,18 @@ public record CurrentUserResponse(
         String email,
         List<String> roles,
         boolean admin,
-        boolean doctor
+        boolean doctor,
+        boolean profileCompleted
 ) {
-    public static CurrentUserResponse from(UserAccount user) {
+    public static CurrentUserResponse from(UserAccount user, boolean profileCompleted) {
         return new CurrentUserResponse(
                 user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getRoles().stream().map(Role::getName).sorted().toList(),
                 user.hasRole(RoleEnum.ROLE_ADMIN),
-                user.hasRole(RoleEnum.ROLE_DOCTOR)
+                user.hasRole(RoleEnum.ROLE_DOCTOR),
+                profileCompleted
         );
     }
 }

@@ -109,7 +109,7 @@ function AddAppointmentModal({ isOpen, onClose, onSaved, defaultDate, patients, 
                 {patients.length === 0 ? (
                     <p>
                         Nie masz jeszcze przypisanych pacjentów. Zaproś kogoś w zakładce
-                        Udostepnianie - wizytę można umówić dopiero po akceptacji.
+                        Pacjenci - wizytę można umówić dopiero po akceptacji.
                     </p>
                 ) : (
                     <form onSubmit={handleSubmit} className="modal-form">

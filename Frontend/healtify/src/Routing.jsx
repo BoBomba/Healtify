@@ -15,12 +15,14 @@ import Settings from './views/settings';
 import Logout from './utils/logout';
 import GeneralData from './views/dataFolder/generalData';
 import JournalData from './views/dataFolder/journalData';
+import PatientProfile from './views/dataFolder/patientProfile';
 import AdminPanel from './views/AdminPanel';
 import CalendarPage from './views/Calendar';
 import DoctorDashboard from './views/doctor/DoctorDashboard';
 import DoctorCalendar from './views/doctor/DoctorCalendar';
 import DoctorData from './views/doctor/DoctorData';
 import DoctorSharing from './views/doctor/DoctorSharing';
+import DoctorProfile from './views/doctor/DoctorProfile';
 import ChatPage from './views/ChatPage';
 
 
@@ -70,6 +72,12 @@ const router = createBrowserRouter([
     path: '/data',
     element: <Data />,
   },
+  // ?setup=1 to wariant po pierwszym zalogowaniu -
+  // strona otwiera sie od razu w trybie edycji i konczy przyciskiem "Gotowe".
+  {
+    path: '/data/profile',
+    element: <PatientProfile />,
+  },
   {
     path: '/data/general',
     element: <GeneralData />,
@@ -99,7 +107,6 @@ const router = createBrowserRouter([
     path: '/admin',
     element: <AdminPanel />,
   },
-  // Panel lekarza. Osobne ścieżki dla dr i pacjent
   // Dostępu pilnuje backend (ROLE_DOCTOR), front tylko nie pokazuje linków.
   {
     path: '/doctor',
@@ -120,6 +127,11 @@ const router = createBrowserRouter([
   {
     path: '/doctor/sharing',
     element: <DoctorSharing />,
+  },
+  // ?setup=1 to pierwsze logowanie po nadaniu roli.
+  {
+    path: '/doctor/profile',
+    element: <DoctorProfile />,
   },
   {
     path: '*',

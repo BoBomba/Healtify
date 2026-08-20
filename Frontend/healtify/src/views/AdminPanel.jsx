@@ -6,17 +6,16 @@ import '../css/doctor.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Nav from '../Components/Nav';
+import GrantDoctorModal from '../Components/GrantDoctorModal';
 import { useEffect } from 'react';
 import { validateToken } from '../service/authService';
-import { checkAdminStatus, deleteUserAccount, getUsersWithRoles, grantDoctorRole } from '../service/adminService';
+import { checkAdminStatus, deleteUserAccount, getUsersWithRoles } from '../service/adminService';
 
 function AdminPanel() {
 
   const [users, setUsers] = useState([]);
-  // Formularz nadania roli lekarza rozwija się przy konkretnym użytkowniku.
+  // Użytkownik, dla którego otwarte jest potwierdzenie nadania roli lekarza.
   const [grantingFor, setGrantingFor] = useState(null);
-  const [doctorName, setDoctorName] = useState('');
-  const [specialization, setSpecialization] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
@@ -54,31 +53,18 @@ function AdminPanel() {
     loadUsers();
   }, []);
 
-  const openGrantForm = (user) => {
-    setGrantingFor(user.userId);
-    setDoctorName(user.username);
-    setSpecialization('');
+  const openGrantModal = (user) => {
+    setGrantingFor(user);
     setMessage('');
   };
 
-  const handleGrant = async (event) => {
-    event.preventDefault();
-
-    if (doctorName.trim() === '') {
-      setMessage('Podaj imię i nazwisko lekarza.');
-      return;
-    }
-
-    try {
-      await grantDoctorRole(grantingFor, doctorName.trim(), specialization.trim());
-      // Role są czytane z bazy przy każdym żądaniu, więc działa to od razu bez reloga i bez wymiany tokenu.
-      setMessage('Rola lekarza nadana. Panel lekarza jest dostępny od razu.');
-      setGrantingFor(null);
-      loadUsers();
-    } catch (error) {
-      console.log(error);
-      setMessage(error.response?.data?.message || 'Nie udało się nadać roli lekarza.');
-    }
+  // Role są czytane z bazy przy każdym żądaniu, więc działa to od razu bez reloga i bez wymiany tokenu.
+  const handleGranted = (user) => {
+    setMessage(
+      `Rola lekarza nadana kontu ${user.username}. Dane zawodowe uzupełni przy pierwszym zalogowaniu.`
+    );
+    setGrantingFor(null);
+    loadUsers();
   };
 
   const handleDelete = async (user) => {
@@ -94,8 +80,8 @@ function AdminPanel() {
     try {
       await deleteUserAccount(user.userId);
       setMessage(`Konto ${user.username} zostało usunięte.`);
-      // Formularz nadania roli mógł być otwarty właśnie dla tego konta.
-      if (grantingFor === user.userId) {
+      // Potwierdzenie nadania roli mogło być otwarte właśnie dla tego konta.
+      if (grantingFor?.userId === user.userId) {
         setGrantingFor(null);
       }
       loadUsers();
@@ -134,7 +120,7 @@ function AdminPanel() {
                         <button
                           type="button"
                           className="modal-btn primary small"
-                          onClick={() => openGrantForm(user)}
+                          onClick={() => openGrantModal(user)}
                         >
                           Nadaj rolę lekarza
                         </button>
@@ -152,44 +138,15 @@ function AdminPanel() {
               })}
             </div>
 
-            {grantingFor !== null && (
-              <div className="datablock doctor-panel">
-                <h3>Nowy profil lekarza</h3>
-                <form className="modal-form" onSubmit={handleGrant}>
-                  <label className="field-label" htmlFor="doctor-name">Imię i nazwisko</label>
-                  <input
-                    id="doctor-name"
-                    type="text"
-                    maxLength={120}
-                    value={doctorName}
-                    onChange={(e) => setDoctorName(e.target.value)}
-                  />
-
-                  <label className="field-label" htmlFor="doctor-specialization">Specjalizacja</label>
-                  <input
-                    id="doctor-specialization"
-                    type="text"
-                    maxLength={120}
-                    placeholder="Np. psychoterapeuta"
-                    value={specialization}
-                    onChange={(e) => setSpecialization(e.target.value)}
-                  />
-
-                  <div className="modal-actions">
-                    <button
-                      type="button"
-                      className="modal-btn secondary"
-                      onClick={() => setGrantingFor(null)}
-                    >
-                      Anuluj
-                    </button>
-                    <button type="submit" className="modal-btn primary">Nadaj rolę</button>
-                  </div>
-                </form>
-              </div>
-            )}
           </div>
         </main>
+
+        <GrantDoctorModal
+          isOpen={grantingFor !== null}
+          onClose={() => setGrantingFor(null)}
+          onGranted={handleGranted}
+          user={grantingFor}
+        />
     </div>
   )
 }

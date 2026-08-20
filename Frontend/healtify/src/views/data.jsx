@@ -11,12 +11,11 @@ function Data() {
 
   useEffect(() => {
     validateToken();
-  });
+  }, []);
 
   return (
     <div>
       <Nav />
-      data
       <main>
         <div className="block-container">
           <div className="block-row">
@@ -24,7 +23,7 @@ function Data() {
             <Link to="/data/journal" className="datablock">Dziennik</Link>
           </div>
         </div>
-      </main> 
+      </main>
     </div>
   )
 }

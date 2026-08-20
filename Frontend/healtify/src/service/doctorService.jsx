@@ -15,9 +15,27 @@ export const GetDoctorProfile = async () => {
     return response.data;
 }
 
+/**
+ * Zapis własnych danych lekarza. Wiersz w doctors zakłada admin przy nadaniu roli,
+ * więc zawsze update - on oznacza profil jako uzupełniony.
+ */
+export const SaveDoctorProfile = async (profile) => {
+    const response = await axios.put(`${API_URL}/profile`, profile, authConfig());
+    return response.data;
+}
+
 export const GetMyPatients = async () => {
     const response = await axios.get(`${API_URL}/patients`, authConfig());
     return Array.isArray(response.data) ? response.data : [];
+}
+
+/**
+ * Szczegółowe dane pacjenta. Backend wpuszcza tu tylko przy ACCEPTED,
+ * więc bez zgody pacjenta poleci 403.
+ */
+export const GetPatientProfile = async (patientId) => {
+    const response = await axios.get(`${API_URL}/patients/${patientId}/profile`, authConfig());
+    return response.data;
 }
 
 /** Wiszące zaproszenia w obie strony - rozdzielamy je po polu initiatedBy. */
@@ -40,8 +58,8 @@ export const InvitePatient = async (patientId) => {
 }
 
 /**
- * Zakończenie opieki nad pacjentem. Lekarz traci dostęp do jego danych, a umówione
- * wizyty tej pary znikają - terminy wracają do kalendarza. Da się odnowić zaproszeniem.
+ * Zakończenie opieki nad pacjentem. Lekarz traci dostęp do danych, a umówione
+ * wizyty znikają - terminy wracają do kalendarza. Da się odnowić zaproszeniem.
  */
 export const RemovePatient = async (patientId) => {
     await axios.delete(`${API_URL}/patients/${patientId}`, authConfig());
@@ -71,7 +89,7 @@ export const AddAppointment = async (appointment) => {
     return response.data;
 }
 
-/** Edycja wizyty - wysyłamy komplet pól, tak jak przy zakładaniu. */
+/** Edycja wizyty - komplet pól, tak jak przy zakładaniu. */
 export const UpdateAppointment = async (appointmentId, appointment) => {
     const response = await axios.put(`${API_URL}/appointments/${appointmentId}`, appointment, authConfig());
     return response.data;

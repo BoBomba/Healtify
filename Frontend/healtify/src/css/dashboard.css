@@ -54,6 +54,41 @@ main {
     margin-top: 70px;
 }
 
+/* Plakietka roli przy nazwie użytkownika w menu. */
+.nav-role-badge {
+    background: #2D6CDF;
+    color: #FFF;
+    border-radius: 999px;
+    padding: 0.1em 0.6em;
+    font-size: 0.6em;
+    margin-left: 0.5em;
+    vertical-align: middle;
+}
+
+.nav-role-badge.admin {
+    background: #C1121F;
+}
+
+.nav-role-badge.patient {
+    background: #1B7F4A;
+}
+
+.dashboard main {
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0 1rem 2rem;
+}
+
+/* .main-container w Global.css ma sztywne 20em od karty logowania.
+   Na dashboardzie kolumny dostają tu wiecej miejsca. */
+.dashboard main > .main-container {
+    box-sizing: border-box;
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 34em;
+}
+
 #textlogo {
     height: 1em;
     width: auto;

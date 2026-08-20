@@ -39,19 +39,16 @@ export const getUsersWithRoles = async () => {
 };
 
 /**
- * Nadanie roli lekarza. Backend robi tu dwie rzeczy naraz: 
- * dokłada ROLE_DOCTOR i zakłada profil w tabeli doctors. 
+ * Nadanie roli lekarza. Backend robi tu dwie rzeczy: 
+ * dokłada ROLE_DOCTOR i profil w tabeli doctors. 
  */
-export const grantDoctorRole = async (userId, doctorName, specialization) => {
-    const response = await axios.post(`${ADMIN_URL}/users/${userId}/grant-doctor`, {
-        doctorName,
-        specialization,
-    });
+export const grantDoctorRole = async (userId) => {
+    const response = await axios.post(`${ADMIN_URL}/users/${userId}/grant-doctor`, {});
     return response.data;
 };
 
 /**
- * Skasowanie konta użytkownika razem z jego danymi - dziennikiem, wizytami, powiązaniami pacjent-lekarz i profilem lekarza.
+ * Skasowanie konta użytkownika razem z jego danymi.
  * Operacji nie da się cofnąć. Własnego konta admin nie skasuje.
  */
 export const deleteUserAccount = async (userId) => {

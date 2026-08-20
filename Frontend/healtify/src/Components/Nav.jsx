@@ -48,21 +48,28 @@ function Nav() {
         <div className="navbar" id="myNavbar">
                 <p>
                 {username}
+                {/* Admin i lekarz to role nadane - pokazujemy je wprost. 
+                "Pacjent" leci tylko wtedy, gdy nie ma żadnej z nich. */}
+                {isAdmin && <span className="nav-role-badge admin">admin</span>}
                 {isDoctor && <span className="nav-role-badge">lekarz</span>}
+                {currentUser !== null && !isAdmin && !isDoctor && (
+                    <span className="nav-role-badge patient">pacjent</span>
+                )}
                 </p>
                 {isDoctor ? (
                     <>
                         <Link to="/doctor/dashboard">Dashboard</Link>
                         <Link to="/doctor/calendar">Kalendarz</Link>
                         <Link to="/doctor/data">Wizyty</Link>
-                        <Link to="/doctor/sharing">Udostepnianie</Link>
+                        <Link to="/doctor/sharing">Pacjenci</Link>
+                        <Link to="/doctor/profile">Moje dane</Link>
                     </>
                 ) : (
                     <>
                         <Link to="/dashboard">Dashboard</Link>
                         <Link to="/calendar">Kalendarz</Link>
                         <Link to="/data">Przeglądaj Dane</Link>
-                        <Link to="/sharing">Udostepnianie</Link>
+                        <Link to="/sharing">Lekarze</Link>
                     </>
                 )}
                 <Link to="/Settings">Ustawienia</Link>

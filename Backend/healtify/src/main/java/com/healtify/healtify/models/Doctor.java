@@ -28,6 +28,36 @@ public class Doctor {
     @Column(name = "specialization")
     private String specialization;
 
+    /** Tytul zawodowy, np. "lek." albo "dr n. med.". */
+    @Column(name = "title")
+    private String title;
+
+    /** Numer prawa wykonywania zawodu. */
+    @Column(name = "license_number")
+    private String licenseNumber;
+
+    @Column(name = "workplace")
+    private String workplace;
+
+    @Column(name = "work_address")
+    private String workAddress;
+
+    @Column(name = "phone")
+    private String phone;
+
+    /**
+     * Czy lekarz przeszedl juz przez formularz uzupelniania danych.
+     *
+     * U pacjenta wystarcza samo istnienie wiersza w user_profile,
+     * profil lekarza zaklada admin przy nadaniu roli (AdminController#grantDoctor), 
+     * wiec wiersz istnieje, zanim lekarz cokolwiek zobaczy - stad ta flaga.
+     *
+     * Typ obiektowy, nie boolean: ddl-auto=update dokłada kolumne jako NULL-owalna,
+     * a wiersze lekarzy sprzed tej zmiany maja w niej null.
+     */
+    @Column(name = "profile_completed")
+    private Boolean profileCompleted;
+
     // Getters and setters
 
     public Long getDoctorId() {
@@ -54,6 +84,55 @@ public class Doctor {
         this.specialization = specialization;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
+    }
+
+    public String getWorkplace() {
+        return workplace;
+    }
+
+    public void setWorkplace(String workplace) {
+        this.workplace = workplace;
+    }
+
+    public String getWorkAddress() {
+        return workAddress;
+    }
+
+    public void setWorkAddress(String workAddress) {
+        this.workAddress = workAddress;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    /** Null (profil zalozony przez admina, lekarz go jeszcze nie widzial) liczy sie jako "nie". */
+    public boolean isProfileCompleted() {
+        return profileCompleted != null && profileCompleted;
+    }
+
+    public void setProfileCompleted(boolean profileCompleted) {
+        this.profileCompleted = profileCompleted;
+    }
+
     public UserAccount getUserAccount() {
         return userAccount;
     }
@@ -64,8 +143,7 @@ public class Doctor {
 
     // constructors
 
-    // JPA wymaga konstruktora bezargumentowego - bez niego Hibernate nie potrafi
-    // zmaterializowac encji i kazde zapytanie o lekarza konczy sie bledem.
+    // JPA wymaga konstruktora bezargumentowego - bez niego Hibernate kazde zapytanie o lekarza konczy sie bledem.
     public Doctor() {
     }
 

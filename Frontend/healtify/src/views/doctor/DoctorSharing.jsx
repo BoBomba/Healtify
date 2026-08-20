@@ -6,6 +6,7 @@ import '../../css/calendar.css';
 import '../../css/doctor.css';
 import '../../css/chat.css';
 import Nav from '../../Components/Nav';
+import PatientProfileModal from '../../Components/PatientProfileModal';
 import { useConversations } from '../../utils/useConversations';
 import { useDoctorGuard } from '../../utils/useDoctorGuard';
 import {
@@ -29,6 +30,20 @@ const STATUS_LABELS = {
 };
 
 /**
+ * Skrót danych pacjenta pod jego nazwą.
+ * Każde z pól może być puste, więc sklejamy tylko to,
+ * co jest - reszta pod przyciskiem "Dane".
+ */
+const patientSummary = (patient) =>
+    [
+        patient.age !== null && patient.age !== undefined ? `${patient.age} lat` : null,
+        patient.gender,
+        patient.phone && `tel. ${patient.phone}`,
+    ]
+        .filter(Boolean)
+        .join(' · ');
+
+/**
  * Udostepnianie po stronie lekarza: wyszukiwarka nowych pacjentów, lista przypisanych
  * i wiszące zaproszenia. Zaproszenie może wyjść z obu stron,
  * ale dostęp tylko, gdy druga strona je zaakceptuje.
@@ -42,6 +57,7 @@ function DoctorSharing() {
     const [searching, setSearching] = useState(false);
     const [searched, setSearched] = useState(false);
     const [message, setMessage] = useState('');
+    const [viewingPatient, setViewingPatient] = useState(null);
     const navigate = useNavigate();
     // Lista pacjentow zna tylko userId - sharingId potrzebne do czatu (i licznik
     // nieprzeczytanych) przychodzi osobno, razem z rozmowami tego konta.
@@ -159,7 +175,7 @@ function DoctorSharing() {
             <Nav />
             <main>
                 <div className="doctor-page">
-                    <h2>Udostepnianie</h2>
+                    <h2>Pacjenci</h2>
 
                     {message && <div id="messages">{message}</div>}
 
@@ -209,10 +225,20 @@ function DoctorSharing() {
                                 return (
                                     <div className="doctor-list-row" key={patient.userId}>
                                         <div className="doctor-list-main">
-                                            <strong>{patient.username}</strong>
+                                            <strong>{patient.fullName || patient.username}</strong>
+                                            {patientSummary(patient) && (
+                                                <span className="doctor-list-sub">{patientSummary(patient)}</span>
+                                            )}
                                             <span className="doctor-list-sub">{patient.email}</span>
                                         </div>
                                         <div className="doctor-list-actions">
+                                            <button
+                                                type="button"
+                                                className="modal-btn secondary small"
+                                                onClick={() => setViewingPatient(patient)}
+                                            >
+                                                Dane
+                                            </button>
                                             <button
                                                 type="button"
                                                 className="modal-btn primary small"
@@ -284,6 +310,12 @@ function DoctorSharing() {
                     </div>
                 </div>
             </main>
+
+            <PatientProfileModal
+                isOpen={viewingPatient !== null}
+                onClose={() => setViewingPatient(null)}
+                patient={viewingPatient}
+            />
         </div>
     );
 }

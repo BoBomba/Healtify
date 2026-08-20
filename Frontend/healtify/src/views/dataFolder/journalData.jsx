@@ -1,7 +1,10 @@
 import React from 'react'
+import { Link } from 'react-router-dom';
 import '../../css/dashboard.css';
 import '../../css/data.css';
 import '../../css/calendar.css';
+// .big-btn - ten sam duży przycisk co w Ogólnych Danych.
+import '../../css/profile.css';
 import Nav from '../../Components/Nav';
 import AddEntryModal from '../../Components/AddEntryModal';
 import { useEffect, useState } from 'react';
@@ -96,6 +99,7 @@ function JournalData() {
                     {entry.description && <p>{entry.description}</p>}
                   </div>
                 ))}
+                <Link to="/data" className="big-btn secondary">Powrót</Link>
               </div>
             </div>
           </div>

@@ -34,8 +34,23 @@ export const GetUserData = async () => {
     }
 }
 
+/**
+ * Szczegółowe dane pacjenta. Backend zawsze odpowiada 200 - gdy użytkownik nic jeszcze
+ * nie wypełnił, wszystkie pola są nullem, a `completed` to false.
+ */
+export const GetPatientProfile = async () => {
+    const response = await axios.get(`${API_URL}/profile`, authConfig());
+    return response.data;
+}
+
+/** Zapis całego formularza naraz (upsert po stronie backendu). */
+export const SavePatientProfile = async (profile) => {
+    const response = await axios.put(`${API_URL}/profile`, profile, authConfig());
+    return response.data;
+}
+
 // Wpisy dziennika zalogowanego pacjenta - backend zawsze filtruje po użytkowniku z tokenu,
-// więc nie ma tu (i nie może być) żadnego parametru z id użytkownika.
+// więc nie ma tu żadnego parametru z id użytkownika.
 export const GetJournalEntries = async () => {
     const response = await axios.get(`${API_URL}/journal`, authConfig());
     return Array.isArray(response.data) ? response.data : [];
@@ -46,7 +61,7 @@ export const AddJournalEntry = async (entry) => {
     return response.data;
 }
 
-/** Edycja wpisu - wysyłamy komplet pól, tak jak przy dodawaniu. */
+/** Edycja wpisu - komplet pól, tak jak przy dodawaniu. */
 export const UpdateJournalEntry = async (entryId, entry) => {
     const response = await axios.put(`${API_URL}/journal/${entryId}`, entry, authConfig());
     return response.data;

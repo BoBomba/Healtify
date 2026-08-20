@@ -76,10 +76,13 @@
     font-size: 0.85em;
 }
 
+/* margin-left:auto, z nim trzymają się prawej krawędzi zawsze */
 .doctor-list-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.5em;
+    margin-left: auto;
 }
 
 /* Etykieta zamiast przycisku tam, gdzie nie ma już nic do kliknięcia. */
@@ -122,15 +125,7 @@
     font-size: 0.85em;
 }
 
-.nav-role-badge {
-    background: #2D6CDF;
-    color: #FFF;
-    border-radius: 999px;
-    padding: 0.1em 0.6em;
-    font-size: 0.6em;
-    margin-left: 0.5em;
-    vertical-align: middle;
-}
+/* .nav-role-badge przeniesiony do dashboard.css */
 
 /* ---------- Lista wizyt pogrupowana w dni ---------- */
 
