@@ -71,6 +71,15 @@ export const DeleteJournalEntry = async (entryId) => {
     await axios.delete(`${API_URL}/journal/${entryId}`, authConfig());
 }
 
+/**
+ * Ustawia, którzy lekarze widzą ten wpis. Wysyłamy komplet zaznaczonych 
+ * to samo nadaje i cofa dostęp.
+ */
+export const UpdateEntryShares = async (entryId, doctorIds) => {
+    const response = await axios.put(`${API_URL}/journal/${entryId}/shares`, { doctorIds }, authConfig());
+    return response.data;
+}
+
 export const GetSharingData = async () => {
     try {
         const response = await axios.get(`${API_URL}/sharing`, authConfig());

@@ -38,6 +38,15 @@ export const GetPatientProfile = async (patientId) => {
     return response.data;
 }
 
+/**
+ * Wpisy z dziennika, które pacjent udostępnił temu lekarzowi. 
+ * Wyłącznie te z wierszem w journal_entry_shares.
+ */
+export const GetPatientJournal = async (patientId) => {
+    const response = await axios.get(`${API_URL}/patients/${patientId}/journal`, authConfig());
+    return Array.isArray(response.data) ? response.data : [];
+}
+
 /** Wiszące zaproszenia w obie strony - rozdzielamy je po polu initiatedBy. */
 export const GetPendingRequests = async () => {
     const response = await axios.get(`${API_URL}/requests`, authConfig());

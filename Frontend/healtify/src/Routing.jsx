@@ -23,6 +23,7 @@ import DoctorCalendar from './views/doctor/DoctorCalendar';
 import DoctorData from './views/doctor/DoctorData';
 import DoctorSharing from './views/doctor/DoctorSharing';
 import DoctorProfile from './views/doctor/DoctorProfile';
+import DoctorPatientJournal from './views/doctor/DoctorPatientJournal';
 import ChatPage from './views/ChatPage';
 
 
@@ -132,6 +133,11 @@ const router = createBrowserRouter([
   {
     path: '/doctor/profile',
     element: <DoctorProfile />,
+  },
+  // Wpisy z dziennika udostepnione lekarzowi.
+  {
+    path: '/doctor/patients/:patientId/journal',
+    element: <DoctorPatientJournal />,
   },
   {
     path: '*',

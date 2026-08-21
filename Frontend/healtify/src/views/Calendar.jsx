@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Nav from '../Components/Nav';
 import AddEntryModal from '../Components/AddEntryModal';
+import ShareEntryModal from '../Components/ShareEntryModal';
 import '../css/dashboard.css';
 import '../css/calendar.css';
 import { validateToken } from '../service/authService';
@@ -22,7 +23,18 @@ function CalendarPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     // Wpis otwarty do edycji. null = modal działa w trybie dodawania.
     const [editingEntry, setEditingEntry] = useState(null);
+    const [sharingEntry, setSharingEntry] = useState(null);
     const [loadError, setLoadError] = useState('');
+
+    const isShared = (entry) => (entry.sharedWithDoctorIds?.length ?? 0) > 0;
+
+    /** Po zapisie udostępnień podmieniamy wpis w miejscu - data się nie zmienia. */
+    const handleSharesSaved = (savedEntry) => {
+        setEntries((prev) =>
+            prev.map((item) => (item.entryId === savedEntry.entryId ? savedEntry : item))
+        );
+        setSharingEntry(null);
+    };
 
     useEffect(() => {
         validateToken();
@@ -243,6 +255,13 @@ function CalendarPage() {
                                         <div className="day-event-actions">
                                             <button
                                                 type="button"
+                                                className={`modal-btn share small${isShared(item.entry) ? ' active' : ''}`}
+                                                onClick={() => setSharingEntry(item.entry)}
+                                            >
+                                                {isShared(item.entry) ? 'Udostępniony' : 'Udostępnij'}
+                                            </button>
+                                            <button
+                                                type="button"
                                                 className="modal-btn secondary small"
                                                 onClick={() => openEditModal(item.entry)}
                                             >
@@ -281,6 +300,13 @@ function CalendarPage() {
                 onSaved={handleEntrySaved}
                 defaultDate={selectedDate || today}
                 entry={editingEntry}
+            />
+
+            <ShareEntryModal
+                isOpen={sharingEntry !== null}
+                onClose={() => setSharingEntry(null)}
+                onSaved={handleSharesSaved}
+                entry={sharingEntry}
             />
         </div>
     );

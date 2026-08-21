@@ -199,14 +199,17 @@
     padding: 0.75em 0;
 }
 
+/* Tytul, godzina i przyciski w jednej linii, ale z prawem do zawiniecia */
 .day-event-title {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.5em;
 }
 
 .day-event-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5em;
     margin-left: auto;
 }
@@ -214,6 +217,8 @@
 .day-event-time {
     color: #777;
     font-size: 0.85em;
+    /* Data ma zostac w jednej linii - "2026-08-21 12:00" lamane na trzy wiersze jest nieczytelne */
+    white-space: nowrap;
 }
 
 /* --- Modal dodawania wpisu --- */
@@ -439,9 +444,49 @@
     background: #6D0000;
 }
 
+/* Udostepnianie wpisu terapeucie. */
+.modal-btn.share {
+    background: #2D6CDF;
+    color: #FFF;
+}
+
+.modal-btn.share:hover:enabled {
+    background: #245ab8;
+}
+
+.modal-btn.share.active {
+    background: #E3EDFC;
+    color: #1B4894;
+}
+
+.modal-btn.share.active:hover:enabled {
+    background: #CFE0FA;
+}
+
 .modal-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Wiersz lekarza w modalu udostepniania. */
+.share-doctor-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6em;
+    padding: 0.5em 0;
+    cursor: pointer;
+    text-align: left;
+}
+
+.share-doctor-row input {
+    width: auto;
+    margin-top: 0.25em;
+    flex-shrink: 0;
+}
+
+.share-doctor-row span {
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-warning {

@@ -10,6 +10,7 @@ import com.healtify.healtify.models.SharingStatus;
 import com.healtify.healtify.models.UserAccount;
 import com.healtify.healtify.repository.AppointmentRepository;
 import com.healtify.healtify.repository.DoctorRepository;
+import com.healtify.healtify.repository.JournalEntryShareRepository;
 import com.healtify.healtify.repository.SharingRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
 import org.springframework.http.HttpStatus;
@@ -40,17 +41,20 @@ public class SharingController {
     private final SharingRepository sharingRepository;
     private final UserAccountRepository userAccountRepository;
     private final AppointmentRepository appointmentRepository;
+    private final JournalEntryShareRepository journalEntryShareRepository;
 
     public SharingController(
             DoctorRepository doctorRepository,
             SharingRepository sharingRepository,
             UserAccountRepository userAccountRepository,
-            AppointmentRepository appointmentRepository
+            AppointmentRepository appointmentRepository,
+            JournalEntryShareRepository journalEntryShareRepository
     ) {
         this.doctorRepository = doctorRepository;
         this.sharingRepository = sharingRepository;
         this.userAccountRepository = userAccountRepository;
         this.appointmentRepository = appointmentRepository;
+        this.journalEntryShareRepository = journalEntryShareRepository;
     }
 
     /** Lekarze, ktorzy maja dostep do danych pacjenta. */
@@ -163,6 +167,9 @@ public class SharingController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ten lekarz nie ma dostepu"));
 
         appointmentRepository.deleteAll(appointmentRepository.findByPatientAndDoctor(user, doctor));
+        // Razem z dostepem znikaja udostepnione wpisy z dziennika - cofniecie zgody ma
+        // odbierac wszystko, a nie zostawiac lekarzowi wglad w to, co pacjent kiedys pokazal.
+        journalEntryShareRepository.deleteByDoctorAndJournalEntry_UserAccount(doctor, user);
 
         sharing.setRequestStatus(SharingStatus.REJECTED);
         sharing.setRequestAcceptedDate(null);

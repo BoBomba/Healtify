@@ -7,6 +7,7 @@ import com.healtify.healtify.repository.AppointmentRepository;
 import com.healtify.healtify.repository.ChatMessageRepository;
 import com.healtify.healtify.repository.DoctorRepository;
 import com.healtify.healtify.repository.JournalEntryRepository;
+import com.healtify.healtify.repository.JournalEntryShareRepository;
 import com.healtify.healtify.repository.SharingRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
 import com.healtify.healtify.repository.UserProfileRepository;
@@ -50,6 +51,7 @@ public class AccountDeletionService {
     private final UserAccountRepository userAccountRepository;
     private final UserProfileRepository userProfileRepository;
     private final JournalEntryRepository journalEntryRepository;
+    private final JournalEntryShareRepository journalEntryShareRepository;
     private final AppointmentRepository appointmentRepository;
     private final SharingRepository sharingRepository;
     private final ChatMessageRepository chatMessageRepository;
@@ -63,6 +65,7 @@ public class AccountDeletionService {
             UserAccountRepository userAccountRepository,
             UserProfileRepository userProfileRepository,
             JournalEntryRepository journalEntryRepository,
+            JournalEntryShareRepository journalEntryShareRepository,
             AppointmentRepository appointmentRepository,
             SharingRepository sharingRepository,
             ChatMessageRepository chatMessageRepository,
@@ -72,6 +75,7 @@ public class AccountDeletionService {
         this.userAccountRepository = userAccountRepository;
         this.userProfileRepository = userProfileRepository;
         this.journalEntryRepository = journalEntryRepository;
+        this.journalEntryShareRepository = journalEntryShareRepository;
         this.appointmentRepository = appointmentRepository;
         this.sharingRepository = sharingRepository;
         this.chatMessageRepository = chatMessageRepository;
@@ -94,6 +98,9 @@ public class AccountDeletionService {
         Optional<Doctor> doctor = doctorRepository.findByUserAccount(user);
         if (doctor.isPresent()) {
             appointmentRepository.deleteByDoctor(doctor.get());
+            // Wpisy, ktore pacjenci udostepnili temu lekarzowi - musza zniknac przed
+            // profilem lekarza, bo journal_entry_shares ma klucz obcy na doctor_id.
+            journalEntryShareRepository.deleteByDoctor(doctor.get());
             deleteChatMessages(sharingRepository.findByDoctorOrderByRequestSentDateDesc(doctor.get()));
             sharingRepository.deleteByDoctor(doctor.get());
             doctorRepository.delete(doctor.get());
@@ -105,6 +112,7 @@ public class AccountDeletionService {
         sharingRepository.deleteByUserAccount(user);
 
         // 3. Wlasne dane konta.
+        journalEntryShareRepository.deleteByJournalEntry_UserAccount(user);
         journalEntryRepository.deleteByUserAccount(user);
         userProfileRepository.deleteByUserAccount(user);
         deleteOrphanRows(user);

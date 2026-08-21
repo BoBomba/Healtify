@@ -7,6 +7,7 @@ import '../../css/calendar.css';
 import '../../css/profile.css';
 import Nav from '../../Components/Nav';
 import AddEntryModal from '../../Components/AddEntryModal';
+import ShareEntryModal from '../../Components/ShareEntryModal';
 import { useEffect, useState } from 'react';
 import { validateToken } from '../../service/authService';
 import { DeleteJournalEntry, GetJournalEntries } from '../../service/dataService';
@@ -19,6 +20,18 @@ function JournalData() {
   const [error, setError] = useState('');
   // Wpis otwarty do edycji - ten sam modal tylko z wypełnionymi polami.
   const [editingEntry, setEditingEntry] = useState(null);
+  // Wpis otwarty w modalu udostępniania terapeucie.
+  const [sharingEntry, setSharingEntry] = useState(null);
+
+  const isShared = (entry) => (entry.sharedWithDoctorIds?.length ?? 0) > 0;
+
+  /** Po zapisie udostępnień podmieniamy wpis w miejscu - kolejność się nie zmienia. */
+  const handleSharesSaved = (savedEntry) => {
+    setEntries((prev) =>
+      prev.map((item) => (item.entryId === savedEntry.entryId ? savedEntry : item))
+    );
+    setSharingEntry(null);
+  };
 
   useEffect(() => {
     validateToken();
@@ -74,6 +87,13 @@ function JournalData() {
                       <div className="day-event-actions">
                         <button
                           type="button"
+                          className={`modal-btn share small${isShared(entry) ? ' active' : ''}`}
+                          onClick={() => setSharingEntry(entry)}
+                        >
+                          {isShared(entry) ? 'Udostępniony' : 'Udostępnij'}
+                        </button>
+                        <button
+                          type="button"
                           className="modal-btn secondary small"
                           onClick={() => setEditingEntry(entry)}
                         >
@@ -112,6 +132,13 @@ function JournalData() {
           onClose={() => setEditingEntry(null)}
           onSaved={handleEntrySaved}
           entry={editingEntry}
+        />
+
+        <ShareEntryModal
+          isOpen={sharingEntry !== null}
+          onClose={() => setSharingEntry(null)}
+          onSaved={handleSharesSaved}
+          entry={sharingEntry}
         />
     </div>
   )

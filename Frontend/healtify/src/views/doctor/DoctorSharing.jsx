@@ -241,6 +241,13 @@ function DoctorSharing() {
                                             </button>
                                             <button
                                                 type="button"
+                                                className="modal-btn share small"
+                                                onClick={() => navigate(`/doctor/patients/${patient.userId}/journal`)}
+                                            >
+                                                Wpisy
+                                            </button>
+                                            <button
+                                                type="button"
                                                 className="modal-btn primary small"
                                                 onClick={() => openChat(conversation)}
                                                 disabled={!conversation}

@@ -5,6 +5,7 @@ import com.healtify.healtify.dto.AppointmentResponse;
 import com.healtify.healtify.dto.DoctorPatientResponse;
 import com.healtify.healtify.dto.DoctorProfileRequest;
 import com.healtify.healtify.dto.DoctorResponse;
+import com.healtify.healtify.dto.JournalEntryResponse;
 import com.healtify.healtify.dto.PatientProfileResponse;
 import com.healtify.healtify.dto.PatientResponse;
 import com.healtify.healtify.dto.PatientSearchResponse;
@@ -17,6 +18,7 @@ import com.healtify.healtify.models.SharingStatus;
 import com.healtify.healtify.models.UserAccount;
 import com.healtify.healtify.repository.AppointmentRepository;
 import com.healtify.healtify.repository.DoctorRepository;
+import com.healtify.healtify.repository.JournalEntryShareRepository;
 import com.healtify.healtify.repository.SharingRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
 import com.healtify.healtify.repository.UserProfileRepository;
@@ -60,19 +62,22 @@ public class DoctorController {
     private final AppointmentRepository appointmentRepository;
     private final UserAccountRepository userAccountRepository;
     private final UserProfileRepository userProfileRepository;
+    private final JournalEntryShareRepository journalEntryShareRepository;
 
     public DoctorController(
             DoctorRepository doctorRepository,
             SharingRepository sharingRepository,
             AppointmentRepository appointmentRepository,
             UserAccountRepository userAccountRepository,
-            UserProfileRepository userProfileRepository
+            UserProfileRepository userProfileRepository,
+            JournalEntryShareRepository journalEntryShareRepository
     ) {
         this.doctorRepository = doctorRepository;
         this.sharingRepository = sharingRepository;
         this.appointmentRepository = appointmentRepository;
         this.userAccountRepository = userAccountRepository;
         this.userProfileRepository = userProfileRepository;
+        this.journalEntryShareRepository = journalEntryShareRepository;
     }
 
     // --- profil ---
@@ -155,6 +160,30 @@ public class DoctorController {
         return ResponseEntity.ok(userProfileRepository.findByUserAccount(patient)
                 .map(PatientProfileResponse::from)
                 .orElseGet(PatientProfileResponse::empty));
+    }
+
+    /**
+     * Wpisy z dziennika, ktore pacjent UDOSTEPNIL lekarzowi.
+     *
+     * tylko tu lekarz widzi cokolwiek z dziennika, 
+     * pokazuje wylacznie wpisy z wierszem w journal_entry_shares.
+     */
+    @GetMapping("/patients/{patientId}/journal")
+    public ResponseEntity<List<JournalEntryResponse>> getSharedEntries(
+            @PathVariable Long patientId,
+            Principal principal
+    ) {
+        Doctor doctor = currentDoctor(principal);
+        UserAccount patient = requireLinkedPatient(patientId, doctor);
+
+        List<JournalEntryResponse> entries = journalEntryShareRepository
+                .findByDoctorAndJournalEntry_UserAccountOrderByJournalEntry_EntryAtDesc(doctor, patient)
+                .stream()
+                // Bez listy udostepnien - lekarzowi nic do tego, komu jeszcze pacjent pokazal wpis.
+                .map(share -> JournalEntryResponse.from(share.getJournalEntry()))
+                .toList();
+
+        return ResponseEntity.ok(entries);
     }
 
     /**
@@ -273,6 +302,8 @@ public class DoctorController {
                         HttpStatus.NOT_FOUND, "Ten pacjent nie jest przypisany do lekarza"));
 
         appointmentRepository.deleteAll(appointmentRepository.findByPatientAndDoctor(patient, doctor));
+        
+        journalEntryShareRepository.deleteByDoctorAndJournalEntry_UserAccount(doctor, patient);
 
         sharing.setRequestStatus(SharingStatus.REJECTED);
         sharing.setRequestAcceptedDate(null);
