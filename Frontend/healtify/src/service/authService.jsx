@@ -18,6 +18,11 @@ const landingPageForCurrentUser = async () => {
             return needsSetup ? "/doctor/profile?setup=1" : "/doctor/dashboard";
         }
 
+        // Admin nie prowadzi dziennika, więc formularz danych pacjenta go nie dotyczy.
+        if (user.admin === true) {
+            return "/admin/dashboard";
+        }
+
         return needsSetup ? "/data/profile?setup=1" : "/dashboard";
     } catch (error) {
         console.log(error);

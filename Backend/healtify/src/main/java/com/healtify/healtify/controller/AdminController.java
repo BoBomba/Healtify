@@ -1,11 +1,16 @@
 package com.healtify.healtify.controller;
 
+import com.healtify.healtify.dto.AdminStatsResponse;
 import com.healtify.healtify.dto.AdminUserResponse;
 import com.healtify.healtify.dto.DoctorResponse;
 import com.healtify.healtify.dto.UserDTO;
 import com.healtify.healtify.models.Doctor;
+import com.healtify.healtify.models.SharingStatus;
 import com.healtify.healtify.models.UserAccount;
+import com.healtify.healtify.repository.AppointmentRepository;
 import com.healtify.healtify.repository.DoctorRepository;
+import com.healtify.healtify.repository.JournalEntryRepository;
+import com.healtify.healtify.repository.SharingRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
 import com.healtify.healtify.security.service.AccountDeletionService;
 import com.healtify.healtify.security.service.RoleEnum;
@@ -31,6 +36,9 @@ public class AdminController {
     private final UserService userService;
     private final UserAccountRepository userAccountRepository;
     private final DoctorRepository doctorRepository;
+    private final SharingRepository sharingRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final JournalEntryRepository journalEntryRepository;
     private final AccountDeletionService accountDeletionService;
 
     @Autowired
@@ -38,11 +46,17 @@ public class AdminController {
             UserService userService,
             UserAccountRepository userAccountRepository,
             DoctorRepository doctorRepository,
+            SharingRepository sharingRepository,
+            AppointmentRepository appointmentRepository,
+            JournalEntryRepository journalEntryRepository,
             AccountDeletionService accountDeletionService
     ) {
         this.userService = userService;
         this.userAccountRepository = userAccountRepository;
         this.doctorRepository = doctorRepository;
+        this.sharingRepository = sharingRepository;
+        this.appointmentRepository = appointmentRepository;
+        this.journalEntryRepository = journalEntryRepository;
         this.accountDeletionService = accountDeletionService;
     }
 
@@ -58,6 +72,32 @@ public class AdminController {
                 .map(AdminUserResponse::from)
                 .toList();
         return ResponseEntity.ok(users);
+    }
+
+    /** Wszyscy lekarze z danymi zawodowymi - dashboard admina. */
+    @GetMapping("/doctors")
+    public ResponseEntity<List<DoctorResponse>> getAllDoctors() {
+        List<DoctorResponse> doctors = doctorRepository.findAll().stream()
+                .map(DoctorResponse::from)
+                .toList();
+        return ResponseEntity.ok(doctors);
+    }
+
+    /** Liczniki na dashboard admina - sam rozmiar systemu, bez zagladania w tresci. */
+    @GetMapping("/stats")
+    public ResponseEntity<AdminStatsResponse> getStats() {
+        // Pacjent to konto, ktore nie jest ani lekarzem, ani adminem.
+        long patients = userAccountRepository.findAll().stream()
+                .filter(user -> !user.hasRole(RoleEnum.ROLE_DOCTOR) && !user.hasRole(RoleEnum.ROLE_ADMIN))
+                .count();
+
+        return ResponseEntity.ok(new AdminStatsResponse(
+                patients,
+                doctorRepository.count(),
+                sharingRepository.countByRequestStatus(SharingStatus.ACCEPTED),
+                appointmentRepository.count(),
+                journalEntryRepository.count()
+        ));
     }
 
     @GetMapping("/checkadmin")
@@ -111,7 +151,24 @@ public class AdminController {
     }
 
     /**
-     * Skasowanie cudzego konta z jego danymi 
+     * Odebranie roli lekarza. Konto zostaje i dziala dalej jako pacjent, znika
+     * strona lekarska (wizyty, powiazania, czat, udostepnione wpisy, profil)
+     * -> AccountDeletionService#revokeDoctor.
+     */
+    @DeleteMapping("/users/{userId}/doctor")
+    public ResponseEntity<Void> revokeDoctor(@PathVariable Long userId) {
+        UserAccount target = requireUser(userId);
+
+        if (!target.hasRole(RoleEnum.ROLE_DOCTOR)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "To konto nie jest lekarzem");
+        }
+
+        accountDeletionService.revokeDoctor(target);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Skasowanie cudzego konta z jego danymi
      * (dziennik, wizyty po obu stronach, powiazania pacjent-lekarz, profil lekarza, tokeny) 
      * -> AccountDeletionService.
      */
@@ -123,6 +180,12 @@ public class AdminController {
         if (target.getUserId().equals(admin.getUserId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Własnego konta nie kasuje się z panelu admina - zrób to w ustawieniach");
+        }
+
+        // Admini nie kasuja sie nawzajem - konto admina usuwa tylko jego wlasciciel w ustawieniach.
+        if (target.hasRole(RoleEnum.ROLE_ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Nie można usunąć konta innego administratora");
         }
 
         accountDeletionService.deleteAccount(target);

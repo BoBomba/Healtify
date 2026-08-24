@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Nav from '../Components/Nav';
 import AddEntryModal from '../Components/AddEntryModal';
 import ShareEntryModal from '../Components/ShareEntryModal';
+import ExportCalendarModal from '../Components/ExportCalendarModal';
 import '../css/dashboard.css';
 import '../css/calendar.css';
 import { validateToken } from '../service/authService';
@@ -12,7 +13,7 @@ import { MONTH_NAMES, WEEKDAY_NAMES, getMonthMatrix, formatDateKey, isSameDay, m
 // Ile wpisow miesci sie w kratce dnia - reszte pokazujemy jako "+N".
 const MAX_CHIPS_PER_DAY = 3;
 
-// TODO: dodac export do kalendarzy: .ics i jako sub do Google Calendar, Outlook itp.
+// TODO: (feed dla Google/Outlook).
 
 function CalendarPage() {
     const today = useMemo(() => new Date(), []);
@@ -24,6 +25,7 @@ function CalendarPage() {
     // Wpis otwarty do edycji. null = modal działa w trybie dodawania.
     const [editingEntry, setEditingEntry] = useState(null);
     const [sharingEntry, setSharingEntry] = useState(null);
+    const [isExportOpen, setIsExportOpen] = useState(false);
     const [loadError, setLoadError] = useState('');
 
     const isShared = (entry) => (entry.sharedWithDoctorIds?.length ?? 0) > 0;
@@ -155,6 +157,15 @@ function CalendarPage() {
                             <button type="button" className="modal-btn secondary" onClick={goToToday}>Dziś</button>
                             <button type="button" className="modal-btn primary" onClick={openAddModal}>
                                 + Dodaj wpis
+                            </button>
+                            <button
+                                type="button"
+                                className="modal-btn secondary"
+                                onClick={() => setIsExportOpen(true)}
+                                disabled={appointments.length === 0}
+                                title={appointments.length === 0 ? 'Nie masz jeszcze żadnych wizyt' : ''}
+                            >
+                                Eksportuj wizyty
                             </button>
                         </div>
                     </div>
@@ -307,6 +318,13 @@ function CalendarPage() {
                 onClose={() => setSharingEntry(null)}
                 onSaved={handleSharesSaved}
                 entry={sharingEntry}
+            />
+
+            <ExportCalendarModal
+                isOpen={isExportOpen}
+                onClose={() => setIsExportOpen(false)}
+                appointments={appointments}
+                role="patient"
             />
         </div>
     );

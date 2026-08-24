@@ -42,12 +42,12 @@ function DoctorDashboard() {
 
             <main>
                 <div className="main-container">
-                    <div className="datablock">
+                    <h3>
                         {doctor ? doctor.doctorName : 'Panel lekarza'}
                         {doctor && doctor.specialization && (
                             <span className="doctor-subtitle">{doctor.specialization}</span>
                         )}
-                    </div>
+                    </h3>
                     <div className="datablock doctor-stats">
                         <div className="doctor-stat">
                             <span className="doctor-stat-value">{patientCount}</span>
@@ -61,8 +61,8 @@ function DoctorDashboard() {
                 </div>
 
                 <div className="main-container">
-                    <div className="datablock">Najbliższe wizyty</div>
-                    <div className="datablock">
+                    <h3>Najbliższe wizyty</h3>
+                    <div className="datablock doctor-panel">
                         {loadError && <div id="messages">{loadError}</div>}
                         {!loadError && appointments.length === 0 && <p>Brak zaplanowanych wizyt.</p>}
                         {appointments.map((appointment) => (

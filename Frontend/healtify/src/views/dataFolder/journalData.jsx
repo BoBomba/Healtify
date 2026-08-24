@@ -118,7 +118,7 @@ function JournalData() {
         <main>
           <div className="block-container">
             <div className="block-row">
-              <div className="datablock">Dziennik</div>
+              <h2>Dziennik</h2>
               <div className="datablock calendar-day-panel">
                 {error && <div id="messages">{error}</div>}
 

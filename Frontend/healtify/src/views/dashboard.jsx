@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import "../css/dashboard.css";
 // styl listy wpisów (.day-event-item) mieszka razem z resztą stylów dziennika
 import "../css/calendar.css";
+// .doctor-panel - karta z listą wyrównaną do lewej, wspólna dla wszystkich dashboardów
+import "../css/doctor.css";
 import Nav from "../Components/Nav";
 import { useEffect, useState } from "react";
 import { validateToken } from "../service/authService";
@@ -40,15 +42,15 @@ function Dashboard() {
 
       <main>
         <div className="main-container">
-          <div className="datablock">Szczegółowe dane</div>
+          <h3>Szczegółowe dane</h3>
           <div className="datablock">
             <PatientDetails profile={profile} />
             <Link to="/data/profile" className="big-btn secondary">Edytuj dane</Link>
           </div>
         </div>
         <div className="main-container">
-          <div className="datablock">Ostatnie wpisy</div>
-          <div className="datablock">
+          <h3>Ostatnie wpisy</h3>
+          <div className="datablock doctor-panel">
             {recentEntries.length === 0 && <p>Brak wpisów w dzienniku.</p>}
             {recentEntries.map((entry) => (
               <div className="day-event-item" key={entry.entryId}>

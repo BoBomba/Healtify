@@ -17,6 +17,7 @@ import GeneralData from './views/dataFolder/generalData';
 import JournalData from './views/dataFolder/journalData';
 import PatientProfile from './views/dataFolder/patientProfile';
 import AdminPanel from './views/AdminPanel';
+import AdminDashboard from './views/AdminDashboard';
 import CalendarPage from './views/Calendar';
 import DoctorDashboard from './views/doctor/DoctorDashboard';
 import DoctorCalendar from './views/doctor/DoctorCalendar';
@@ -107,6 +108,11 @@ const router = createBrowserRouter([
   {
     path: '/admin',
     element: <AdminPanel />,
+  },
+  // Dostepu pilnuje backend (ROLE_ADMIN).
+  {
+    path: '/admin/dashboard',
+    element: <AdminDashboard />,
   },
   // Dostępu pilnuje backend (ROLE_DOCTOR), front tylko nie pokazuje linków.
   {

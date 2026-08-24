@@ -66,7 +66,8 @@ function Nav() {
                     </>
                 ) : (
                     <>
-                        <Link to="/dashboard">Dashboard</Link>
+                        {/* Admin ma własny dashboard z listami całego systemu. */}
+                        <Link to={isAdmin ? '/admin/dashboard' : '/dashboard'}>Dashboard</Link>
                         <Link to="/calendar">Kalendarz</Link>
                         <Link to="/data">Przeglądaj Dane</Link>
                         <Link to="/sharing">Lekarze</Link>

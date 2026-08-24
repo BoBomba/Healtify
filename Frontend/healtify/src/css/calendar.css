@@ -18,7 +18,9 @@
 
 .calendar-nav-buttons {
     display: flex;
+    flex: 1 1 100%;
     align-items: center;
+    justify-content: center;
     gap: 1em;
 }
 
@@ -40,6 +42,9 @@
 
 .calendar-toolbar-actions {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-left: auto;
     gap: 0.75em;
 }
 
@@ -468,8 +473,9 @@
     cursor: not-allowed;
 }
 
-/* Wiersz lekarza w modalu udostepniania. */
-.share-doctor-row {
+/* Wiersz lekarza w modalu udostepniania i wybor zakresu w eksporcie .ics. */
+.share-doctor-row,
+.export-scope-row {
     display: flex;
     align-items: flex-start;
     gap: 0.6em;
@@ -478,13 +484,15 @@
     text-align: left;
 }
 
-.share-doctor-row input {
+.share-doctor-row input,
+.export-scope-row input {
     width: auto;
     margin-top: 0.25em;
     flex-shrink: 0;
 }
 
-.share-doctor-row span {
+.share-doctor-row span,
+.export-scope-row span {
     display: flex;
     flex-direction: column;
 }

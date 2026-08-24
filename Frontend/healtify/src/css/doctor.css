@@ -21,7 +21,9 @@
     align-items: start;
 }
 
-/* .datablock domyślnie centruje treść - listy i formularze mają być do lewej. */
+/* Selektor podwójny, bo .datablock ma tę samą specyficzność i stoi w innym pliku -
+   o wyniku decydowałaby wtedy kolejność importów CSS. */
+.datablock.doctor-panel,
 .doctor-panel {
     width: 100%;
     align-items: stretch;
@@ -99,6 +101,8 @@
 
 .doctor-stats {
     flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 2em;
 }
 

@@ -33,6 +33,9 @@ public interface SharingRepository extends JpaRepository<DataSharing, Long> {
     boolean existsByUserAccountAndDoctorAndRequestStatus(
             UserAccount userAccount, Doctor doctor, SharingStatus requestStatus);
 
+    /** Licznik na dashboard admina - ile par pacjent-lekarz jest w danym stanie. */
+    long countByRequestStatus(SharingStatus requestStatus);
+
     // --- kasowanie konta (patrz AccountDeletionService) ---
 
     /** Powiazania, w ktorych kasowane konto wystepuje jako pacjent. */

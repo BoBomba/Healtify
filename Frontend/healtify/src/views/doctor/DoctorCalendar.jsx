@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Nav from '../../Components/Nav';
 import AddAppointmentModal from '../../Components/AddAppointmentModal';
+import ExportCalendarModal from '../../Components/ExportCalendarModal';
 import '../../css/dashboard.css';
 import '../../css/calendar.css';
 import '../../css/doctor.css';
@@ -25,6 +26,7 @@ function DoctorCalendar() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     // Wizyta otwarta do edycji. null = modal działa w trybie zakładania nowej.
     const [editingAppointment, setEditingAppointment] = useState(null);
+    const [isExportOpen, setIsExportOpen] = useState(false);
     const [loadError, setLoadError] = useState('');
 
     useEffect(() => {
@@ -128,6 +130,15 @@ function DoctorCalendar() {
                             <button type="button" className="modal-btn secondary" onClick={goToToday}>Dziś</button>
                             <button type="button" className="modal-btn primary" onClick={openAddModal}>
                                 + Umów wizytę
+                            </button>
+                            <button
+                                type="button"
+                                className="modal-btn secondary"
+                                onClick={() => setIsExportOpen(true)}
+                                disabled={appointments.length === 0}
+                                title={appointments.length === 0 ? 'Nie masz jeszcze żadnych wizyt' : ''}
+                            >
+                                Eksportuj wizyty
                             </button>
                         </div>
                     </div>
@@ -237,6 +248,13 @@ function DoctorCalendar() {
                 defaultDate={selectedDate || today}
                 patients={patients}
                 appointment={editingAppointment}
+            />
+
+            <ExportCalendarModal
+                isOpen={isExportOpen}
+                onClose={() => setIsExportOpen(false)}
+                appointments={appointments}
+                role="doctor"
             />
         </div>
     );

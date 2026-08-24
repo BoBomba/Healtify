@@ -8,6 +8,7 @@ import com.healtify.healtify.repository.ChatMessageRepository;
 import com.healtify.healtify.repository.DoctorRepository;
 import com.healtify.healtify.repository.JournalEntryRepository;
 import com.healtify.healtify.repository.JournalEntryShareRepository;
+import com.healtify.healtify.repository.RoleRepository;
 import com.healtify.healtify.repository.SharingRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
 import com.healtify.healtify.repository.UserProfileRepository;
@@ -21,7 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Kasowanie konta razem ze wszystkim, co do niego nalezy.
+ * Kasowanie konta razem ze wszystkim, co do niego nalezy - i odebranie roli lekarza
  *
  * Wszystkie tabele z danymi uzytkownika maja klucz obcy na user_account, wiec samo
  * userRepository.delete(user) konczy sie bledem integralnosci - dzieci trzeba usunac
@@ -56,6 +57,7 @@ public class AccountDeletionService {
     private final SharingRepository sharingRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final DoctorRepository doctorRepository;
+    private final RoleRepository roleRepository;
     private final TokenRepository tokenRepository;
 
     @PersistenceContext
@@ -70,6 +72,7 @@ public class AccountDeletionService {
             SharingRepository sharingRepository,
             ChatMessageRepository chatMessageRepository,
             DoctorRepository doctorRepository,
+            RoleRepository roleRepository,
             TokenRepository tokenRepository
     ) {
         this.userAccountRepository = userAccountRepository;
@@ -80,6 +83,7 @@ public class AccountDeletionService {
         this.sharingRepository = sharingRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.doctorRepository = doctorRepository;
+        this.roleRepository = roleRepository;
         this.tokenRepository = tokenRepository;
     }
 
@@ -95,16 +99,7 @@ public class AccountDeletionService {
 
         // 1. Strona lekarza - wizyty, ktore to konto zalozylo swoim pacjentom,
         //    powiazania z pacjentami i sam profil lekarza.
-        Optional<Doctor> doctor = doctorRepository.findByUserAccount(user);
-        if (doctor.isPresent()) {
-            appointmentRepository.deleteByDoctor(doctor.get());
-            // Wpisy, ktore pacjenci udostepnili temu lekarzowi - musza zniknac przed
-            // profilem lekarza, bo journal_entry_shares ma klucz obcy na doctor_id.
-            journalEntryShareRepository.deleteByDoctor(doctor.get());
-            deleteChatMessages(sharingRepository.findByDoctorOrderByRequestSentDateDesc(doctor.get()));
-            sharingRepository.deleteByDoctor(doctor.get());
-            doctorRepository.delete(doctor.get());
-        }
+        deleteDoctorSide(user);
 
         // 2. Strona pacjenta - wizyty zalozone temu kontu przez lekarzy i powiazania z nimi.
         appointmentRepository.deleteByPatient(user);
@@ -128,6 +123,49 @@ public class AccountDeletionService {
         // Kasowania sa mieszane (bulk + encje), wiec wymuszamy zapis w ustalonej kolejnosci
         // jeszcze wewnatrz transakcji - inaczej blad wyszedlby dopiero przy commicie.
         entityManager.flush();
+    }
+
+    /**
+     * Odebranie roli lekarza. Konto zostaje i dziala dalej jako pacjent - znika tylko
+     * strona lekarska, dokladnie ta sama, ktora czysci kasowanie konta.
+     */
+    @Transactional
+    public void revokeDoctor(UserAccount account) {
+        UserAccount user = userAccountRepository.findById(account.getUserId()).orElse(null);
+        if (user == null) {
+            return;
+        }
+
+        deleteDoctorSide(user);
+
+        user.getRoles().removeIf(role -> RoleEnum.ROLE_DOCTOR.name().equals(role.getName()));
+
+        // Konto bez zadnej roli nie przeszloby autoryzacji - zostaje zwyklym pacjentem.
+        if (user.getRoles().isEmpty()) {
+            roleRepository.findByName(RoleEnum.ROLE_USER.name()).ifPresent(user.getRoles()::add);
+        }
+
+        userAccountRepository.save(user);
+        entityManager.flush();
+    }
+
+    /**
+     * Wszystko, co wisi na profilu lekarza: wizyty zalozone pacjentom, udostepnione mu
+     * wpisy, czat, powiazania i sam profil. Kolejnosc wynika z kluczy obcych - wpisy przed
+     * profilem, bo journal_entry_shares wskazuje na doctor_id, a czat przed powiazaniami.
+     * Konto, ktore nie jest lekarzem, przechodzi tedy bez zmian.
+     */
+    private void deleteDoctorSide(UserAccount user) {
+        Optional<Doctor> doctor = doctorRepository.findByUserAccount(user);
+        if (doctor.isEmpty()) {
+            return;
+        }
+
+        appointmentRepository.deleteByDoctor(doctor.get());
+        journalEntryShareRepository.deleteByDoctor(doctor.get());
+        deleteChatMessages(sharingRepository.findByDoctorOrderByRequestSentDateDesc(doctor.get()));
+        sharingRepository.deleteByDoctor(doctor.get());
+        doctorRepository.delete(doctor.get());
     }
 
     /**
