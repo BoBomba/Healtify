@@ -75,6 +75,7 @@ main {
 
 .dashboard main {
     align-items: flex-start;
+    flex-wrap: wrap;
     gap: 1rem;
     padding: 0 1rem 2rem;
 }
@@ -87,6 +88,7 @@ main {
     min-width: 0;
     max-width: 34em;
     align-items: stretch;
+    align-self: stretch;
     background: none;
     box-shadow: none;
     border-radius: 0;
@@ -97,6 +99,26 @@ main {
 
 .dashboard main > .main-container h3 {
     margin: 0.5em 0.5rem 0.25em;
+}
+
+/* Karta wypełnia kontener rozciągnięty przez sąsiada
+   Wcięcie z .doctor-panel na obu kartach, inaczej przyciski na dole nie stoją w jednej linii. */
+.dashboard main > .main-container > .datablock {
+    flex: 1;
+    padding: 1.5em;
+    width: auto;
+}
+
+/* Przycisk siada przy dolnej krawędzi */
+.dashboard main > .main-container > .datablock > .big-btn {
+    margin-top: auto;
+}
+
+/* Pełna szerokość obu kolumn (2 x 34em + odstęp) */
+.dashboard main > .main-container.mood-container {
+    flex-basis: 100%;
+    max-width: 69em;
+    margin-top: 1em;
 }
 
 #textlogo {

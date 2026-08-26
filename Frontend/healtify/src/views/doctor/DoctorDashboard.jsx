@@ -5,10 +5,18 @@ import '../../css/doctor.css';
 import Nav from '../../Components/Nav';
 import { useDoctorGuard } from '../../utils/useDoctorGuard';
 import { GetAppointments, GetMyPatients, GetPendingRequests } from '../../service/doctorService';
-import { formatAppointmentDateTime } from '../../utils/appointmentUtils';
+import { appointmentDayKey, formatAppointmentDateTime } from '../../utils/appointmentUtils';
+import { formatDateKey } from '../../utils/calendarUtils';
 
 // Ile najbliższych wizyt mieści się na dashboardzie - pełna lista jest w zakładce Wizyty.
-const UPCOMING_COUNT = 4;
+const UPCOMING_COUNT = 6;
+
+/** Klucz dnia oddalonego o `days` od dzisiaj - do progu "w tym tygodniu". */
+const dayKeyFromToday = (days) => {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return formatDateKey(date);
+};
 
 // Dashboard lekarza nie ma nic wspólnego z danymi psychicznymi - lekarz ich u siebie
 // nie zbiera. Zamiast tego patrzy do przodu: kto i kiedy do niego przychodzi.
@@ -23,7 +31,7 @@ function DoctorDashboard() {
         if (!doctor) return;
 
         GetAppointments('upcoming')
-            .then((data) => setAppointments(data.slice(0, UPCOMING_COUNT)))
+            .then((data) => setAppointments(data))
             .catch((error) => {
                 console.log(error);
                 setLoadError('Nie udało się pobrać wizyt.');
@@ -35,6 +43,13 @@ function DoctorDashboard() {
             .then((data) => setPendingCount(data.length))
             .catch((error) => console.log(error));
     }, [doctor]);
+
+    // Backend zwraca wizyty rosnąco, więc pierwsze z brzegu są najbliższe.
+    const upcoming = appointments.slice(0, UPCOMING_COUNT);
+    const todayKey = dayKeyFromToday(0);
+    const weekKey = dayKeyFromToday(6);
+    const todayCount = appointments.filter((a) => appointmentDayKey(a.appointmentAt) === todayKey).length;
+    const weekCount = appointments.filter((a) => appointmentDayKey(a.appointmentAt) <= weekKey).length;
 
     return (
         <div className="dashboard">
@@ -54,6 +69,18 @@ function DoctorDashboard() {
                             <span className="doctor-stat-label">pacjentów</span>
                         </div>
                         <div className="doctor-stat">
+                            <span className="doctor-stat-value">{todayCount}</span>
+                            <span className="doctor-stat-label">wizyt dziś</span>
+                        </div>
+                        <div className="doctor-stat">
+                            <span className="doctor-stat-value">{weekCount}</span>
+                            <span className="doctor-stat-label">wizyt w tym tygodniu</span>
+                        </div>
+                        <div className="doctor-stat">
+                            <span className="doctor-stat-value">{appointments.length}</span>
+                            <span className="doctor-stat-label">nadchodzących wizyt</span>
+                        </div>
+                        <div className="doctor-stat">
                             <span className="doctor-stat-value">{pendingCount}</span>
                             <span className="doctor-stat-label">oczekujących zaproszeń</span>
                         </div>
@@ -64,8 +91,8 @@ function DoctorDashboard() {
                     <h3>Najbliższe wizyty</h3>
                     <div className="datablock doctor-panel">
                         {loadError && <div id="messages">{loadError}</div>}
-                        {!loadError && appointments.length === 0 && <p>Brak zaplanowanych wizyt.</p>}
-                        {appointments.map((appointment) => (
+                        {!loadError && upcoming.length === 0 && <p>Brak zaplanowanych wizyt.</p>}
+                        {upcoming.map((appointment) => (
                             <div className="day-event-item" key={appointment.appointmentId}>
                                 <div className="day-event-title">
                                     <span className="legend-dot appointment" />

@@ -5,6 +5,8 @@ import "../css/dashboard.css";
 import "../css/calendar.css";
 // .doctor-panel - karta z listą wyrównaną do lewej, wspólna dla wszystkich dashboardów
 import "../css/doctor.css";
+// .big-btn - ten sam duży przycisk co w Ogólnych Danych.
+import "../css/profile.css";
 import Nav from "../Components/Nav";
 import { useEffect, useState } from "react";
 import { validateToken } from "../service/authService";
@@ -13,14 +15,18 @@ import {
   GetJournalEntries,
 } from "../service/dataService";
 import PatientDetails from "../Components/PatientDetails";
+import MoodAnalysis from "../Components/MoodAnalysis";
+import AddEntryModal from "../Components/AddEntryModal";
 import { moodClass } from "../utils/calendarUtils";
 
-// Ile ostatnich wpisów pokazujemy na dashboardzie.
-const RECENT_ENTRIES_COUNT = 3;
+// Ile ostatnich wpisów pokazujemy - resztę widać w dzienniku.
+const RECENT_ENTRIES_COUNT = 5;
 
 function Dashboard() {
   const [profile, setProfile] = useState(null);
-  const [recentEntries, setRecentEntries] = useState([]);
+  // Komplet wpisów dla analizy nastroju, lista "Ostatnie wpisy" bierze z niego kilka pierwszych.
+  const [entries, setEntries] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     validateToken();
@@ -29,12 +35,14 @@ function Dashboard() {
       .then((fetchedProfile) => setProfile(fetchedProfile))
       .catch((error) => console.log(error));
     GetJournalEntries()
-      .then((entries) => {
-        // Backend zwraca wpisy rosnąco po dacie - tu chcemy najświeższe.
-        setRecentEntries([...entries].reverse().slice(0, RECENT_ENTRIES_COUNT));
-      })
+      .then((fetchedEntries) => setEntries(fetchedEntries))
       .catch((error) => console.log(error));
   }, []);
+
+  // Sortujemy sami, bo wpis dodany z dashboardu może mieć wcześniejszą datę niż ostatni z listy.
+  const recentEntries = [...entries]
+    .sort((a, b) => b.entryAt.localeCompare(a.entryAt))
+    .slice(0, RECENT_ENTRIES_COUNT);
 
   return (
     <div className="dashboard">
@@ -62,9 +70,23 @@ function Dashboard() {
                 <p>Samopoczucie: {entry.moodScale}/5</p>
               </div>
             ))}
+            <button type="button" className="big-btn" onClick={() => setIsModalOpen(true)}>
+              + Nowy wpis
+            </button>
           </div>
         </div>
+
+        <div className="main-container mood-container">
+          <h3>Analiza nastroju</h3>
+          <MoodAnalysis entries={entries} />
+        </div>
       </main>
+
+      <AddEntryModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSaved={(savedEntry) => setEntries((prev) => [...prev, savedEntry])}
+      />
 
       <footer>Damian Guca</footer>
     </div>

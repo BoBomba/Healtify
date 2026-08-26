@@ -40,6 +40,11 @@
     padding: 0;
 }
 
+.calendar-nav-buttons button:hover {
+    background: #F2F2F2;
+    box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.25);
+}
+
 .calendar-toolbar-actions {
     display: flex;
     flex-wrap: wrap;
@@ -272,6 +277,10 @@
     padding: 0.2em 0.5em;
 }
 
+.modal-close:hover {
+    color: #FF2424;
+}
+
 .modal-form {
     display: flex;
     flex-direction: column;
@@ -357,8 +366,16 @@
     color: #FFF;
 }
 
-/* Objawy przy wpisie biorą kolor od samopoczucia wpisu - ta sama skala co
-   prostokąty w kalendarzu.
+/* Tylko plakietki-przyciski, te w liscie wpisow sa zwyklymi <span>. */
+button.tag-chip:hover {
+    background: #DDD;
+}
+
+button.tag-chip.active:hover {
+    background: #d72020;
+}
+
+/* Objawy przy wpisie biorą kolor od samopoczucia wpisu 
    Selektory podwójne, bo .mood-* stoi wyżej niż .tag-chip. */
 .tag-chip.mood-low,
 .tag-chip.mood-mid,
@@ -397,6 +414,10 @@
     padding: 0.6em 1em;
 }
 
+.custom-tag-input button:hover {
+    background: #C4C4C4;
+}
+
 .reminder-checkbox {
     display: flex;
     align-items: center;
@@ -433,13 +454,16 @@
     color: #333;
 }
 
+.modal-btn.secondary:hover:enabled {
+    background: #C4C4C4;
+}
+
 .modal-btn.small {
     padding: 0.5em 1em;
     font-size: 0.85em;
 }
 
-/* Akcje nieodwracalne (kasowanie konta). Ciemniejsza czerwien niz .primary,
-   zeby nie wygladalo jak zwykly przycisk akcji. */
+/* Akcje nieodwracalne (kasowanie konta). Ciemniejsza czerwien niz .primary */
 .modal-btn.danger {
     background: #8B0000;
     color: #FFF;
