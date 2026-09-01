@@ -28,7 +28,6 @@ function AddEntryModal({ isOpen, onClose, onSaved, defaultDate, entry }) {
     const [symptoms, setSymptoms] = useState([]);
     const [customSymptom, setCustomSymptom] = useState('');
     const [description, setDescription] = useState('');
-    const [reminder, setReminder] = useState(false);
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
 
@@ -48,7 +47,6 @@ function AddEntryModal({ isOpen, onClose, onSaved, defaultDate, entry }) {
             setScale(entry.moodScale ?? null);
             setSymptoms(entry.symptoms ? [...entry.symptoms] : []);
             setDescription(entry.description || '');
-            setReminder(Boolean(entry.reminder));
         } else {
             const base = defaultDate || new Date();
             setTitle('');
@@ -58,7 +56,6 @@ function AddEntryModal({ isOpen, onClose, onSaved, defaultDate, entry }) {
             setScale(null);
             setSymptoms([]);
             setDescription('');
-            setReminder(false);
         }
 
         setCustomSymptom('');
@@ -121,7 +118,6 @@ function AddEntryModal({ isOpen, onClose, onSaved, defaultDate, entry }) {
             entryAt: `${date}T${time}`,
             moodScale: scale,
             symptoms,
-            reminder,
         };
 
         try {
@@ -241,15 +237,6 @@ function AddEntryModal({ isOpen, onClose, onSaved, defaultDate, entry }) {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
-
-                    <label className="reminder-checkbox">
-                        <input
-                            type="checkbox"
-                            checked={reminder}
-                            onChange={(e) => setReminder(e.target.checked)}
-                        />
-                        Przypomnij mi o tym wpisie
-                    </label>
 
                     {error && <div id="messages">{error}</div>}
 

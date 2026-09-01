@@ -39,7 +39,7 @@ nav {
     height: 70px;
     font-size: 2rem;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     position: fixed;
     top: 0;
@@ -73,39 +73,42 @@ main {
     background: #1B7F4A;
 }
 
-.dashboard main {
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 1rem;
-    padding: 0 1rem 2rem;
+/* Dwie równe kolumny, analiza nastroju pełną szerokością pod nimi.
+   :has() zawęża układ do dashboardów - .dashboard noszą też kalendarz, czat i panele lekarza,
+   które trzymają w <main> zupełnie inne bloki. */
+.dashboard main:has(> .main-container) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5em 1em;
+    /* Szerzej niż .doctor-page (70%), bo w kolumnach stoją etykiety, które nie mogą się łamać. */
+    width: min(90%, 70em);
+    margin: 70px auto;
+    padding: 2em 0;
 }
-
 
 .dashboard main > .main-container {
     box-sizing: border-box;
     width: auto;
-    flex: 1 1 0;
-    min-width: 0;
-    max-width: 34em;
     align-items: stretch;
+    /* Karty w rzędzie równej wysokości - inaczej przyciski na dole nie stoją w jednej linii. */
     align-self: stretch;
     background: none;
     box-shadow: none;
     border-radius: 0;
     padding: 0;
-    margin-top: 2em;
+    margin: 0;
     gap: 0;
 }
 
 .dashboard main > .main-container h3 {
-    margin: 0.5em 0.5rem 0.25em;
+    margin: 0 0 0.5em;
 }
 
-/* Karta wypełnia kontener rozciągnięty przez sąsiada
-   Wcięcie z .doctor-panel na obu kartach, inaczej przyciski na dole nie stoją w jednej linii. */
+/* Karta wypełnia kontener rozciągnięty przez sąsiada. */
 .dashboard main > .main-container > .datablock {
     flex: 1;
     padding: 1.5em;
+    margin: 0;
     width: auto;
 }
 
@@ -114,11 +117,17 @@ main {
     margin-top: auto;
 }
 
-/* Pełna szerokość obu kolumn (2 x 34em + odstęp) */
-.dashboard main > .main-container.mood-container {
-    flex-basis: 100%;
-    max-width: 69em;
-    margin-top: 1em;
+.dashboard main > .main-container.mood-container,
+/* Panel admina ma jedną kartę i żadnego sąsiada - bez tego stałby w lewej kolumnie. */
+.dashboard main > .main-container:only-child {
+    grid-column: 1 / -1;
+}
+
+/* Na wąskim ekranie kolumny jedna pod drugą. */
+@media (max-width: 52em) {
+    .dashboard main:has(> .main-container) {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 #textlogo {
@@ -127,10 +136,26 @@ main {
 }
 
 #logo {
-    align-items: center;
     height: 1.5em;
     width: auto;
-    padding-right: 1rem;
+}
+
+/* Serduszko na środku paska. Selektor z nav bije #logo z Global.css, gdzie margin: 0 auto
+   centrowało je tylko w wolnym miejscu obok logotypu, czyli zawsze za bardzo w prawo. */
+nav > #logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 0;
+}
+
+/* Przy 2rem logotyp sięga środka paska i wchodzi pod serduszko - oba są w em, więc
+   wystarczy zmniejszyć font navu. */
+@media (max-width: 30em) {
+    nav {
+        font-size: 1.4rem;
+    }
 }
 
 nav>p {

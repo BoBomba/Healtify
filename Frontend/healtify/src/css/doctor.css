@@ -99,12 +99,14 @@
 
 /* ---------- Dashboard lekarza ---------- */
 
+/* Selektor podwójny jak w .doctor-panel - .datablock ustawia kolumnę i stoi w innym pliku. */
+.datablock.doctor-stats,
 .doctor-stats {
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: space-around;
     align-content: center;
-    gap: 2em;
+    gap: 1em 2em;
 }
 
 .doctor-stat {

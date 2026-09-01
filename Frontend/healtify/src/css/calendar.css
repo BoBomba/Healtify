@@ -418,13 +418,6 @@ button.tag-chip.active:hover {
     background: #C4C4C4;
 }
 
-.reminder-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    font-size: 0.9em;
-}
-
 .modal-actions {
     display: flex;
     justify-content: flex-end;
