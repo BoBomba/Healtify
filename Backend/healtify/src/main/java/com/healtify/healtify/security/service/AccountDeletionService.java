@@ -39,9 +39,9 @@ public class AccountDeletionService {
      * zapisujacego (sa puste, ale Hibernate zaklada dla nich klucze obce).
      * Czyscimy je zapytaniem, zeby dolozenie funkcji piszacej do ktorejs z nich
      * nie zablokowalo nagle kasowania kont.
+     * Nazwy sa stringami - kasujac encje trzeba usunac wpis tez tutaj, kompilator tego nie zlapie.
      */
     private static final List<String> ORPHAN_ENTITIES = List.of(
-            "GeneralUserData",
             "EmergencyContact",
             "ReminderSettings",
             "UserNotifications",
