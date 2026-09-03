@@ -18,6 +18,10 @@
 
 ### Claude ###
 .claude/
+CLAUDE.md
 
 ### Codex ###
-.codex/
+.codex
+.codex-work
+
+memory/
