@@ -50,7 +50,7 @@ function AdminDashboard() {
                 </div>
             </main>
 
-            <footer>Damian Guca</footer>
+            {/* <footer>Damian Guca</footer> */}
         </div>
     );
 }

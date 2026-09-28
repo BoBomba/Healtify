@@ -26,7 +26,6 @@ public class ApplicationConfig {
         this.repository = repository;
     }
 
-
     @Bean
     public UserDetailsService userDetailsService() {
         return new UserDetailsService() {
@@ -42,14 +41,11 @@ public class ApplicationConfig {
                 if (userAccount.isEmpty()) {
                     throw new UsernameNotFoundException("User with username/email " + username + " not found");
                 }
-                // Zwracamy sama encje (implementuje UserDetails), a nie kopie w springowym User
-                // z pusta lista uprawnien - inaczej role gina po drodze i hasRole()/@PreAuthorize
-                // odrzuca nawet admina. Nazwa principala sie nie zmienia: to nadal username.
+                // Zwracamy sama encje (implementuje UserDetails)
                 return userAccount.get();
             }
         };
     }
-
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -69,8 +65,4 @@ public class ApplicationConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-
-
-
 }

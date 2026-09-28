@@ -1,5 +1,7 @@
+/* Szare tło, żeby zrzuty ekranu nie zlewały się z białą stroną dokumentu */
 body {
-  background: #FFF;
+  background: #FAF4E8;
+  min-height: 100vh;
 }
 
 .main-container {

@@ -94,11 +94,10 @@ public class ChatService {
 
     // --- dostep ---
 
+    // ----------------------------------------
+
     /**
      * Wpuszcza do rozmowy tylko jej strone i tylko przy aktywnym powiazaniu.
-     *
-     * Kazde odbicie to 404, nie 403 - inaczej odpowiedz potwierdzalaby, ze rozmowa
-     * o takim id istnieje, a to juz jest informacja poufna o cudzej relacji pacjent-lekarz.
      *
      * Metoda jest prywatna i CELOWO bez @Transactional: sprawdzenie dostepu ma
      * dziac sie w tej samej transakcji, co operacja, ktora obsluguje. Osobna transakcja
@@ -119,6 +118,8 @@ public class ChatService {
         }
         return new ChatAccess(sharing, role, user);
     }
+
+    // ----------------------------------------
 
     private Optional<MessageSender> roleIn(DataSharing sharing, UserAccount user) {
         if (sharing.getUserAccount().getUserId().equals(user.getUserId())) {
@@ -169,11 +170,11 @@ public class ChatService {
 
     // --- wysylanie ---
 
+    //----------------------------------------
+
     /**
      * Zapis wiadomosci i push do obu stron.
-     *
-     * Nadawca tez dostaje kopie po WebSockecie - dzieki temu wiadomosc
-     * pojawia sie we wszystkich otwartych kartach tego samego konta. 
+     * Nadawca tez dostaje kopie po WebSockecie.
      * Front odsiewa duplikaty po messageId.
      */
     @Transactional
@@ -205,6 +206,8 @@ public class ChatService {
         }
         return response;
     }
+
+    //----------------------------------------
 
     // Nazwy kont obu stron rozmowy - po nich WB rozpoznaje, do kogo wyslac push.
     private List<String> participants(DataSharing sharing) {

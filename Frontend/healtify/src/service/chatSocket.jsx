@@ -28,20 +28,18 @@ function notify(handlers, payload) {
     });
 }
 
+// ---------------------------
+
 function ensureClient() {
     if (client) return client;
 
     client = new Client({
         brokerURL: WS_URL,
-        // Zerwane połączenie wraca samo - bez tego czat
-        // po powrocie do karty nie dostawalby już nic.
         reconnectDelay: 5000,
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,
 
-        // Naglowki budujemy tuż przed KAŻDYM połączeniem,
-        // po odswiezeniu tokenu ponowne laczenie musi pojsc z aktualnym bo inaczej backend
-        // odrzuca CONNECT i gniazdo dobija się starym tokenem.
+        // Naglowki budowane przed KAŻDYM połączeniem,
         beforeConnect: () => {
             client.connectHeaders = {
                 Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -49,8 +47,6 @@ function ensureClient() {
         },
 
         onConnect: () => {
-            // Subskrypcje zakladamy tutaj, bo po kazdym ponownym polaczeniu
-            // znikaja razem z sesja i trzeba je odtworzyc.
             client.subscribe('/user/queue/chat', (frame) => {
                 notify(messageHandlers, JSON.parse(frame.body));
             });
@@ -74,6 +70,8 @@ function releaseIfUnused() {
         client = null;
     }
 }
+
+// ---------------------------
 
 /**
  * Nasłuch nowych wiadomości. 

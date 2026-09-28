@@ -34,7 +34,7 @@ export const dailyAverages = (entries) => {
         .sort((a, b) => a.key.localeCompare(b.key));
 };
 
-/** Średnia z ostatnich 7 dni zestawiona z 7 dniami przed nimi - stąd strzałka trendu. */
+/** Średnia z ostatnich 7 dni porównana z 7 dniami przed nimi */
 export const weekComparison = (entries) => {
     const current = entriesInRange(entries, 7);
     const from = shiftDayKey(13);
@@ -73,7 +73,7 @@ export const weekdayAverages = (entries) => {
     }));
 };
 
-/** Najczęstsze objawy i nastrój w dniach z nimi na tle pozostałych wpisów. */
+/** Najczęstsze objawy i nastrój w dniach z nimi */
 export const symptomStats = (entries, limit = 5) => {
     const counts = new Map();
     entries.forEach((entry) => {

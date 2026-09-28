@@ -106,7 +106,8 @@ public class SharingController {
         return ResponseEntity.ok(results);
     }
 
-    /** Prosba pacjenta o opieke. Dostep powstaje dopiero po akceptacji lekarza. */
+    /** Prosba pacjenta o opieke. Dostep dopiero po akceptacji lekarza. */
+    
     @PostMapping("/doctors/{doctorId}/request")
     public ResponseEntity<SharingResponse> requestDoctor(@PathVariable Long doctorId, Principal principal) {
         UserAccount user = currentUser(principal);

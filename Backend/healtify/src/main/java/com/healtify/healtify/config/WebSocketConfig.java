@@ -13,8 +13,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  *
  * Broker jest in-memory. Wystarcza gdy backend chodzi w jednej instancji;
  * przy kilku instancjach trzeba by podpiac zewnetrzny (np. RabbitMQ/ActiveMQ),
- * bo kolejki uzytkownikow nie sa wspoldzielone pomiedzy instancjami.
+ * bo kolejki uzytkownikow beda wspoldzielone pomiedzy instancjami.
  */
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
@@ -27,14 +28,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Ta sama lista origins co w CorsConfig - handshake WebSocketa ma wlasna kontrole
-        // pochodzenia i nie korzysta z konfiguracji CORS dla MVC.
+        // Handshake WebSocketa ma wlasna kontrole pochodzenia
+        // i nie uzywa konfiguracji CORS dla MVC.
         registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:3000");
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // /queue - kolejki prywatne (Spring rozwija /user/queue/... na konkretna sesje).
+        // /queue - kolejki prywatne (/user/queue/... - konkretna sesja).
         registry.enableSimpleBroker("/queue");
         // Wiadomosci od klienta do @MessageMapping.
         registry.setApplicationDestinationPrefixes("/app");
@@ -43,8 +44,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        // Autoryzacja tokenem przy CONNECT - bez tego kazde gniazdo byloby anonimowe
-        // i nie dalo by sie ustalic, czyja jest kolejka.
+        // Autoryzacja tokenem przy CONNECT
         registration.interceptors(authChannelInterceptor);
     }
 }

@@ -89,10 +89,12 @@ public class JournalController {
         return ResponseEntity.ok(response);
     }
 
+    //----------------------------------------
+
     /**
      * Ustawienie, ktorym lekarzom widoczny jest ten wpis. 
      * Wysylamy komplet zaznaczonych lekarzy, a backend doprowadza stan do zgodnosci - dodaje brakujace, kasuje odznaczone.
-     * Udostepnic mozna wylacznie lekarzowi z ACCEPTED
+     * Udostepnic mozna wylacznie lekarzowi z powiązaniem
      */
     @Transactional
     @PutMapping("/{entryId}/shares")
@@ -108,7 +110,7 @@ public class JournalController {
                 ? Set.of()
                 : new HashSet<>(request.doctorIds());
 
-        // Lekarze, ktorzy faktycznie opiekuja sie tym pacjentem.
+        // Lekarze, ktorzy opiekuja sie pacjentem.
         Map<Long, Doctor> allowed = sharingRepository
                 .findByUserAccountAndRequestStatusOrderByRequestSentDateDesc(userAccount, SharingStatus.ACCEPTED)
                 .stream()
@@ -127,13 +129,11 @@ public class JournalController {
                 .map(share -> share.getDoctor().getDoctorId())
                 .collect(Collectors.toSet());
 
-        // Odznaczone - kasujemy.
         List<JournalEntryShare> removed = current.stream()
                 .filter(share -> !wanted.contains(share.getDoctor().getDoctorId()))
                 .toList();
         journalEntryShareRepository.deleteAll(removed);
 
-        // Nowo zaznaczone - dodajemy.
         for (Long doctorId : wanted) {
             if (!currentIds.contains(doctorId)) {
                 journalEntryShareRepository.save(new JournalEntryShare(entry, allowed.get(doctorId)));
@@ -142,6 +142,8 @@ public class JournalController {
 
         return ResponseEntity.ok(JournalEntryResponse.from(entry, List.copyOf(wanted)));
     }
+
+    //----------------------------------------
 
     /** entryId -> lista doctorId, ktorym wpis jest udostepniony. */
     private Map<Long, List<Long>> sharesByEntryId(List<JournalEntry> entries) {
@@ -231,8 +233,7 @@ public class JournalController {
     }
 
     /**
-     * Zalogowany uzytkownik na podstawie tokenu. Brak principala albo konta = 401,
-     * nigdy nie schodzimy do bazy z nazwa przyslana przez klienta.
+     * Zalogowany uzytkownik na podstawie tokenu. 
      */
     private UserAccount currentUser(Principal principal) {
         if (principal == null || principal.getName() == null) {

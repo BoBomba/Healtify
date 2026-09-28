@@ -88,7 +88,7 @@ function Dashboard() {
         onSaved={(savedEntry) => setEntries((prev) => [...prev, savedEntry])}
       />
 
-      <footer>Damian Guca</footer>
+      {/* <footer>Damian Guca</footer> */}
     </div>
   );
 }

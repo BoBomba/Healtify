@@ -86,19 +86,17 @@ public class AccountDeletionService {
         this.roleRepository = roleRepository;
         this.tokenRepository = tokenRepository;
     }
+    // ----------------------------------------------------------------
 
     @Transactional
     public void deleteAccount(UserAccount account) {
 
-        // Kontroler znalazl konto poza ta transakcja, wiec encja jest odlaczona -
-        // pobieramy ja jeszcze raz, zeby czyszczenie rol dzialalo na zarzadzanym obiekcie.
         UserAccount user = userAccountRepository.findById(account.getUserId()).orElse(null);
         if (user == null) {
             return;
         }
 
-        // 1. Strona lekarza - wizyty, ktore to konto zalozylo swoim pacjentom,
-        //    powiazania z pacjentami i sam profil lekarza.
+        // 1. Strona lekarza - wizyty, powiazania z pacjentami i profil lekarza.
         deleteDoctorSide(user);
 
         // 2. Strona pacjenta - wizyty zalozone temu kontu przez lekarzy i powiazania z nimi.
@@ -115,15 +113,14 @@ public class AccountDeletionService {
         // 4. Tokeny JWT 
         tokenRepository.deleteByUserId(user.getUserId());
 
-        // 5. Role z tabeli laczacej i samo konto. Role czyscimy jawnie, bo UserAccount
-        //    jest wlascicielem relacji i tylko wtedy Hibernate skasuje wiersze user_roles.
+        // 5. Role z tabeli laczacej i samo konto. 
         user.getRoles().clear();
         userAccountRepository.delete(user);
 
-        // Kasowania sa mieszane (bulk + encje), wiec wymuszamy zapis w ustalonej kolejnosci
-        // jeszcze wewnatrz transakcji - inaczej blad wyszedlby dopiero przy commicie.
         entityManager.flush();
     }
+
+    //----------------------------------------------------------------
 
     /**
      * Odebranie roli lekarza. Konto zostaje i dziala dalej jako pacjent - znika tylko

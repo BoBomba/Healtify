@@ -108,7 +108,7 @@ function DoctorDashboard() {
                 </div>
             </main>
 
-            <footer>Damian Guca</footer>
+            {/* <footer>Damian Guca</footer> */}
         </div>
     );
 }

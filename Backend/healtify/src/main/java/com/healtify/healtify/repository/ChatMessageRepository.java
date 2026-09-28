@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+//----------------------------------------------------------------
+
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
 
     // --- paginacja kursorowa (keyset) ---
@@ -23,12 +25,15 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     // okno i uzytkownik widzi duplikaty albo gubi dymki. Kursor jest na to odporny
     // i trafia prosto w indeks (sharing_id, message_id).
 
-    /** Pierwsze wejscie w czat - najnowsze wiadomosci. */
+    /** Pierwsze wejscie - najnowsze wiadomosci. */
     List<ChatMessage> findBySharingOrderByMessageIdDesc(DataSharing sharing, Pageable pageable);
 
-    /** Doladowanie starszej porcji - wszystko przed juz pokazanym najstarszym dymkiem. */
+    /** Doladowanie starszej porcji - wszystko przed pokazanym najstarszym dymkiem. */
     List<ChatMessage> findBySharingAndMessageIdLessThanOrderByMessageIdDesc(
             DataSharing sharing, Long messageId, Pageable pageable);
+       
+
+//----------------------------------------------------------------
 
     // --- lista rozmow ---
 

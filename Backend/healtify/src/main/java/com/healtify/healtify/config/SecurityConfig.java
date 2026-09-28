@@ -28,9 +28,7 @@ public class SecurityConfig {
         "/swagger-ui/**",
         "/error",
         // Handshake WebSocketa. 
-        // Przegladarka nie doklada naglowka Authorization 
-        // do polaczenia WebSocket, wiec token jedzie dopiero w CONNECT -
-        // sprawdza go WebSocketAuthChannelInterceptor.
+        // token jedzie w CONNECT 
         "/ws/**"
     };
 
