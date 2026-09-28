@@ -21,7 +21,9 @@
     align-items: start;
 }
 
-/* .datablock domyślnie centruje treść - listy i formularze mają być do lewej. */
+/* Selektor podwójny, bo .datablock ma tę samą specyficzność i stoi w innym pliku -
+   o wyniku decydowałaby wtedy kolejność importów CSS. */
+.datablock.doctor-panel,
 .doctor-panel {
     width: 100%;
     align-items: stretch;
@@ -76,10 +78,13 @@
     font-size: 0.85em;
 }
 
+/* margin-left:auto, z nim trzymają się prawej krawędzi zawsze */
 .doctor-list-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.5em;
+    margin-left: auto;
 }
 
 /* Etykieta zamiast przycisku tam, gdzie nie ma już nic do kliknięcia. */
@@ -92,15 +97,16 @@
     white-space: nowrap;
 }
 
-.doctor-row-action {
-    margin-left: auto;
-}
-
 /* ---------- Dashboard lekarza ---------- */
 
+/* Selektor podwójny jak w .doctor-panel - .datablock ustawia kolumnę i stoi w innym pliku. */
+.datablock.doctor-stats,
 .doctor-stats {
     flex-direction: row;
-    gap: 2em;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-content: center;
+    gap: 1em 2em;
 }
 
 .doctor-stat {
@@ -126,17 +132,9 @@
     font-size: 0.85em;
 }
 
-.nav-role-badge {
-    background: #2D6CDF;
-    color: #FFF;
-    border-radius: 999px;
-    padding: 0.1em 0.6em;
-    font-size: 0.6em;
-    margin-left: 0.5em;
-    vertical-align: middle;
-}
+/* .nav-role-badge przeniesiony do dashboard.css */
 
-/* ---------- Lista wizyt pogrupowana w dni ---------- */
+/* ------- Lista wizyt pogrupowana w dni ------- */
 
 .doctor-day-group {
     margin-bottom: 1em;

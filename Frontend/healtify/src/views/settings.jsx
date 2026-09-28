@@ -75,7 +75,7 @@ function Settings() {
       <main>
         <div className="block-container">
           <div className="block-row">
-            <div className="datablock"><a1><b>Ustawienia</b></a1></div>
+            <h2>Ustawienia</h2>
             <div className="datablock">
               <img src={Avatar} alt="Avatar" />
               <p>Username: {username}</p>

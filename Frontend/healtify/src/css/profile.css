@@ -1,0 +1,165 @@
+/* Szczegółowe dane pacjenta: podgląd (.details-list) i tryb edycji (.profile-form). */
+
+.details-list {
+    width: 100%;
+    margin: 0;
+    text-align: left;
+}
+
+.detail-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.25rem 1rem;
+    padding: 0.6em 0;
+    border-bottom: 1px solid #EEE;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: #555;
+    flex-shrink: 0;
+    font-size: 0.9em;
+}
+
+.detail-value {
+    margin: 0 0 0 auto;
+    text-align: right;
+    font-weight: 600;
+    /* Alergie i leki mają się zawijać, a nie rozpychać */
+    overflow-wrap: break-word;
+}
+
+/* Brak danych widoczny, ale mniej niz wypełnione pole. */
+.detail-value.missing {
+    color: #999;
+    font-style: italic;
+    font-weight: 400;
+}
+
+.profile-panel {
+    align-items: stretch;
+}
+
+.profile-title {
+    margin: 0 0 0.5em;
+    text-align: center;
+}
+
+.profile-intro {
+    color: #555;
+    font-size: 0.9em;
+    margin: 0 0 1em;
+    text-align: center;
+}
+
+.profile-notice {
+    background: #EEE;
+    border-radius: 0.625rem;
+    color: #333;
+    font-size: 0.9em;
+    margin-bottom: 1em;
+    padding: 0.8em 1em;
+    text-align: center;
+}
+
+.profile-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14em, 1fr));
+    align-items: start;
+    gap: 1rem;
+    width: 100%;
+    margin-top: 1em;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+    text-align: left;
+}
+
+.form-field > span {
+    color: #555;
+    font-size: 0.9em;
+}
+
+.form-field.wide {
+    grid-column: 1 / -1;
+}
+
+.profile-form input,
+.profile-form select,
+.profile-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.7em;
+    border: 1px solid #CCC;
+    border-radius: 0.625rem;
+    background: #FFF;
+    font-family: inherit;
+    font-size: 1em;
+}
+
+.profile-form textarea {
+    resize: vertical;
+}
+
+.profile-form input:focus,
+.profile-form select:focus,
+.profile-form textarea:focus {
+    outline: 2px solid #FF2424;
+    outline-offset: 1px;
+}
+
+.profile-errors {
+    grid-column: 1 / -1;
+}
+
+/* Duże przyciski akcji ("Edytuj", "Zapisz", "Gotowe", "Powrót"). Ta sama klasa
+   wisi też na <Link>, stąd display/text-align */
+.big-btn {
+    grid-column: 1 / -1;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: 0.5em;
+    padding: 1em;
+    border: none;
+    border-radius: 25px;
+    background: #FF2424;
+    color: #FFF;
+    cursor: pointer;
+    font-family: Lexend, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+.big-btn.secondary {
+    background: #EEE;
+    color: #333;
+}
+
+/* Bez :enabled, selektor nie łapie <a>, a "Edytuj" na dashboardzie to link. */
+.big-btn:hover {
+    background: #d72020;
+    color: #FFF;
+}
+
+.big-btn.secondary:hover {
+    background: #DDD;
+    color: #333;
+}
+
+.big-btn:disabled,
+.big-btn:disabled:hover {
+    background: #FF2424;
+    opacity: 0.6;
+    cursor: not-allowed;
+}

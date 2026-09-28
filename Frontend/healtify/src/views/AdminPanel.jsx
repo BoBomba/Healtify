@@ -6,19 +6,41 @@ import '../css/doctor.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Nav from '../Components/Nav';
+import GrantDoctorModal from '../Components/GrantDoctorModal';
+import SearchBar from '../Components/SearchBar';
+import { matchesQuery } from '../utils/searchUtils';
 import { useEffect } from 'react';
 import { validateToken } from '../service/authService';
-import { checkAdminStatus, deleteUserAccount, getUsersWithRoles, grantDoctorRole } from '../service/adminService';
+import { checkAdminStatus, deleteUserAccount, getUsersWithRoles, revokeDoctorRole } from '../service/adminService';
 
 function AdminPanel() {
 
   const [users, setUsers] = useState([]);
-  // Formularz nadania roli lekarza rozwija się przy konkretnym użytkowniku.
+  // Użytkownik, dla którego otwarte jest potwierdzenie nadania roli lekarza.
   const [grantingFor, setGrantingFor] = useState(null);
-  const [doctorName, setDoctorName] = useState('');
-  const [specialization, setSpecialization] = useState('');
   const [message, setMessage] = useState('');
+  const [query, setQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
   const navigate = useNavigate();
+
+  const matchesRole = (user) => {
+    switch (roleFilter) {
+      case 'doctors': return user.roles.includes('ROLE_DOCTOR');
+      case 'admins': return user.roles.includes('ROLE_ADMIN');
+      case 'patients':
+        return !user.roles.includes('ROLE_DOCTOR') && !user.roles.includes('ROLE_ADMIN');
+      default: return true;
+    }
+  };
+
+  const filteredUsers = users.filter(
+    (user) => matchesRole(user) && matchesQuery(query, user.username, user.email)
+  );
+
+  const handleReset = () => {
+    setQuery('');
+    setRoleFilter('all');
+  };
 
   async function checkCondition() {
     // 403 z /checkadmin to zwykłe "nie jesteś adminem", ale checkAdminStatus
@@ -54,30 +76,37 @@ function AdminPanel() {
     loadUsers();
   }, []);
 
-  const openGrantForm = (user) => {
-    setGrantingFor(user.userId);
-    setDoctorName(user.username);
-    setSpecialization('');
+  const openGrantModal = (user) => {
+    setGrantingFor(user);
     setMessage('');
   };
 
-  const handleGrant = async (event) => {
-    event.preventDefault();
+  // Role są czytane z bazy przy każdym żądaniu, więc działa to od razu bez reloga i bez wymiany tokenu.
+  const handleGranted = (user) => {
+    setMessage(
+      `Rola lekarza nadana kontu ${user.username}. Dane zawodowe uzupełni przy pierwszym zalogowaniu.`
+    );
+    setGrantingFor(null);
+    loadUsers();
+  };
 
-    if (doctorName.trim() === '') {
-      setMessage('Podaj imię i nazwisko lekarza.');
-      return;
-    }
+  const handleRevokeDoctor = async (user) => {
+    const confirmed = window.confirm(
+      `Odebrać rolę lekarza kontu ${user.username} (${user.email})?\n\n` +
+      'Konto zostanie i będzie działać dalej jako pacjent, ale znikną: profil lekarza, ' +
+      'wizyty umówione przez niego pacjentom, powiązania z pacjentami razem z czatem ' +
+      'oraz dostęp do udostępnionych mu wpisów.\n\n' +
+      'Tej operacji nie da się cofnąć.'
+    );
+    if (!confirmed) return;
 
     try {
-      await grantDoctorRole(grantingFor, doctorName.trim(), specialization.trim());
-      // Role są czytane z bazy przy każdym żądaniu, więc działa to od razu bez reloga i bez wymiany tokenu.
-      setMessage('Rola lekarza nadana. Panel lekarza jest dostępny od razu.');
-      setGrantingFor(null);
+      await revokeDoctorRole(user.userId);
+      setMessage(`Konto ${user.username} nie jest już lekarzem.`);
       loadUsers();
     } catch (error) {
       console.log(error);
-      setMessage(error.response?.data?.message || 'Nie udało się nadać roli lekarza.');
+      setMessage(error.response?.data?.message || 'Nie udało się odebrać roli lekarza.');
     }
   };
 
@@ -94,8 +123,8 @@ function AdminPanel() {
     try {
       await deleteUserAccount(user.userId);
       setMessage(`Konto ${user.username} zostało usunięte.`);
-      // Formularz nadania roli mógł być otwarty właśnie dla tego konta.
-      if (grantingFor === user.userId) {
+      // Potwierdzenie nadania roli mogło być otwarte właśnie dla tego konta.
+      if (grantingFor?.userId === user.userId) {
         setGrantingFor(null);
       }
       loadUsers();
@@ -115,10 +144,35 @@ function AdminPanel() {
             {message && <div id="messages">{message}</div>}
 
             <div className="datablock doctor-panel">
-              {users.length === 0 && <p>Brak użytkowników.</p>}
+              <SearchBar
+                query={query}
+                onQueryChange={setQuery}
+                placeholder="Szukaj po nazwie lub mailu..."
+                onReset={handleReset}
+                activeFilterCount={roleFilter === 'all' ? 0 : 1}
+                summary={`Konta: ${filteredUsers.length} z ${users.length}`}
+              >
+                <div className="search-field">
+                  <label className="field-label" htmlFor="admin-role-filter">Rola</label>
+                  <select
+                    id="admin-role-filter"
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                  >
+                    <option value="all">Wszyscy</option>
+                    <option value="patients">Pacjenci</option>
+                    <option value="doctors">Lekarze</option>
+                    <option value="admins">Administratorzy</option>
+                  </select>
+                </div>
+              </SearchBar>
 
-              {users.map(user => {
+              {filteredUsers.length === 0 && <p>Brak użytkowników.</p>}
+
+              {filteredUsers.map(user => {
                 const isDoctor = user.roles.includes('ROLE_DOCTOR');
+                // Konta adminów są nietykalne z panelu - backend i tak odrzuci takie żądanie.
+                const isAdmin = user.roles.includes('ROLE_ADMIN');
                 return (
                   <div className="doctor-list-row" key={user.userId}>
                     <div className="doctor-list-main">
@@ -129,67 +183,49 @@ function AdminPanel() {
                     </div>
                     <div className="doctor-list-actions">
                       {isDoctor ? (
-                        <span className="doctor-badge">Lekarz</span>
+                        <>
+                          <span className="doctor-badge">Lekarz</span>
+                          <button
+                            type="button"
+                            className="modal-btn secondary small"
+                            onClick={() => handleRevokeDoctor(user)}
+                          >
+                            Odbierz rolę
+                          </button>
+                        </>
                       ) : (
                         <button
                           type="button"
                           className="modal-btn primary small"
-                          onClick={() => openGrantForm(user)}
+                          onClick={() => openGrantModal(user)}
                         >
                           Nadaj rolę lekarza
                         </button>
                       )}
-                      <button
-                        type="button"
-                        className="modal-btn danger small"
-                        onClick={() => handleDelete(user)}
-                      >
-                        Usuń konto
-                      </button>
+                      {!isAdmin && (
+                        <button
+                          type="button"
+                          className="modal-btn danger small"
+                          onClick={() => handleDelete(user)}
+                        >
+                          Usuń konto
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {grantingFor !== null && (
-              <div className="datablock doctor-panel">
-                <h3>Nowy profil lekarza</h3>
-                <form className="modal-form" onSubmit={handleGrant}>
-                  <label className="field-label" htmlFor="doctor-name">Imię i nazwisko</label>
-                  <input
-                    id="doctor-name"
-                    type="text"
-                    maxLength={120}
-                    value={doctorName}
-                    onChange={(e) => setDoctorName(e.target.value)}
-                  />
-
-                  <label className="field-label" htmlFor="doctor-specialization">Specjalizacja</label>
-                  <input
-                    id="doctor-specialization"
-                    type="text"
-                    maxLength={120}
-                    placeholder="Np. psychoterapeuta"
-                    value={specialization}
-                    onChange={(e) => setSpecialization(e.target.value)}
-                  />
-
-                  <div className="modal-actions">
-                    <button
-                      type="button"
-                      className="modal-btn secondary"
-                      onClick={() => setGrantingFor(null)}
-                    >
-                      Anuluj
-                    </button>
-                    <button type="submit" className="modal-btn primary">Nadaj rolę</button>
-                  </div>
-                </form>
-              </div>
-            )}
           </div>
         </main>
+
+        <GrantDoctorModal
+          isOpen={grantingFor !== null}
+          onClose={() => setGrantingFor(null)}
+          onGranted={handleGranted}
+          user={grantingFor}
+        />
     </div>
   )
 }

@@ -18,7 +18,9 @@
 
 .calendar-nav-buttons {
     display: flex;
+    flex: 1 1 100%;
     align-items: center;
+    justify-content: center;
     gap: 1em;
 }
 
@@ -38,8 +40,16 @@
     padding: 0;
 }
 
+.calendar-nav-buttons button:hover {
+    background: #F2F2F2;
+    box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.25);
+}
+
 .calendar-toolbar-actions {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-left: auto;
     gap: 0.75em;
 }
 
@@ -199,15 +209,26 @@
     padding: 0.75em 0;
 }
 
+/* Tytul, godzina i przyciski w jednej linii, ale z prawem do zawiniecia */
 .day-event-title {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.5em;
+}
+
+.day-event-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-left: auto;
 }
 
 .day-event-time {
     color: #777;
     font-size: 0.85em;
+    /* Data ma zostac w jednej linii - "2026-08-21 12:00" lamane na trzy wiersze jest nieczytelne */
+    white-space: nowrap;
 }
 
 /* --- Modal dodawania wpisu --- */
@@ -254,6 +275,10 @@
     line-height: 1;
     cursor: pointer;
     padding: 0.2em 0.5em;
+}
+
+.modal-close:hover {
+    color: #FF2424;
 }
 
 .modal-form {
@@ -341,8 +366,16 @@
     color: #FFF;
 }
 
-/* Objawy przy wpisie biorą kolor od samopoczucia wpisu - ta sama skala co
-   prostokąty w kalendarzu.
+/* Tylko plakietki-przyciski, te w liscie wpisow sa zwyklymi <span>. */
+button.tag-chip:hover {
+    background: #DDD;
+}
+
+button.tag-chip.active:hover {
+    background: #d72020;
+}
+
+/* Objawy przy wpisie biorą kolor od samopoczucia wpisu 
    Selektory podwójne, bo .mood-* stoi wyżej niż .tag-chip. */
 .tag-chip.mood-low,
 .tag-chip.mood-mid,
@@ -381,11 +414,8 @@
     padding: 0.6em 1em;
 }
 
-.reminder-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    font-size: 0.9em;
+.custom-tag-input button:hover {
+    background: #C4C4C4;
 }
 
 .modal-actions {
@@ -417,13 +447,16 @@
     color: #333;
 }
 
+.modal-btn.secondary:hover:enabled {
+    background: #C4C4C4;
+}
+
 .modal-btn.small {
     padding: 0.5em 1em;
     font-size: 0.85em;
 }
 
-/* Akcje nieodwracalne (kasowanie konta). Ciemniejsza czerwien niz .primary,
-   zeby nie wygladalo jak zwykly przycisk akcji. */
+/* Akcje nieodwracalne (kasowanie konta). Ciemniejsza czerwien niz .primary */
 .modal-btn.danger {
     background: #8B0000;
     color: #FFF;
@@ -433,9 +466,52 @@
     background: #6D0000;
 }
 
+/* Udostepnianie wpisu terapeucie. */
+.modal-btn.share {
+    background: #2D6CDF;
+    color: #FFF;
+}
+
+.modal-btn.share:hover:enabled {
+    background: #245ab8;
+}
+
+.modal-btn.share.active {
+    background: #E3EDFC;
+    color: #1B4894;
+}
+
+.modal-btn.share.active:hover:enabled {
+    background: #CFE0FA;
+}
+
 .modal-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Wiersz lekarza w modalu udostepniania i wybor zakresu w eksporcie .ics. */
+.share-doctor-row,
+.export-scope-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6em;
+    padding: 0.5em 0;
+    cursor: pointer;
+    text-align: left;
+}
+
+.share-doctor-row input,
+.export-scope-row input {
+    width: auto;
+    margin-top: 0.25em;
+    flex-shrink: 0;
+}
+
+.share-doctor-row span,
+.export-scope-row span {
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-warning {

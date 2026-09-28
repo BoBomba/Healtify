@@ -1,0 +1,212 @@
+/* ---------- Panel "Analiza nastroju" na dashboardzie pacjenta ---------- */
+
+.mood-panel {
+    gap: 1.25em;
+}
+
+/* Podsumowanie po lewej, przełącznik zakresu po prawej; na wąskim ekranie jeden pod drugim. */
+.mood-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75em;
+}
+
+.mood-summary {
+    margin: 0;
+    flex: 1 1 20em;
+}
+
+.mood-range {
+    display: flex;
+    gap: 0.5em;
+}
+
+.mood-range .tag-chip {
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+/* Kafelki liczbowe - te same style co na dashboardzie lekarza, tylko bez własnej karty. */
+.mood-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 1em 2em;
+}
+
+.mood-stats .doctor-stat-value.mood-up {
+    color: var(--mood-high);
+}
+
+.mood-stats .doctor-stat-value.mood-down {
+    color: var(--mood-low);
+}
+
+/* ---------- Wykres ---------- */
+
+.mood-chart {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.mood-grid-line {
+    stroke: #EEE;
+    stroke-width: 1;
+}
+
+.mood-axis-label {
+    fill: #777;
+    font-size: 11px;
+}
+
+.mood-line {
+    fill: none;
+    stroke: #BBB;
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+
+/* .mood-* z calendar.css ustawia background-color, a w SVG kolor bierze fill. */
+.mood-point {
+    stroke: #FFF;
+    stroke-width: 1.5;
+}
+
+.mood-point.mood-low {
+    fill: var(--mood-low);
+}
+
+.mood-point.mood-mid {
+    fill: var(--mood-mid);
+}
+
+.mood-point.mood-high {
+    fill: var(--mood-high);
+}
+
+/* ---------- Bloki ze statystykami pod wykresem ---------- */
+
+.mood-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15em, 1fr));
+    gap: 1.25em;
+}
+
+.mood-block h4 {
+    margin: 0 0 0.6em;
+    font-size: 1em;
+}
+
+.mood-empty,
+.mood-note {
+    color: #777;
+    font-size: 0.85em;
+    margin: 0.5em 0 0;
+}
+
+.mood-dist-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 0.35em;
+}
+
+.mood-dist-score {
+    width: 1em;
+    color: #777;
+    font-size: 0.9em;
+}
+
+.mood-dist-track {
+    flex: 1;
+    background: #EEE;
+    border-radius: 999px;
+    height: 0.6em;
+}
+
+.mood-dist-bar {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+}
+
+.mood-dist-count {
+    width: 1.5em;
+    text-align: right;
+    color: #777;
+    font-size: 0.9em;
+}
+
+/* Siedem słupków rosnących od dołu - wysokość liczona z średniej dnia. */
+.mood-weekdays {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.4em;
+    height: 8em;
+}
+
+.mood-weekday {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    min-width: 0;
+}
+
+.mood-weekday-value {
+    font-size: 0.7em;
+    color: #777;
+    height: 1.2em;
+}
+
+.mood-weekday-track {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    background: #F5F5F5;
+    border-radius: 0.4rem;
+    overflow: hidden;
+}
+
+.mood-weekday-bar {
+    width: 100%;
+    border-radius: 0.4rem 0.4rem 0 0;
+}
+
+.mood-weekday-label {
+    font-size: 0.75em;
+    color: #777;
+    padding-top: 0.3em;
+}
+
+.mood-day-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.35em 0;
+}
+
+.mood-day-value {
+    margin-left: auto;
+    color: #777;
+}
+
+.mood-symptom-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    padding: 0.3em 0;
+}
+
+.mood-symptom-stat {
+    color: #777;
+    font-size: 0.85em;
+    margin-left: auto;
+}

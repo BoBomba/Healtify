@@ -5,42 +5,39 @@ import Nav from '../../Components/Nav';
 import { useEffect, useState } from 'react';
 import { validateToken } from '../../service/authService';
 import '../../css/data.css';
-import { GetGeneralData } from '../../service/dataService';
-import { RenderData } from "../../Components/RenderData";
+import '../../css/profile.css';
+import { GetPatientProfile } from '../../service/dataService';
+import PatientDetails from '../../Components/PatientDetails';
 
 
 function GeneralData() {
 
-    const [data, setData] = useState({});
+    const [profile, setProfile] = useState(null);
 
     useEffect(() => {
       validateToken();
-      GetGeneralData().then((fetchedData) => {
-        if (fetchedData === "null") {
-          setData(null);
-        } else {
-          console.log(fetchedData);
-          setData(fetchedData);
-        }
-      });
+      GetPatientProfile()
+        .then((fetchedProfile) => setProfile(fetchedProfile))
+        .catch((error) => console.log(error));
     }, []);
 
   return (
     <div>
-        
+
         <Nav />
-        data
         <main>
           <div className="block-container">
             <div className="block-row">
-              <div className="datablock">Ogólne Dane</div>
-              <div className="datablock">
-                {data && RenderData(data)}
+              <div className="datablock profile-panel">
+                <h2 className="profile-title">Ogólne Dane</h2>
+                <PatientDetails profile={profile} />
+                <Link to="/data/profile?edit=1" className="big-btn">Edytuj</Link>
+                <Link to="/data" className="big-btn secondary">Powrót</Link>
               </div>
             </div>
           </div>
-          
-        </main> 
+
+        </main>
     </div>
   )
 }

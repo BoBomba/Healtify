@@ -34,8 +34,23 @@ export const GetUserData = async () => {
     }
 }
 
+/**
+ * Szczegółowe dane pacjenta. Backend zawsze odpowiada 200 - gdy użytkownik nic jeszcze
+ * nie wypełnił, wszystkie pola są nullem, a `completed` to false.
+ */
+export const GetPatientProfile = async () => {
+    const response = await axios.get(`${API_URL}/profile`, authConfig());
+    return response.data;
+}
+
+/** Zapis całego formularza naraz (upsert po stronie backendu). */
+export const SavePatientProfile = async (profile) => {
+    const response = await axios.put(`${API_URL}/profile`, profile, authConfig());
+    return response.data;
+}
+
 // Wpisy dziennika zalogowanego pacjenta - backend zawsze filtruje po użytkowniku z tokenu,
-// więc nie ma tu (i nie może być) żadnego parametru z id użytkownika.
+// więc nie ma tu żadnego parametru z id użytkownika.
 export const GetJournalEntries = async () => {
     const response = await axios.get(`${API_URL}/journal`, authConfig());
     return Array.isArray(response.data) ? response.data : [];
@@ -43,6 +58,25 @@ export const GetJournalEntries = async () => {
 
 export const AddJournalEntry = async (entry) => {
     const response = await axios.post(`${API_URL}/journal`, entry, authConfig());
+    return response.data;
+}
+
+/** Edycja wpisu - komplet pól, tak jak przy dodawaniu. */
+export const UpdateJournalEntry = async (entryId, entry) => {
+    const response = await axios.put(`${API_URL}/journal/${entryId}`, entry, authConfig());
+    return response.data;
+}
+
+export const DeleteJournalEntry = async (entryId) => {
+    await axios.delete(`${API_URL}/journal/${entryId}`, authConfig());
+}
+
+/**
+ * Ustawia, którzy lekarze widzą ten wpis. Wysyłamy komplet zaznaczonych 
+ * to samo nadaje i cofa dostęp.
+ */
+export const UpdateEntryShares = async (entryId, doctorIds) => {
+    const response = await axios.put(`${API_URL}/journal/${entryId}/shares`, { doctorIds }, authConfig());
     return response.data;
 }
 

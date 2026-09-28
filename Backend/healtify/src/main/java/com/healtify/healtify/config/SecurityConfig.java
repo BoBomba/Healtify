@@ -24,9 +24,12 @@ public class SecurityConfig {
     private static final String[] WHITE_LIST_URL = {
         "/", 
         "/api/auth/**", 
-        "/v3/api-docs/**", 
-        "/swagger-ui/**", 
-        "/error"
+        "/v3/api-docs/**",
+        "/swagger-ui/**",
+        "/error",
+        // Handshake WebSocketa. 
+        // token jedzie w CONNECT 
+        "/ws/**"
     };
 
 

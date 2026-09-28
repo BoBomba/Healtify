@@ -2,7 +2,11 @@ package com.healtify.healtify.controller;
 
 import com.healtify.healtify.dto.AppointmentRequest;
 import com.healtify.healtify.dto.AppointmentResponse;
+import com.healtify.healtify.dto.DoctorPatientResponse;
+import com.healtify.healtify.dto.DoctorProfileRequest;
 import com.healtify.healtify.dto.DoctorResponse;
+import com.healtify.healtify.dto.JournalEntryResponse;
+import com.healtify.healtify.dto.PatientProfileResponse;
 import com.healtify.healtify.dto.PatientResponse;
 import com.healtify.healtify.dto.PatientSearchResponse;
 import com.healtify.healtify.dto.SharingResponse;
@@ -14,8 +18,10 @@ import com.healtify.healtify.models.SharingStatus;
 import com.healtify.healtify.models.UserAccount;
 import com.healtify.healtify.repository.AppointmentRepository;
 import com.healtify.healtify.repository.DoctorRepository;
+import com.healtify.healtify.repository.JournalEntryShareRepository;
 import com.healtify.healtify.repository.SharingRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
+import com.healtify.healtify.repository.UserProfileRepository;
 import com.healtify.healtify.security.service.RoleEnum;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -35,10 +41,10 @@ import java.util.List;
  *
  * Zasady bezpieczenstwa:
  * - caly kontroler jest za rola ROLE_DOCTOR (@PreAuthorize na klasie),
- * - lekarz jest zawsze brany z tokenu JWT, nigdy z parametru zadania,
- * - kazdy dostep do pacjenta przechodzi przez requireLinkedPatient(), czyli wymaga
- *   powiazania ze statusem ACCEPTED - bez zgody pacjenta lekarz nie zobaczy nawet jego maila,
- * - lekarz nie ma tu zadnego wgladu w dziennik pacjenta; widzi wylacznie wizyty i dane kontaktowe.
+ * - lekarz jest zawsze brany z JWT, nigdy z parametru zadania,
+ * - kazdy dostep do pacjenta przechodzi przez requireLinkedPatient(), czyli wymagapowiazania, 
+ *   bez zgody pacjenta lekarz nie zobaczy nawet maila,
+ * - lekarz nie ma tu zadnego wgladu w dziennik pacjenta, widzi wylacznie wizyty i dane kontaktowe.
  */
 @RestController
 @RequestMapping("/api/doctor")
@@ -48,24 +54,30 @@ public class DoctorController {
     /** Zabezpieczenie przed zasypaniem bazy wizytami z jednego konta. */
     private static final long MAX_APPOINTMENTS_PER_DOCTOR = 10000;
 
-    /** Ile wynikow wyszukiwarki oddajemy - zeby pusta fraza nie zwrocila calej bazy. */
+    /** Ile wynikow wyszukiwarki oddajemy - zeby fraza nie zwrocila calej bazy. */
     private static final int MAX_SEARCH_RESULTS = 20;
 
     private final DoctorRepository doctorRepository;
     private final SharingRepository sharingRepository;
     private final AppointmentRepository appointmentRepository;
     private final UserAccountRepository userAccountRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final JournalEntryShareRepository journalEntryShareRepository;
 
     public DoctorController(
             DoctorRepository doctorRepository,
             SharingRepository sharingRepository,
             AppointmentRepository appointmentRepository,
-            UserAccountRepository userAccountRepository
+            UserAccountRepository userAccountRepository,
+            UserProfileRepository userProfileRepository,
+            JournalEntryShareRepository journalEntryShareRepository
     ) {
         this.doctorRepository = doctorRepository;
         this.sharingRepository = sharingRepository;
         this.appointmentRepository = appointmentRepository;
         this.userAccountRepository = userAccountRepository;
+        this.userProfileRepository = userProfileRepository;
+        this.journalEntryShareRepository = journalEntryShareRepository;
     }
 
     // --- profil ---
@@ -75,17 +87,103 @@ public class DoctorController {
         return ResponseEntity.ok(DoctorResponse.from(currentDoctor(principal)));
     }
 
+    /** To samo co /me, tylko pod nazwa symetryczna do PUT-a ponizej. */
+    @GetMapping("/profile")
+    public ResponseEntity<DoctorResponse> getProfile(Principal principal) {
+        return ResponseEntity.ok(DoctorResponse.from(currentDoctor(principal)));
+    }
+
+    /**
+     * Uzupelnienie wlasnych danych przez lekarza. Wiersz w doctors juz istnieje 
+     * (zaklada go admin razem z rola), wiec to zawsze update - i to on ustawia profileCompleted.
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<DoctorResponse> saveProfile(
+            @Valid @RequestBody DoctorProfileRequest request,
+            Principal principal
+    ) {
+        Doctor doctor = currentDoctor(principal);
+
+        doctor.setDoctorName(request.doctorName().trim());
+        doctor.setTitle(trimToNull(request.title()));
+        doctor.setSpecialization(trimToNull(request.specialization()));
+        doctor.setLicenseNumber(trimToNull(request.licenseNumber()));
+        doctor.setWorkplace(trimToNull(request.workplace()));
+        doctor.setWorkAddress(trimToNull(request.workAddress()));
+        doctor.setPhone(trimToNull(request.phone()));
+        doctor.setProfileCompleted(true);
+
+        return ResponseEntity.ok(DoctorResponse.from(doctorRepository.save(doctor)));
+    }
+
+    /** Puste pole formularza przychodzi jako "" - w bazie ma byc null. */
+    private static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
     // --- pacjenci i zaproszenia ---
 
-    /** Zaakceptowani pacjenci - "przypisani pacjenci" w panelu udostepniania. */
+    /**
+     * Zaakceptowani pacjenci - "przypisani pacjenci" w panelu udostepniania.
+     * Leci to tylko tutaj, bo tylko tu filtrujemy po ACCEPTED.
+     */
     @GetMapping("/patients")
-    public ResponseEntity<List<PatientResponse>> getMyPatients(Principal principal) {
-        List<PatientResponse> patients = sharingRepository
+    public ResponseEntity<List<DoctorPatientResponse>> getMyPatients(Principal principal) {
+        List<DoctorPatientResponse> patients = sharingRepository
                 .findByDoctorAndRequestStatusOrderByRequestSentDateDesc(currentDoctor(principal), SharingStatus.ACCEPTED)
                 .stream()
-                .map(sharing -> PatientResponse.from(sharing.getUserAccount()))
+                .map(sharing -> {
+                    UserAccount patient = sharing.getUserAccount();
+                    return DoctorPatientResponse.from(
+                            patient,
+                            userProfileRepository.findByUserAccount(patient).orElse(null));
+                })
                 .toList();
         return ResponseEntity.ok(patients);
+    }
+
+    /**
+     * Pelne szczegolowe dane pacjenta.
+     * Wymaga powiazania ACCEPTED (requireLinkedPatient)
+     * Dziennik narazie zostaje poza zasiegiem lekarza 
+     */
+    @GetMapping("/patients/{patientId}/profile")
+    public ResponseEntity<PatientProfileResponse> getPatientProfile(
+            @PathVariable Long patientId,
+            Principal principal
+    ) {
+        UserAccount patient = requireLinkedPatient(patientId, currentDoctor(principal));
+        return ResponseEntity.ok(userProfileRepository.findByUserAccount(patient)
+                .map(PatientProfileResponse::from)
+                .orElseGet(PatientProfileResponse::empty));
+    }
+
+    /**
+     * Wpisy z dziennika, ktore pacjent UDOSTEPNIL lekarzowi.
+     *
+     * tylko tu lekarz widzi cokolwiek z dziennika, 
+     * pokazuje wylacznie wpisy z wierszem w journal_entry_shares.
+     */
+    @GetMapping("/patients/{patientId}/journal")
+    public ResponseEntity<List<JournalEntryResponse>> getSharedEntries(
+            @PathVariable Long patientId,
+            Principal principal
+    ) {
+        Doctor doctor = currentDoctor(principal);
+        UserAccount patient = requireLinkedPatient(patientId, doctor);
+
+        List<JournalEntryResponse> entries = journalEntryShareRepository
+                .findByDoctorAndJournalEntry_UserAccountOrderByJournalEntry_EntryAtDesc(doctor, patient)
+                .stream()
+                // Bez listy udostepnien - lekarzowi nic do tego, komu jeszcze pacjent pokazal wpis.
+                .map(share -> JournalEntryResponse.from(share.getJournalEntry()))
+                .toList();
+
+        return ResponseEntity.ok(entries);
     }
 
     /**
@@ -185,11 +283,10 @@ public class DoctorController {
     }
 
     /**
-     * Zakonczenie opieki nad pacjentem - odpowiednik rezygnacji po stronie pacjenta
-     * (DELETE /api/sharing/doctors/{doctorId}). Lekarz traci dostep do danych pacjenta,
-     * a umowione wizyty tej pary znikaja, wiec terminy wracaja do jego kalendarza.
+     * Zakonczenie opieki nad pacjentem. (DELETE /api/sharing/doctors/{doctorId}). 
+     * Lekarz traci dostep do danych pacjenta, a umowione wizyty tej pary znikaja,i terminy wracaja do kalendarza.
      *
-     * Powiazanie zostaje jako REJECTED (a nie kasujemy wiersza), aby obie strony
+     * Powiazanie zostaje jako REJECTED, aby obie strony
      * mogly je pozniej odnowic zaproszeniem.
      */
     @Transactional
@@ -205,6 +302,8 @@ public class DoctorController {
                         HttpStatus.NOT_FOUND, "Ten pacjent nie jest przypisany do lekarza"));
 
         appointmentRepository.deleteAll(appointmentRepository.findByPatientAndDoctor(patient, doctor));
+        
+        journalEntryShareRepository.deleteByDoctorAndJournalEntry_UserAccount(doctor, patient);
 
         sharing.setRequestStatus(SharingStatus.REJECTED);
         sharing.setRequestAcceptedDate(null);
@@ -257,19 +356,31 @@ public class DoctorController {
         return ResponseEntity.status(HttpStatus.CREATED).body(AppointmentResponse.from(saved));
     }
 
+    /**
+     * Edycja wizyty przez lekarza, ktory ja zalozyl.
+     */
+    @PutMapping("/appointments/{appointmentId}")
+    public ResponseEntity<AppointmentResponse> updateAppointment(
+            @PathVariable Long appointmentId,
+            @Valid @RequestBody AppointmentRequest request,
+            Principal principal
+    ) {
+        Doctor doctor = currentDoctor(principal);
+        Appointment appointment = requireOwnAppointment(appointmentId, doctor);
+        UserAccount patient = requireLinkedPatient(request.getPatientId(), doctor);
+
+        appointment.setPatient(patient);
+        appointment.setAppointmentAt(request.getAppointmentAt());
+        appointment.setTitle(request.getTitle().trim());
+        appointment.setNotes(normalizeNotes(request.getNotes()));
+
+        return ResponseEntity.ok(AppointmentResponse.from(appointmentRepository.save(appointment)));
+    }
+
     /** Odwolanie wizyty przez lekarza, ktory ja zalozyl. */
     @DeleteMapping("/appointments/{appointmentId}")
     public ResponseEntity<Void> deleteAppointment(@PathVariable Long appointmentId, Principal principal) {
-        Doctor doctor = currentDoctor(principal);
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiej wizyty"));
-
-        // Cudzej wizyty nie wolno ruszac - i nie zdradzamy, ze w ogole istnieje.
-        if (!appointment.getDoctor().getDoctorId().equals(doctor.getDoctorId())) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiej wizyty");
-        }
-
-        appointmentRepository.delete(appointment);
+        appointmentRepository.delete(requireOwnAppointment(appointmentId, currentDoctor(principal)));
         return ResponseEntity.noContent().build();
     }
 
@@ -277,7 +388,7 @@ public class DoctorController {
 
     /**
      * Profil lekarza zalogowanego uzytkownika. Konto z rola ROLE_DOCTOR, ale bez wiersza
-     * w tabeli doctors, to blad nadania roli - lepiej powiedziec to wprost niz sypnac 500.
+     * w tabeli doctors, to blad nadania roli - lepiej powiedziec wprost niz sypnac 500.
      */
     private Doctor currentDoctor(Principal principal) {
         if (principal == null || principal.getName() == null) {
@@ -289,6 +400,17 @@ public class DoctorController {
         return doctorRepository.findByUserAccount(userAccount)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.FORBIDDEN, "Konto ma role lekarza, ale nie ma profilu lekarza"));
+    }
+
+    /** Wizyta zalozona przez tego lekarza. */
+    private Appointment requireOwnAppointment(Long appointmentId, Doctor doctor) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiej wizyty"));
+
+        if (!appointment.getDoctor().getDoctorId().equals(doctor.getDoctorId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiej wizyty");
+        }
+        return appointment;
     }
 
     /** Pacjent, z ktorym lekarz ma zaakceptowane powiazanie. W kazdym innym wypadku 403. */
@@ -304,7 +426,7 @@ public class DoctorController {
         return patient;
     }
 
-    /** Wiszaca prosba skierowana DO tego lekarza (czyli zalozona przez pacjenta). */
+    /** Wiszaca prosba skierowana DO tego lekarza. */
     private DataSharing requireOwnPendingRequest(Long sharingId, Principal principal) {
         Doctor doctor = currentDoctor(principal);
         DataSharing sharing = sharingRepository.findById(sharingId)

@@ -5,8 +5,11 @@ import com.healtify.healtify.dto.ChangeUsernameRequest;
 import com.healtify.healtify.dto.CurrentUserResponse;
 import com.healtify.healtify.dto.DeleteAccountRequest;
 import com.healtify.healtify.dto.UserDTO;
+import com.healtify.healtify.models.Doctor;
 import com.healtify.healtify.models.UserAccount;
+import com.healtify.healtify.repository.DoctorRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
+import com.healtify.healtify.repository.UserProfileRepository;
 import com.healtify.healtify.security.service.AccountDeletionService;
 import com.healtify.healtify.security.service.UserService;
 import jakarta.validation.Valid;
@@ -29,6 +32,8 @@ import static com.healtify.healtify.dto.UserDTO.mapToUserDto;
 public class UserController {
     private final UserService userService;
     private final UserAccountRepository userAccountRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final DoctorRepository doctorRepository;
     private final AccountDeletionService accountDeletionService;
     private final PasswordEncoder passwordEncoder;
 
@@ -36,11 +41,15 @@ public class UserController {
     public UserController(
             UserService userService,
             UserAccountRepository userAccountRepository,
+            UserProfileRepository userProfileRepository,
+            DoctorRepository doctorRepository,
             AccountDeletionService accountDeletionService,
             PasswordEncoder passwordEncoder
     ) {
         this.userService = userService;
         this.userAccountRepository = userAccountRepository;
+        this.userProfileRepository = userProfileRepository;
+        this.doctorRepository = doctorRepository;
         this.accountDeletionService = accountDeletionService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -126,14 +135,13 @@ public class UserController {
     }
 
     /**
-     * Skasowanie wlasnego konta razem z calym kompletem danych - dziennikiem, wizytami
-     * (po obu stronach, jesli to konto lekarza), powiazaniami z lekarzami i tokenami.
-     * Szczegoly kolejnosci kasowania siedza w AccountDeletionService.
+     * Skasowanie wlasnego konta razem z calym kompletem danych 
+     * Szczegoly kasowania w AccountDeletionService.
      *
-     * Wymaga podania hasla (patrz DeleteAccountRequest). Sprawdzamy je przez
-     * passwordEncoder.matches(), a nie przez AuthService.authenticate()
-     * bo authenticate() przy okazji uniewaznia wszystkie tokeny
-     * i wystawia nowe, a tu chodzi wylacznie o potwierdzenie tozsamosci.
+     * Wymaga podania hasla (patrz DeleteAccountRequest). 
+     * Sprawdzamy je przez passwordEncoder.matches(), a nie AuthService.authenticate()
+     * bo authenticate() przy okazji uniewaznia wszystkie tokeny i wystawia nowe, 
+     * a tu chodzi wylacznie o potwierdzenie tozsamosci.
      */
     @DeleteMapping(path = "/delete")
     public ResponseEntity<Void> deleteUser(
@@ -154,13 +162,28 @@ public class UserController {
     }
 
     /**
-     * Tozsamosc zalogowanego uzytkownika razem z rolami. Front woła to zaraz po
-     * zalogowaniu, zeby wiedziec czy kierowac na panel pacjenta czy lekarza.
+     * Tozsamosc zalogowanego uzytkownika z rolami. 
+     * Front woła to zaraz po zalogowaniu
      */
     @GetMapping("/me")
     public ResponseEntity<CurrentUserResponse> getCurrentUser(Principal principal) {
         UserAccount userAccount = userService.findAccByUsername(principal.getName());
-        return ResponseEntity.ok(CurrentUserResponse.from(userAccount));
+        return ResponseEntity.ok(CurrentUserResponse.from(userAccount, profileCompleted(userAccount)));
+    }
+
+    /**
+     * Czy konto ma uzupelnione "swoje dane" - a wiec co innego dla kazdej z rol.
+     *
+     * Lekarz ma wlasna flage w tabeli doctors.
+     * U pacjenta wystarcza samo istnienie wiersza w user_profile.
+     */
+    private boolean profileCompleted(UserAccount userAccount) {
+        if (userAccount.hasRole(RoleEnum.ROLE_DOCTOR)) {
+            return doctorRepository.findByUserAccount(userAccount)
+                    .map(Doctor::isProfileCompleted)
+                    .orElse(false);
+        }
+        return userProfileRepository.findByUserAccount(userAccount).isPresent();
     }
 
     @GetMapping("/checkadmin")

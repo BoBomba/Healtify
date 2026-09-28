@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 import '../css/dashboard.css';
 import '../css/data.css';
 import '../css/calendar.css';
 import '../css/doctor.css';
+import '../css/chat.css';
 import Nav from '../Components/Nav';
+import { useConversations } from '../utils/useConversations';
 import { validateToken } from '../service/authService';
 import {
   AcceptRequest,
@@ -24,7 +27,26 @@ const STATUS_LABELS = {
 };
 
 /**
- * Udostepnianie po stronie pacjenta - druga połowa panelu lekarza.
+ * Wizytówka lekarza sklejana z pól, które sam uzupełnił.
+ */
+const joinFilled = (parts, separator) => parts.filter(Boolean).join(separator);
+
+/** "dr n. med. Anna Lewamdowska" albo samo nazwisko, gdy nie ma tytułu. */
+const doctorFullName = (doctor) => joinFilled([doctor.title, doctor.doctorName], ' ');
+
+const doctorCredentials = (doctor) =>
+  joinFilled(
+    [doctor.specialization, doctor.licenseNumber && `PWZ ${doctor.licenseNumber}`],
+    ' · '
+  ) || 'Brak specjalizacji';
+
+const doctorLocation = (doctor) => joinFilled([doctor.workplace, doctor.workAddress], ', ');
+
+const doctorContact = (doctor) =>
+  joinFilled([doctor.phone && `tel. ${doctor.phone}`, doctor.email], ' · ');
+
+/**
+ * Udostepnianie po stronie pacjenta - druga polowa panelu lekarza.
  * To pacjent decyduje, kto widzi jego dane: sam prosi lekarza o opiekę
  * albo odpowiada na zaproszenie i w każdej chwili może cofnąć zgodę.
  */
@@ -36,6 +58,10 @@ function Sharing() {
   const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
+  // Listy lekarzy znaja tylko doctorId - sharingId potrzebne do czatu (i licznik
+  // nieprzeczytanych) przychodzi osobno, razem z rozmowami tego konta.
+  const { byPartner, refresh: reloadConversations, clearUnread } = useConversations('PATIENT');
 
   const reload = () => {
     GetMyDoctors()
@@ -44,6 +70,12 @@ function Sharing() {
     GetPendingRequests()
       .then((data) => setRequests(data))
       .catch((error) => console.log(error));
+    reloadConversations();
+  };
+
+  const openChat = (conversation) => {
+    clearUnread(conversation.sharingId);
+    navigate(`/sharing/chat/${conversation.sharingId}`);
   };
 
   useEffect(() => {
@@ -126,7 +158,7 @@ function Sharing() {
     }
   };
 
-  // Zaproszenie od lekarza czeka na decyzję pacjenta; własna prośba - na decyzję lekarza.
+  // Zaproszenie od lekarza czeka na decyzję pacjenta i wice wersa.
   const incoming = requests.filter((request) => request.initiatedBy === 'DOCTOR');
   const outgoing = requests.filter((request) => request.initiatedBy === 'PATIENT');
 
@@ -135,7 +167,7 @@ function Sharing() {
       <Nav />
       <main>
         <div className="doctor-page">
-          <h2>Udostepnianie</h2>
+          <h2>Lekarze</h2>
 
           {message && <div id="messages">{message}</div>}
 
@@ -159,10 +191,14 @@ function Sharing() {
               {results.map((result) => (
                 <div className="doctor-list-row" key={result.doctorId}>
                   <div className="doctor-list-main">
-                    <strong>{result.doctorName}</strong>
-                    <span className="doctor-list-sub">
-                      {result.specialization || 'Brak specjalizacji'}
-                    </span>
+                    <strong>{doctorFullName(result)}</strong>
+                    <span className="doctor-list-sub">{doctorCredentials(result)}</span>
+                    {doctorLocation(result) && (
+                      <span className="doctor-list-sub">{doctorLocation(result)}</span>
+                    )}
+                    {doctorContact(result) && (
+                      <span className="doctor-list-sub">{doctorContact(result)}</span>
+                    )}
                   </div>
                   {STATUS_LABELS[result.status] ? (
                     <span className="doctor-badge">{STATUS_LABELS[result.status]}</span>
@@ -182,23 +218,43 @@ function Sharing() {
             <div className="datablock doctor-panel">
               <h3>Twoi lekarze</h3>
               {doctors.length === 0 && <p>Żaden lekarz nie ma dostępu do Twoich danych.</p>}
-              {doctors.map((doctor) => (
-                <div className="doctor-list-row" key={doctor.doctorId}>
-                  <div className="doctor-list-main">
-                    <strong>{doctor.doctorName}</strong>
-                    <span className="doctor-list-sub">
-                      {doctor.specialization || 'Brak specjalizacji'}
-                    </span>
+              {doctors.map((doctor) => {
+                const conversation = byPartner.get(doctor.doctorId);
+                return (
+                  <div className="doctor-list-row" key={doctor.doctorId}>
+                    <div className="doctor-list-main">
+                      <strong>{doctorFullName(doctor)}</strong>
+                      <span className="doctor-list-sub">{doctorCredentials(doctor)}</span>
+                      {doctorLocation(doctor) && (
+                        <span className="doctor-list-sub">{doctorLocation(doctor)}</span>
+                      )}
+                      {doctorContact(doctor) && (
+                        <span className="doctor-list-sub">{doctorContact(doctor)}</span>
+                      )}
+                    </div>
+                    <div className="doctor-list-actions">
+                      <button
+                        type="button"
+                        className="modal-btn primary small"
+                        onClick={() => openChat(conversation)}
+                        disabled={!conversation}
+                      >
+                        Czat
+                        {conversation?.unreadCount > 0 && (
+                          <span className="chat-unread">{conversation.unreadCount}</span>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        className="modal-btn secondary small"
+                        onClick={() => handleRevoke(doctor)}
+                      >
+                        Cofnij dostęp
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    className="modal-btn secondary small"
-                    onClick={() => handleRevoke(doctor)}
-                  >
-                    Cofnij dostęp
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

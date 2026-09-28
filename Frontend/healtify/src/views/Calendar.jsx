@@ -1,15 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Nav from '../Components/Nav';
 import AddEntryModal from '../Components/AddEntryModal';
+import ShareEntryModal from '../Components/ShareEntryModal';
+import ExportCalendarModal from '../Components/ExportCalendarModal';
 import '../css/dashboard.css';
 import '../css/calendar.css';
 import { validateToken } from '../service/authService';
-import { GetJournalEntries } from '../service/dataService';
+import { DeleteJournalEntry, GetJournalEntries } from '../service/dataService';
 import { GetMyAppointments } from '../service/sharingService';
 import { MONTH_NAMES, WEEKDAY_NAMES, getMonthMatrix, formatDateKey, isSameDay, moodClass } from '../utils/calendarUtils';
 
-// Ile wpisów mieści się w kratce dnia - resztę pokazujemy jako "+N".
+// Ile wpisow miesci sie w kratce dnia - reszte pokazujemy jako "+N".
 const MAX_CHIPS_PER_DAY = 3;
+
+// TODO: (feed dla Google/Outlook).
 
 function CalendarPage() {
     const today = useMemo(() => new Date(), []);
@@ -18,7 +22,21 @@ function CalendarPage() {
     const [appointments, setAppointments] = useState([]);
     const [selectedDate, setSelectedDate] = useState(today);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // Wpis otwarty do edycji. null = modal działa w trybie dodawania.
+    const [editingEntry, setEditingEntry] = useState(null);
+    const [sharingEntry, setSharingEntry] = useState(null);
+    const [isExportOpen, setIsExportOpen] = useState(false);
     const [loadError, setLoadError] = useState('');
+
+    const isShared = (entry) => (entry.sharedWithDoctorIds?.length ?? 0) > 0;
+
+    /** Po zapisie udostępnień podmieniamy wpis w miejscu - data się nie zmienia. */
+    const handleSharesSaved = (savedEntry) => {
+        setEntries((prev) =>
+            prev.map((item) => (item.entryId === savedEntry.entryId ? savedEntry : item))
+        );
+        setSharingEntry(null);
+    };
 
     useEffect(() => {
         validateToken();
@@ -28,14 +46,14 @@ function CalendarPage() {
                 console.log(error);
                 setLoadError('Nie udało się pobrać wpisów.');
             });
-        // Wizyty zakłada lekarz - pacjent widzi je tu tylko do odczytu.
+        // Wizyty zaklada lekarz - pacjent tylko do odczytu.
         GetMyAppointments()
             .then((data) => setAppointments(data))
             .catch((error) => console.log(error));
     }, []);
 
-    // Wpisy i wizyty lądują razem w kalendarzu, bo kratka pokazuje i to i to.
-    // Pole kind decyduje o kolorze prostokąta i o tym, co się w nim wyświetli.
+    // Wpisy i wizyty laduja razem w kalendarzu, bo kratka pokazuje i to i to.
+    // Pole kind decyduje o kolorze prostokata i o tym, co się w nim wyswietli.
     const entriesByDay = useMemo(() => {
         const map = {};
         const push = (at, item) => {
@@ -78,12 +96,47 @@ function CalendarPage() {
         setSelectedDate(today);
     };
 
+    // przy edycji podmieniamy wpis w miejscu, żeby nie zdublował się w kalendarzu.
     const handleEntrySaved = (savedEntry) => {
-        setEntries((prev) => [...prev, savedEntry]);
+        setEntries((prev) => (
+            prev.some((item) => item.entryId === savedEntry.entryId)
+                ? prev.map((item) => (item.entryId === savedEntry.entryId ? savedEntry : item))
+                : [...prev, savedEntry]
+        ));
         if (savedEntry.entryAt) {
             const saved = new Date(savedEntry.entryAt);
             setSelectedDate(saved);
             setVisibleMonth(new Date(saved.getFullYear(), saved.getMonth(), 1));
+        }
+    };
+
+    const openAddModal = () => {
+        setEditingEntry(null);
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (entry) => {
+        setEditingEntry(entry);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setEditingEntry(null);
+    };
+
+    const handleDeleteEntry = async (entry) => {
+        const confirmed = window.confirm(
+            `Usunąć wpis "${entry.title}"?\n\nTej operacji nie da się cofnąć.`
+        );
+        if (!confirmed) return;
+
+        try {
+            await DeleteJournalEntry(entry.entryId);
+            setEntries((prev) => prev.filter((item) => item.entryId !== entry.entryId));
+        } catch (error) {
+            console.log(error);
+            setLoadError('Nie udało się usunąć wpisu.');
         }
     };
 
@@ -102,8 +155,17 @@ function CalendarPage() {
                         </div>
                         <div className="calendar-toolbar-actions">
                             <button type="button" className="modal-btn secondary" onClick={goToToday}>Dziś</button>
-                            <button type="button" className="modal-btn primary" onClick={() => setIsModalOpen(true)}>
+                            <button type="button" className="modal-btn primary" onClick={openAddModal}>
                                 + Dodaj wpis
+                            </button>
+                            <button
+                                type="button"
+                                className="modal-btn secondary"
+                                onClick={() => setIsExportOpen(true)}
+                                disabled={appointments.length === 0}
+                                title={appointments.length === 0 ? 'Nie masz jeszcze żadnych wizyt' : ''}
+                            >
+                                Eksportuj wizyty
                             </button>
                         </div>
                     </div>
@@ -174,7 +236,7 @@ function CalendarPage() {
                             <button
                                 type="button"
                                 className="modal-btn primary small"
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={openAddModal}
                             >
                                 + Dodaj do tego dnia
                             </button>
@@ -199,6 +261,31 @@ function CalendarPage() {
                                         <span className={`legend-dot ${moodClass(item.entry.moodScale)}`} />
                                         <strong>{item.entry.title}</strong>
                                         <span className="day-event-time">{item.at.slice(11, 16)}</span>
+                                        {/* Wizyt pacjent nie rusza - zakłada je lekarz, więc przyciski
+                                            są tylko przy własnych wpisach. */}
+                                        <div className="day-event-actions">
+                                            <button
+                                                type="button"
+                                                className={`modal-btn share small${isShared(item.entry) ? ' active' : ''}`}
+                                                onClick={() => setSharingEntry(item.entry)}
+                                            >
+                                                {isShared(item.entry) ? 'Udostępniony' : 'Udostępnij'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="modal-btn secondary small"
+                                                onClick={() => openEditModal(item.entry)}
+                                            >
+                                                Edytuj
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="modal-btn danger small"
+                                                onClick={() => handleDeleteEntry(item.entry)}
+                                            >
+                                                Usuń
+                                            </button>
+                                        </div>
                                     </div>
                                     <p>Samopoczucie: {item.entry.moodScale}/5</p>
                                     {item.entry.symptoms && item.entry.symptoms.length > 0 && (
@@ -220,9 +307,24 @@ function CalendarPage() {
 
             <AddEntryModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={closeModal}
                 onSaved={handleEntrySaved}
                 defaultDate={selectedDate || today}
+                entry={editingEntry}
+            />
+
+            <ShareEntryModal
+                isOpen={sharingEntry !== null}
+                onClose={() => setSharingEntry(null)}
+                onSaved={handleSharesSaved}
+                entry={sharingEntry}
+            />
+
+            <ExportCalendarModal
+                isOpen={isExportOpen}
+                onClose={() => setIsExportOpen(false)}
+                appointments={appointments}
+                role="patient"
             />
         </div>
     );

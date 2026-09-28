@@ -8,10 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Jedyna tabela z danymi pacjenta: wpisy do dziennika.
- * Wizyty u psychologa beda osobnym bytem (nie zaklada ich pacjent), wiec nie ma tu typu wpisu.
- */
+
 @Entity
 @Table(name = "journal_entries", indexes = {
         @Index(name = "idx_journal_user_entry_at", columnList = "user_id, entry_at")
@@ -23,10 +20,7 @@ public class JournalEntry {
     @Column(name = "entry_id")
     private Long entryId;
 
-    /**
-     * Wlasciciel wpisu. Ustawiany WYLACZNIE na podstawie zalogowanego uzytkownika
-     * (nigdy z danych przyslanych przez klienta) - patrz JournalController.
-     */
+    // Wlasciciel wpisu ustawiany WYLACZNIE na podstawie zalogowanego uzytkownika
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
@@ -38,15 +32,14 @@ public class JournalEntry {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    /** Data i godzina, ktorej dotyczy wpis (to po niej kalendarz grupuje wpisy w dni). */
+    // Data i godzina, ktorej dotyczy wpis
     @Column(name = "entry_at", nullable = false)
     private LocalDateTime entryAt;
 
-    /** Samopoczucie w skali 1-5. */
     @Column(name = "mood_scale", nullable = false)
     private int moodScale;
 
-    /** Lista objawow trzymana w jednej kolumnie TEXT, zeby nie rozbijac danych na kolejna tabele. */
+    // Lista objawow trzymana w jednej kolumnie TEXT.
     @Convert(converter = StringListConverter.class)
     @Column(name = "symptoms", columnDefinition = "TEXT")
     private List<String> symptoms = new ArrayList<>();

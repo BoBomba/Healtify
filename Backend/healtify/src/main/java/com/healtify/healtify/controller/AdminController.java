@@ -1,17 +1,20 @@
 package com.healtify.healtify.controller;
 
+import com.healtify.healtify.dto.AdminStatsResponse;
 import com.healtify.healtify.dto.AdminUserResponse;
 import com.healtify.healtify.dto.DoctorResponse;
-import com.healtify.healtify.dto.GrantDoctorRequest;
 import com.healtify.healtify.dto.UserDTO;
 import com.healtify.healtify.models.Doctor;
+import com.healtify.healtify.models.SharingStatus;
 import com.healtify.healtify.models.UserAccount;
+import com.healtify.healtify.repository.AppointmentRepository;
 import com.healtify.healtify.repository.DoctorRepository;
+import com.healtify.healtify.repository.JournalEntryRepository;
+import com.healtify.healtify.repository.SharingRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
 import com.healtify.healtify.security.service.AccountDeletionService;
 import com.healtify.healtify.security.service.RoleEnum;
 import com.healtify.healtify.security.service.UserService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +26,7 @@ import java.util.List;
 import java.security.Principal;
 
 /**
- * Panel admina. Rola jest sprawdzana deklaratywnie (@PreAuthorize) zamiast recznym
- * przegladaniem rol w kazdej metodzie - dziala to od momentu, w ktorym UserAccount
- * zaczal zwracac swoje role jako GrantedAuthority.
+ * Panel admina. Rola sprawdzana deklaratywnie (@PreAuthorize)
  */
 @RestController
 @RequestMapping("/api/admin")
@@ -35,6 +36,9 @@ public class AdminController {
     private final UserService userService;
     private final UserAccountRepository userAccountRepository;
     private final DoctorRepository doctorRepository;
+    private final SharingRepository sharingRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final JournalEntryRepository journalEntryRepository;
     private final AccountDeletionService accountDeletionService;
 
     @Autowired
@@ -42,11 +46,17 @@ public class AdminController {
             UserService userService,
             UserAccountRepository userAccountRepository,
             DoctorRepository doctorRepository,
+            SharingRepository sharingRepository,
+            AppointmentRepository appointmentRepository,
+            JournalEntryRepository journalEntryRepository,
             AccountDeletionService accountDeletionService
     ) {
         this.userService = userService;
         this.userAccountRepository = userAccountRepository;
         this.doctorRepository = doctorRepository;
+        this.sharingRepository = sharingRepository;
+        this.appointmentRepository = appointmentRepository;
+        this.journalEntryRepository = journalEntryRepository;
         this.accountDeletionService = accountDeletionService;
     }
 
@@ -55,7 +65,7 @@ public class AdminController {
         return ResponseEntity.ok(userService.findAllUsers());
     }
 
-    /** Lista uzytkownikow razem z rolami - to jej uzywa AdminPanel. */
+    /** Lista uzytkownikow z rolami */
     @GetMapping("/users")
     public ResponseEntity<List<AdminUserResponse>> getUsersWithRoles() {
         List<AdminUserResponse> users = userAccountRepository.findAll().stream()
@@ -64,21 +74,43 @@ public class AdminController {
         return ResponseEntity.ok(users);
     }
 
+    /** Wszyscy lekarze z danymi zawodowymi - dashboard admina. */
+    @GetMapping("/doctors")
+    public ResponseEntity<List<DoctorResponse>> getAllDoctors() {
+        List<DoctorResponse> doctors = doctorRepository.findAll().stream()
+                .map(DoctorResponse::from)
+                .toList();
+        return ResponseEntity.ok(doctors);
+    }
+
+    /** Liczniki na dashboard admina - sam rozmiar systemu, bez zagladania w tresci. */
+    @GetMapping("/stats")
+    public ResponseEntity<AdminStatsResponse> getStats() {
+        // Pacjent to konto, ktore nie jest ani lekarzem, ani adminem.
+        long patients = userAccountRepository.findAll().stream()
+                .filter(user -> !user.hasRole(RoleEnum.ROLE_DOCTOR) && !user.hasRole(RoleEnum.ROLE_ADMIN))
+                .count();
+
+        return ResponseEntity.ok(new AdminStatsResponse(
+                patients,
+                doctorRepository.count(),
+                sharingRepository.countByRequestStatus(SharingStatus.ACCEPTED),
+                appointmentRepository.count(),
+                journalEntryRepository.count()
+        ));
+    }
+
     @GetMapping("/checkadmin")
     public ResponseEntity<Boolean> checkAdmin(Principal principal) {
         UserAccount userAccount = userService.findAccByUsername(principal.getName());
         return ResponseEntity.ok(userAccount.hasRole(RoleEnum.ROLE_ADMIN));
     }
 
-    /**
-     * Nadanie roli wskazanemu uzytkownikowi.
-     */
+    /* Nadanie roli userowi. */
     @PostMapping("/users/{userId}/roles")
     public ResponseEntity<String> changeUserRole(@PathVariable Long userId, @RequestParam String role) {
         UserAccount target = requireUser(userId);
 
-        // Sama rola lekarza bez wpisu w doctors daje konto, ktore przechodzi @PreAuthorize,
-        // ale odbija sie od kazdego endpointu /api/doctor - takiego stanu nie wolno tu utworzyc.
         if (RoleEnum.ROLE_DOCTOR.name().equals(role)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Role lekarza nadaje sie przez /grant-doctor - razem z profilem lekarza");
@@ -95,14 +127,14 @@ public class AdminController {
     }
 
     /**
-     * Nadanie roli lekarza: ROLE_DOCTOR + profil w tabeli doctors. Jedno bez drugiego
-     * nie ma sensu - konto z sama rola nie przejdzie przez /api/doctor (brak profilu).
+     * Nadanie ROLE_DOCTOR + profil w doctors.
+     *
+     * Danych zawodowych nie wpisuje juz admin, tylko sam lekarz
+     * przy 1 zalogowaniu (DoctorController#saveProfile). 
+     * - profileCompleted na false.
      */
     @PostMapping("/users/{userId}/grant-doctor")
-    public ResponseEntity<DoctorResponse> grantDoctor(
-            @PathVariable Long userId,
-            @Valid @RequestBody GrantDoctorRequest request
-    ) {
+    public ResponseEntity<DoctorResponse> grantDoctor(@PathVariable Long userId) {
         UserAccount target = requireUser(userId);
 
         if (doctorRepository.existsByUserAccount(target)) {
@@ -113,20 +145,32 @@ public class AdminController {
             userService.changeUserRole(target, RoleEnum.ROLE_DOCTOR.name());
         }
 
-        Doctor doctor = new Doctor(
-                target,
-                request.getDoctorName().trim(),
-                request.getSpecialization() == null ? null : request.getSpecialization().trim()
-        );
-        Doctor saved = doctorRepository.save(doctor);
+        Doctor saved = doctorRepository.save(new Doctor(target, target.getUsername(), null));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DoctorResponse.from(saved));
     }
 
     /**
-     * Skasowanie cudzego konta razem z jego danymi (dziennik, wizyty po obu stronach,
-     * powiazania pacjent-lekarz, profil lekarza, tokeny) -> AccountDeletionService.
-     * Wlasnego konta admin tedy nie skasuje
+     * Odebranie roli lekarza. Konto zostaje i dziala dalej jako pacjent, znika
+     * strona lekarska (wizyty, powiazania, czat, udostepnione wpisy, profil)
+     * -> AccountDeletionService#revokeDoctor.
+     */
+    @DeleteMapping("/users/{userId}/doctor")
+    public ResponseEntity<Void> revokeDoctor(@PathVariable Long userId) {
+        UserAccount target = requireUser(userId);
+
+        if (!target.hasRole(RoleEnum.ROLE_DOCTOR)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "To konto nie jest lekarzem");
+        }
+
+        accountDeletionService.revokeDoctor(target);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Skasowanie cudzego konta z jego danymi
+     * (dziennik, wizyty po obu stronach, powiazania pacjent-lekarz, profil lekarza, tokeny) 
+     * -> AccountDeletionService.
      */
     @DeleteMapping("/users/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId, Principal principal) {
@@ -136,6 +180,12 @@ public class AdminController {
         if (target.getUserId().equals(admin.getUserId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Własnego konta nie kasuje się z panelu admina - zrób to w ustawieniach");
+        }
+
+        // Admini nie kasuja sie nawzajem - konto admina usuwa tylko jego wlasciciel w ustawieniach.
+        if (target.hasRole(RoleEnum.ROLE_ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Nie można usunąć konta innego administratora");
         }
 
         accountDeletionService.deleteAccount(target);
