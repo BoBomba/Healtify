@@ -49,9 +49,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         jwt = authHeader.substring(7);
 
-        // Token podrobiony, wygasly albo dotyczacy usunietego konta nie moze wywalic
-        // requestu bledem 500 - po prostu nie uwierzytelniamy i dalej decyduje Spring Security
-        // (czyli 403 na chronionych endpointach).
+        // Token podrobiony lub wygasly - nie uwierzytelniamy i dalej decyduje Spring Security
+        // (403 na chronionych endpointach).
         try {
             userEmail = jwtService.extractUsername(jwt);
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {

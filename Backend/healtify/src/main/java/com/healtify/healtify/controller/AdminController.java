@@ -1,68 +1,199 @@
 package com.healtify.healtify.controller;
 
+import com.healtify.healtify.dto.AdminStatsResponse;
+import com.healtify.healtify.dto.AdminUserResponse;
+import com.healtify.healtify.dto.DoctorResponse;
 import com.healtify.healtify.dto.UserDTO;
+import com.healtify.healtify.models.Doctor;
+import com.healtify.healtify.models.SharingStatus;
 import com.healtify.healtify.models.UserAccount;
+import com.healtify.healtify.repository.AppointmentRepository;
+import com.healtify.healtify.repository.DoctorRepository;
+import com.healtify.healtify.repository.JournalEntryRepository;
+import com.healtify.healtify.repository.SharingRepository;
+import com.healtify.healtify.repository.UserAccountRepository;
+import com.healtify.healtify.security.service.AccountDeletionService;
+import com.healtify.healtify.security.service.RoleEnum;
 import com.healtify.healtify.security.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.security.Principal;
 
-import static com.healtify.healtify.dto.UserDTO.mapToUserDto;
-
+/**
+ * Panel admina. Rola sprawdzana deklaratywnie (@PreAuthorize)
+ */
 @RestController
 @RequestMapping("/api/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final UserService userService;
+    private final UserAccountRepository userAccountRepository;
+    private final DoctorRepository doctorRepository;
+    private final SharingRepository sharingRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final JournalEntryRepository journalEntryRepository;
+    private final AccountDeletionService accountDeletionService;
 
     @Autowired
-    public AdminController(UserService userService) {
+    public AdminController(
+            UserService userService,
+            UserAccountRepository userAccountRepository,
+            DoctorRepository doctorRepository,
+            SharingRepository sharingRepository,
+            AppointmentRepository appointmentRepository,
+            JournalEntryRepository journalEntryRepository,
+            AccountDeletionService accountDeletionService
+    ) {
         this.userService = userService;
+        this.userAccountRepository = userAccountRepository;
+        this.doctorRepository = doctorRepository;
+        this.sharingRepository = sharingRepository;
+        this.appointmentRepository = appointmentRepository;
+        this.journalEntryRepository = journalEntryRepository;
+        this.accountDeletionService = accountDeletionService;
     }
 
     @GetMapping("/getall")
-    public ResponseEntity<List<UserDTO>> getAllUsers(Principal principal) {
-        String username = principal.getName();
-        UserAccount user = userService.findAccByUsername(username);
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        return ResponseEntity.ok(userService.findAllUsers());
+    }
 
-        // Sprawdź, czy użytkownik ma rolę Admin
-        if (user.getRoles().stream().anyMatch(type -> type.getName().equals("ROLE_ADMIN"))) {
-            List<UserDTO> users = userService.findAllUsers();
-            return new ResponseEntity<>(users, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+    /** Lista uzytkownikow z rolami */
+    @GetMapping("/users")
+    public ResponseEntity<List<AdminUserResponse>> getUsersWithRoles() {
+        List<AdminUserResponse> users = userAccountRepository.findAll().stream()
+                .map(AdminUserResponse::from)
+                .toList();
+        return ResponseEntity.ok(users);
+    }
+
+    /** Wszyscy lekarze z danymi zawodowymi - dashboard admina. */
+    @GetMapping("/doctors")
+    public ResponseEntity<List<DoctorResponse>> getAllDoctors() {
+        List<DoctorResponse> doctors = doctorRepository.findAll().stream()
+                .map(DoctorResponse::from)
+                .toList();
+        return ResponseEntity.ok(doctors);
+    }
+
+    /** Liczniki na dashboard admina - sam rozmiar systemu, bez zagladania w tresci. */
+    @GetMapping("/stats")
+    public ResponseEntity<AdminStatsResponse> getStats() {
+        // Pacjent to konto, ktore nie jest ani lekarzem, ani adminem.
+        long patients = userAccountRepository.findAll().stream()
+                .filter(user -> !user.hasRole(RoleEnum.ROLE_DOCTOR) && !user.hasRole(RoleEnum.ROLE_ADMIN))
+                .count();
+
+        return ResponseEntity.ok(new AdminStatsResponse(
+                patients,
+                doctorRepository.count(),
+                sharingRepository.countByRequestStatus(SharingStatus.ACCEPTED),
+                appointmentRepository.count(),
+                journalEntryRepository.count()
+        ));
     }
 
     @GetMapping("/checkadmin")
     public ResponseEntity<Boolean> checkAdmin(Principal principal) {
-        String username = principal.getName();
-        UserAccount userAccount = userService.findAccByUsername(username);
-
-        boolean isAdmin = userAccount.getRoles().stream()
-                .anyMatch(role -> role.getName().equals("ROLE_ADMIN"));
-
-        return ResponseEntity.ok(isAdmin);
+        UserAccount userAccount = userService.findAccByUsername(principal.getName());
+        return ResponseEntity.ok(userAccount.hasRole(RoleEnum.ROLE_ADMIN));
     }
 
-    @GetMapping("/changeRole/{userId}")
-    public ResponseEntity<String> changeUserRole(@PathVariable Long userId, @RequestParam String role, Principal principal) {
-        String username = principal.getName();
-        UserAccount user = userService.findAccByUsername(username);
+    /* Nadanie roli userowi. */
+    @PostMapping("/users/{userId}/roles")
+    public ResponseEntity<String> changeUserRole(@PathVariable Long userId, @RequestParam String role) {
+        UserAccount target = requireUser(userId);
 
-        // Sprawdź, czy użytkownik ma rolę Admin
-        if (user.getRoles().stream().anyMatch(type -> type.getName().equals("ROLE_ADMIN"))) {
-            userService.changeUserRole(user, role);
-            return ResponseEntity.ok("Rola użytkownika zmieniona na: " + role);
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Brak uprawnień");
+        if (RoleEnum.ROLE_DOCTOR.name().equals(role)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Role lekarza nadaje sie przez /grant-doctor - razem z profilem lekarza");
         }
+
+        try {
+            userService.changeUserRole(target, role);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+        }
+        return ResponseEntity.ok("Rola użytkownika zmieniona na: " + role);
     }
 
+    /**
+     * Nadanie ROLE_DOCTOR + profil w doctors.
+     *
+     * Danych zawodowych nie wpisuje juz admin, tylko sam lekarz
+     * przy 1 zalogowaniu (DoctorController#saveProfile). 
+     * - profileCompleted na false.
+     */
+    @PostMapping("/users/{userId}/grant-doctor")
+    public ResponseEntity<DoctorResponse> grantDoctor(@PathVariable Long userId) {
+        UserAccount target = requireUser(userId);
 
-    // Dodaj tutaj kolejne endpointy tylko dla admina, np. usuwanie użytkowników, zmiana ról itd.
+        if (doctorRepository.existsByUserAccount(target)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "To konto ma już profil lekarza");
+        }
+
+        if (!target.hasRole(RoleEnum.ROLE_DOCTOR)) {
+            userService.changeUserRole(target, RoleEnum.ROLE_DOCTOR.name());
+        }
+
+        Doctor saved = doctorRepository.save(new Doctor(target, target.getUsername(), null));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(DoctorResponse.from(saved));
+    }
+
+    /**
+     * Odebranie roli lekarza. Konto zostaje i dziala dalej jako pacjent, znika
+     * strona lekarska (wizyty, powiazania, czat, udostepnione wpisy, profil)
+     * -> AccountDeletionService#revokeDoctor.
+     */
+    @DeleteMapping("/users/{userId}/doctor")
+    public ResponseEntity<Void> revokeDoctor(@PathVariable Long userId) {
+        UserAccount target = requireUser(userId);
+
+        if (!target.hasRole(RoleEnum.ROLE_DOCTOR)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "To konto nie jest lekarzem");
+        }
+
+        accountDeletionService.revokeDoctor(target);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Skasowanie cudzego konta z jego danymi
+     * (dziennik, wizyty po obu stronach, powiazania pacjent-lekarz, profil lekarza, tokeny) 
+     * -> AccountDeletionService.
+     */
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId, Principal principal) {
+        UserAccount target = requireUser(userId);
+        UserAccount admin = userService.findAccByUsername(principal.getName());
+
+        if (target.getUserId().equals(admin.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Własnego konta nie kasuje się z panelu admina - zrób to w ustawieniach");
+        }
+
+        // Admini nie kasuja sie nawzajem - konto admina usuwa tylko jego wlasciciel w ustawieniach.
+        if (target.hasRole(RoleEnum.ROLE_ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Nie można usunąć konta innego administratora");
+        }
+
+        accountDeletionService.deleteAccount(target);
+        return ResponseEntity.noContent().build();
+    }
+
+    private UserAccount requireUser(Long userId) {
+        return userAccountRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie ma takiego użytkownika"));
+    }
 }

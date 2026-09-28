@@ -1,10 +1,20 @@
 package com.healtify.healtify.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Powiazanie pacjent - lekarz, czyli zgoda na wglad w dane pacjenta.
+ *
+ * Zaproszenie moze wyjsc z obu stron (patrz {@link SharingInitiator}), ale zawsze
+ * wymaga akceptacji drugiej strony - dopiero status ACCEPTED daje lekarzowi dostep
+ * do pacjenta i prawo zakladania mu wizyt.
+ */
 @Entity
-@Table(name = "data_sharing")
+@Table(name = "data_sharing", uniqueConstraints = {
+        @UniqueConstraint(name = "uq_sharing_user_doctor", columnNames = {"user_id", "doctor_id"})
+})
 public class DataSharing {
 
     @Id
@@ -12,16 +22,23 @@ public class DataSharing {
     @Column(name = "sharing_id")
     private Long sharingId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private UserAccount userAccount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "doctor_id", nullable = false)
-    private Doctor doctorId;
+    private Doctor doctor;
 
-    @Column(name = "request_status")
-    private String requestStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "request_status", nullable = false, length = 20)
+    private SharingStatus requestStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "initiated_by", nullable = false, length = 20)
+    private SharingInitiator initiatedBy;
 
     @Column(name = "request_sent_date")
     private LocalDateTime requestSentDate;
@@ -47,20 +64,28 @@ public class DataSharing {
         this.userAccount = userAccount;
     }
 
-    public Doctor getDoctorId() {
-        return doctorId;
+    public Doctor getDoctor() {
+        return doctor;
     }
 
-    public void setDoctorId(Doctor doctorId) {
-        this.doctorId = doctorId;
+    public void setDoctor(Doctor doctor) {
+        this.doctor = doctor;
     }
 
-    public String getRequestStatus() {
+    public SharingStatus getRequestStatus() {
         return requestStatus;
     }
 
-    public void setRequestStatus(String requestStatus) {
+    public void setRequestStatus(SharingStatus requestStatus) {
         this.requestStatus = requestStatus;
+    }
+
+    public SharingInitiator getInitiatedBy() {
+        return initiatedBy;
+    }
+
+    public void setInitiatedBy(SharingInitiator initiatedBy) {
+        this.initiatedBy = initiatedBy;
     }
 
     public LocalDateTime getRequestSentDate() {
@@ -81,22 +106,14 @@ public class DataSharing {
 
     // constructors
 
-    // TODO Sprawdzić czy konstruktor jest poprawny pod wzgledem bezpieczenstwa
+    public DataSharing() {
+    }
 
-    public DataSharing(
-        Long sharingId, 
-        UserAccount userAccount, 
-        Doctor doctorId, 
-        String requestStatus, 
-        LocalDateTime requestSentDate, 
-        LocalDateTime requestAcceptedDate
-    ) {
-        this.sharingId = sharingId;
+    public DataSharing(UserAccount userAccount, Doctor doctor, SharingInitiator initiatedBy) {
         this.userAccount = userAccount;
-        this.doctorId = doctorId;
-        this.requestStatus = requestStatus;
-        this.requestSentDate = requestSentDate;
-        this.requestAcceptedDate = requestAcceptedDate;
+        this.doctor = doctor;
+        this.initiatedBy = initiatedBy;
+        this.requestStatus = SharingStatus.PENDING;
+        this.requestSentDate = LocalDateTime.now();
     }
 }
-

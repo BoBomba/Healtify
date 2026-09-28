@@ -11,12 +11,23 @@ function Register() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    console.log(username, email, password, confirmPassword);
+    const [validationErrors, setValidationErrors] = useState([]);
+    const [submitting, setSubmitting] = useState(false);
 
-    const registerSubmit = (event) => {
+    const registerSubmit = async (event) => {
         event.preventDefault();
         console.log("Wysyłanie danych do validatora rejestracji...");
-        validateRegisterData(username, email, password, confirmPassword);
+        setValidationErrors([]);
+        setSubmitting(true);
+
+        // Błędy pól i błędy z backendu wracają tak samo jak lista komunikatów.
+        // Przy sukcesie trwa przekierowanie na /login, więc przycisk zablokowany.
+        const errors = await validateRegisterData(username, email, password, confirmPassword);
+
+        if (errors) {
+            setSubmitting(false);
+            setValidationErrors(errors);
+        }
     };
 
     const handleReset = () => {
@@ -24,6 +35,7 @@ function Register() {
         setEmail('');
         setPassword('');
         setConfirmPassword('');
+        setValidationErrors([]);
     };
 
     return (
@@ -34,7 +46,7 @@ function Register() {
             <div className="main-container" style={{ gap: 0 }}>
                 <h1>Rejestracja</h1>
 
-                <form method="POST" onSubmit={registerSubmit} onReset={handleReset}>
+                <form method="POST" onSubmit={registerSubmit} onReset={handleReset} noValidate>
 
                     <div id="input">
                         <img src={User} alt="user" />
@@ -52,8 +64,15 @@ function Register() {
                         <img src={Lock} id="lock" alt="lock" />
                         <input type="password" name="repeated_password" placeholder="Wprowadź ponownie hasło" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}/>
                     </div>
-                    <button id="logreg" type="submit">Zarejestruj się</button>
-                    <button id="logreg" type="reset">reset</button>
+                    <div id="messages">
+                        {validationErrors.map(error => (
+                            <div key={error} style={{ whiteSpace: 'pre-line' }}>{error}</div>
+                        ))}
+                    </div>
+                    <button id="logreg" type="submit" disabled={submitting}>
+                        {submitting ? 'Rejestracja...' : 'Zarejestruj się'}
+                    </button>
+                    <button id="logreg" type="reset" disabled={submitting}>reset</button>
                 </form>
             </div>
         </div>

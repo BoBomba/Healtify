@@ -5,6 +5,16 @@ export const MONTH_NAMES = [
 
 export const WEEKDAY_NAMES = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'];
 
+/**
+ * Klasa koloru dla mood - czerwony/zolty/zielony.
+ * Używa jej kalendarz i plakietki z objawami.
+ */
+export const moodClass = (moodScale) => {
+    if (moodScale <= 2) return 'mood-low';
+    if (moodScale === 3) return 'mood-mid';
+    return 'mood-high';
+};
+
 export const formatDateKey = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

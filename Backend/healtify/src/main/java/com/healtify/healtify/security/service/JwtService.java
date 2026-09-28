@@ -12,6 +12,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -63,9 +64,14 @@ public class JwtService {
             UserDetails userDetails,
             long expiration
     ) {
+        // setId() dokłada losowe jti. Bez tego dwa tokeny wystawione temu samemu
+        // uzytkownikowi w tej samej sekundzie (np. rejestracja i od razu logowanie)
+        // wychodzily znak w znak identyczne i zapis do tabeli token wywalal sie
+        // na unique(token) bledem 500.
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
+                .setId(UUID.randomUUID().toString())
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))

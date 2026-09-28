@@ -1,6 +1,10 @@
 import {registerService , loginService} from '../service/authService';
 
-export const validateRegisterData = (username,  email, password, confirmPassword) => {
+/**
+ * Zwraca null, gdy rejestracja się udała, albo komunikaty do pokazania
+ * w form - najpierw błędy z frontu, potem z backendu.
+ */
+export const validateRegisterData = async (username,  email, password, confirmPassword) => {
 
     const data = {
         username: username,
@@ -11,29 +15,30 @@ export const validateRegisterData = (username,  email, password, confirmPassword
 
     console.log("Przyjete dane: " , data);
 
-    if (data.email === "" || data.password === "" || data.confirmPassword === "" || data.username === "") {
-        alert("Please fill in all fields!");
-        return;
+    const errors = [];
+
+    if (!data.username.trim() || !data.email.trim() || !data.password || !data.confirmPassword) {
+        errors.push("Wypełnij wszystkie pola.");
+    } else {
+        if (!data.email.includes("@")) {
+            errors.push("Wprowadź poprawny adres e-mail.");
+        }
+
+        if (data.username.trim().length < 3) {
+            errors.push("Nazwa użytkownika musi mieć co najmniej 3 znaki.");
+        }
+
+        if (data.password.length < 6) {
+            errors.push("Hasło musi mieć co najmniej 6 znaków.");
+        }
+
+        if (data.password !== data.confirmPassword) {
+            errors.push("Hasła nie są takie same.");
+        }
     }
 
-    if (!data.email.includes("@")) {
-        alert("Invalid email!");
-        return;
-    }
-
-    if (data.password.length < 6) {
-        alert("Password must be at least 6 characters long!");
-        return;
-    }
-
-    if (data.password !== data.confirmPassword) {
-        alert("Passwords do not match!");
-        return;
-    }
-
-    if (data.username.length < 3) {
-        alert("Username must be at least 3 characters long!");
-        return;
+    if (errors.length > 0) {
+        return errors;
     }
 
 
@@ -50,9 +55,9 @@ export const validateRegisterData = (username,  email, password, confirmPassword
 
     console.log("Wysyłanie danych do pliku wysyłającego...");
 
-    return (
-        registerService(data.username, data.email, data.password)
-    );
+    const failure = await registerService(data.username, data.email, data.password);
+
+    return failure ? [failure] : null;
 }
 
 export const validateLoginData = (email, password) => {

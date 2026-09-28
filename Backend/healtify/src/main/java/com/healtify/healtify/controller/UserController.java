@@ -2,15 +2,23 @@ package com.healtify.healtify.controller;
 
 import com.healtify.healtify.dto.ChangeEmailRequest;
 import com.healtify.healtify.dto.ChangeUsernameRequest;
+import com.healtify.healtify.dto.CurrentUserResponse;
+import com.healtify.healtify.dto.DeleteAccountRequest;
 import com.healtify.healtify.dto.UserDTO;
+import com.healtify.healtify.models.Doctor;
 import com.healtify.healtify.models.UserAccount;
+import com.healtify.healtify.repository.DoctorRepository;
 import com.healtify.healtify.repository.UserAccountRepository;
+import com.healtify.healtify.repository.UserProfileRepository;
+import com.healtify.healtify.security.service.AccountDeletionService;
 import com.healtify.healtify.security.service.UserService;
-import com.healtify.healtify.security.token.TokenRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import com.healtify.healtify.security.service.RoleEnum;
 
 import java.util.List;
@@ -24,17 +32,26 @@ import static com.healtify.healtify.dto.UserDTO.mapToUserDto;
 public class UserController {
     private final UserService userService;
     private final UserAccountRepository userAccountRepository;
-    private final TokenRepository tokenRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final DoctorRepository doctorRepository;
+    private final AccountDeletionService accountDeletionService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserController(
             UserService userService,
             UserAccountRepository userAccountRepository,
-            TokenRepository tokenRepository
+            UserProfileRepository userProfileRepository,
+            DoctorRepository doctorRepository,
+            AccountDeletionService accountDeletionService,
+            PasswordEncoder passwordEncoder
     ) {
         this.userService = userService;
         this.userAccountRepository = userAccountRepository;
-        this.tokenRepository = tokenRepository;
+        this.userProfileRepository = userProfileRepository;
+        this.doctorRepository = doctorRepository;
+        this.accountDeletionService = accountDeletionService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping(path = "/add")
@@ -117,17 +134,56 @@ public class UserController {
         }
     }
 
+    /**
+     * Skasowanie wlasnego konta razem z calym kompletem danych 
+     * Szczegoly kasowania w AccountDeletionService.
+     *
+     * Wymaga podania hasla (patrz DeleteAccountRequest). 
+     * Sprawdzamy je przez passwordEncoder.matches(), a nie AuthService.authenticate()
+     * bo authenticate() przy okazji uniewaznia wszystkie tokeny i wystawia nowe, 
+     * a tu chodzi wylacznie o potwierdzenie tozsamosci.
+     */
     @DeleteMapping(path = "/delete")
-    public ResponseEntity<UserDTO> deleteUser(Principal principal) {
-        String username = principal.getName();
-        Optional<Long> userId = userService.getUserIdByUsername(username);
-        if (userId.isPresent()) {
-            tokenRepository.deleteByUserId(userId.get());
-            userService.deleteById(userId.get());
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } else {
+    public ResponseEntity<Void> deleteUser(
+            Principal principal,
+            @Valid @RequestBody DeleteAccountRequest request
+    ) {
+        Optional<UserAccount> user = userAccountRepository.findByUsername(principal.getName());
+        if (user.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nieprawidłowe hasło");
+        }
+
+        accountDeletionService.deleteAccount(user.get());
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    /**
+     * Tozsamosc zalogowanego uzytkownika z rolami. 
+     * Front woła to zaraz po zalogowaniu
+     */
+    @GetMapping("/me")
+    public ResponseEntity<CurrentUserResponse> getCurrentUser(Principal principal) {
+        UserAccount userAccount = userService.findAccByUsername(principal.getName());
+        return ResponseEntity.ok(CurrentUserResponse.from(userAccount, profileCompleted(userAccount)));
+    }
+
+    /**
+     * Czy konto ma uzupelnione "swoje dane" - a wiec co innego dla kazdej z rol.
+     *
+     * Lekarz ma wlasna flage w tabeli doctors.
+     * U pacjenta wystarcza samo istnienie wiersza w user_profile.
+     */
+    private boolean profileCompleted(UserAccount userAccount) {
+        if (userAccount.hasRole(RoleEnum.ROLE_DOCTOR)) {
+            return doctorRepository.findByUserAccount(userAccount)
+                    .map(Doctor::isProfileCompleted)
+                    .orElse(false);
+        }
+        return userProfileRepository.findByUserAccount(userAccount).isPresent();
     }
 
     @GetMapping("/checkadmin")
