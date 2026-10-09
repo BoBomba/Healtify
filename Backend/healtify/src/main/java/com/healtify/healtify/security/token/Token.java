@@ -25,6 +25,10 @@ public class Token {
     @JoinColumn(name = "user_id")
     public UserAccount userAccount;
 
+    public TokenType getTokenType() {
+        return tokenType;
+    }
+
     public boolean isRevoked() {
         return revoked;
     }

@@ -1,10 +1,6 @@
 package com.healtify.healtify.security.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.healtify.healtify.dto.ValidateResponse;
 import com.healtify.healtify.models.Role;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import com.healtify.healtify.dto.AuthRequest;
 import com.healtify.healtify.dto.AuthResponse;
 import com.healtify.healtify.dto.RegisterRequest;
@@ -14,13 +10,13 @@ import com.healtify.healtify.repository.UserAccountRepository;
 import com.healtify.healtify.security.token.Token;
 import com.healtify.healtify.security.token.TokenRepository;
 import com.healtify.healtify.security.token.TokenType;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.HashSet;
 
 @Service
@@ -32,9 +28,11 @@ public class AuthService {
     private final JwtService jwtService;
     private final RoleRepository roleRepository;
     private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
 
 
-    public AuthResponse register(RegisterRequest request) {
+    // Rejestracja nie loguje - tokeny dostaje się dopiero przez /authenticate.
+    public void register(RegisterRequest request) {
         // Pobierz rolę ROLE_USER z bazy
         Role userRole = roleRepository.findByName("ROLE_USER").orElse(null);
 
@@ -59,14 +57,7 @@ public class AuthService {
         System.out.println("AuthResponse register username :"+user.getUsername());
         System.out.println("AuthResponse register Roles :"+user.getRoles());
 
-        var savedUser = userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
-        saveUserToken(savedUser, jwtToken);
-        return new AuthResponse.Builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .build();
+        userRepository.save(user);
     }
 
     public AuthResponse authenticate(AuthRequest request) {
@@ -78,28 +69,53 @@ public class AuthService {
         );
         var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
+        return issueTokens(user);
+    }
+
+    /**
+     * Rotacja: ważny refresh token wymienia się na nową parę, a stary od razu
+     * przestaje działać - drugi raz tego samego refresh tokena użyć się nie da.
+     */
+    public AuthResponse refresh(String refreshToken) {
+        boolean active = tokenRepository.findByToken(refreshToken)
+                .map(t -> t.getTokenType() == TokenType.REFRESH && !t.isExpired() && !t.isRevoked())
+                .orElse(false);
+        if (!active) {
+            throw new BadCredentialsException("Refresh token odrzucony");
+        }
+
+        var user = (UserAccount) userDetailsService.loadUserByUsername(jwtService.extractUsername(refreshToken));
+        if (!jwtService.isTokenValid(refreshToken, user)) {
+            throw new BadCredentialsException("Refresh token odrzucony");
+        }
+        return issueTokens(user);
+    }
+
+    // Jedna aktywna sesja na konto - nowa para unieważnia wszystkie poprzednie tokeny.
+    private AuthResponse issueTokens(UserAccount user) {
+        var accessToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         revokeAllUserTokens(user);
-        saveUserToken(user, jwtToken);
+        saveUserToken(user, accessToken, TokenType.BEARER);
+        saveUserToken(user, refreshToken, TokenType.REFRESH);
         return new AuthResponse.Builder()
-                .accessToken(jwtToken)
+                .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
     }
 
-    private void saveUserToken(UserAccount user, String jwtToken) {
+    private void saveUserToken(UserAccount user, String jwtToken, TokenType type) {
         var token = new Token.Builder()
                 .userAccount(user)
                 .token(jwtToken)
-                .tokenType(TokenType.BEARER)
+                .tokenType(type)
                 .expired(false)
                 .revoked(false)
                 .build();
         tokenRepository.save(token);
     }
 
-    private void revokeAllUserTokens(UserAccount user) {
+    public void revokeAllUserTokens(UserAccount user) {
         var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getUserId());
         if (validUserTokens.isEmpty())
             return;
@@ -110,51 +126,14 @@ public class AuthService {
         tokenRepository.saveAll(validUserTokens);
     }
 
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
-        final String userEmail;
-        if (authHeader == null ||!authHeader.startsWith("Bearer ")) {
-            return;
-        }
-        refreshToken = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(refreshToken);
-        if (userEmail != null) {
-            var user = this.userRepository.findByEmail(userEmail)
-                    .orElseThrow();
-            if (jwtService.isTokenValid(refreshToken, user)) {
-                var accessToken = jwtService.generateToken(user);
-                revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
-                var authResponse = new AuthResponse.Builder()
-                        .accessToken(accessToken)
-                        .refreshToken(refreshToken)
-                        .build();
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-            }
-        }
-    }
-
-
-    public ValidateResponse validateToken(String token) {
-        Object username = jwtService.extractUsername(token);
-        System.out.println("validateToken username: " + username);
-        boolean isValid = tokenRepository.findByToken(token)
-                .map(Token::isExpired)
-                .orElse(true);
-        return new ValidateResponse(isValid, (String) username);
-    }
-
     //args constructor
-    public AuthService(UserAccountRepository userRepository, TokenRepository tokenRepository, PasswordEncoder passwordEncoder, JwtService jwtService, RoleRepository roleRepository, AuthenticationManager authenticationManager) {
+    public AuthService(UserAccountRepository userRepository, TokenRepository tokenRepository, PasswordEncoder passwordEncoder, JwtService jwtService, RoleRepository roleRepository, AuthenticationManager authenticationManager, UserDetailsService userDetailsService) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.roleRepository = roleRepository;
         this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
     }
 }

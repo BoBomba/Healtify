@@ -1,6 +1,8 @@
 import { Client } from '@stomp/stompjs';
+import axios from 'axios';
 
 const WS_URL = 'ws://localhost:8080/ws';
+const VALIDATE_URL = 'http://localhost:8080/api/auth/validate';
 
 /**
  * Klient STOMP czatu - jedno polaczenie na cala aplikacje.
@@ -39,11 +41,14 @@ function ensureClient() {
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,
 
-        // Naglowki budowane przed KAŻDYM połączeniem,
-        beforeConnect: () => {
-            client.connectHeaders = {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            };
+        // Handshake niesie ciasteczko access_token. Wygasłe odświeżamy przed
+        // KAŻDYM połączeniem, bo WebSocket nie przechodzi przez interceptor axiosa.
+        beforeConnect: async () => {
+            try {
+                await axios.get(VALIDATE_URL);
+            } catch (error) {
+                console.log('Chat: brak ważnej sesji', error);
+            }
         },
 
         onConnect: () => {

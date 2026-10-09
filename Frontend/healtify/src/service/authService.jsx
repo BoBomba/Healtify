@@ -95,21 +95,13 @@ export const loginService = async (email, password) => {
     console.log("Wysylane dane: " , data);
 
     return axios.post(`${API_URL}/authenticate`, data)
-        .then(async (response) => {
-            if (response.data) {
-                console.log("User logged in successfully");
- 
-                const token = response.data.access_token;
-                console.log("Token: ", token);
+        .then(async () => {
+            // Backend ustawił ciasteczka z tokenami (HttpOnly) - tu nie ma czego zapisywać.
+            console.log("User logged in successfully");
 
-                localStorage.setItem('token', token);
-
-                // Lekarz ma własny panel (/doctor/*) - o roli decyduje backend.
-                await navigateTo(await landingPageForCurrentUser());
-                return null;
-            }
-
-            return "Nieprawidłowy e-mail lub hasło.";
+            // Lekarz ma własny panel (/doctor/*) - o roli decyduje backend.
+            await navigateTo(await landingPageForCurrentUser());
+            return null;
         })
         .catch((error) => {
             console.log(error);
@@ -118,32 +110,23 @@ export const loginService = async (email, password) => {
 };
 
 
+// Sprawdza sesję przy wejściu na chronioną stronę. Wygasły access token odświeża
+// interceptor z http.jsx, a gdy i to się nie uda - przerzuca na /login.
 export const validateToken = async () => {
-    const token = localStorage.getItem('token');
-    console.log("Token: ", token);
-
-    if (token) {
-        await axios.post(
-            `${API_URL}/validate`,
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-        )
-            .then((response) => {
-                // Odpowiedź z serwera
-                const data = response.data;
-                const username = data.username;
-                console.log(`Username: ${username}`);
-                localStorage.setItem('username', data.username);
-                return response.data.username;
-            })
-            .catch((error) => {
-                alert("Token is invalid");
-                localStorage.removeItem('token');
-                navigateTo("/login");
-            });
-    } else {
-        alert("Token is invalid - error");
-        localStorage.removeItem('token');
+    try {
+        const response = await axios.get(`${API_URL}/validate`);
+        localStorage.setItem('username', response.data.username);
+        return response.data.username;
+    } catch (error) {
+        console.log(error);
+        if (!error.response || error.response.status !== 401) {
+            return null;
+        }
+        localStorage.removeItem('username');
+        if (!sessionStorage.getItem('authNotice')) {
+            sessionStorage.setItem('authNotice', 'Zaloguj się, aby kontynuować.');
+        }
         navigateTo("/login");
+        return null;
     }
 }

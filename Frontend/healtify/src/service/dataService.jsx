@@ -2,15 +2,9 @@ import axios from "axios";
 
 const API_URL = 'http://localhost:8080/api/data';
 
-const authConfig = () => ({
-    headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-    }
-});
-
 export const GetGeneralData = async () => {
     try {
-        const response = await axios.get(`${API_URL}/general`, authConfig());
+        const response = await axios.get(`${API_URL}/general`);
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -23,7 +17,7 @@ export const GetGeneralData = async () => {
 
 export const GetUserData = async () => {
     try {
-        const response = await axios.get(`${API_URL}/user`, authConfig());
+        const response = await axios.get(`${API_URL}/user`);
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -39,36 +33,36 @@ export const GetUserData = async () => {
  * nie wypełnił, wszystkie pola są nullem, a `completed` to false.
  */
 export const GetPatientProfile = async () => {
-    const response = await axios.get(`${API_URL}/profile`, authConfig());
+    const response = await axios.get(`${API_URL}/profile`);
     return response.data;
 }
 
 /** Zapis całego formularza naraz (upsert po stronie backendu). */
 export const SavePatientProfile = async (profile) => {
-    const response = await axios.put(`${API_URL}/profile`, profile, authConfig());
+    const response = await axios.put(`${API_URL}/profile`, profile);
     return response.data;
 }
 
 // Wpisy dziennika zalogowanego pacjenta - backend zawsze filtruje po użytkowniku z tokenu,
 // więc nie ma tu żadnego parametru z id użytkownika.
 export const GetJournalEntries = async () => {
-    const response = await axios.get(`${API_URL}/journal`, authConfig());
+    const response = await axios.get(`${API_URL}/journal`);
     return Array.isArray(response.data) ? response.data : [];
 }
 
 export const AddJournalEntry = async (entry) => {
-    const response = await axios.post(`${API_URL}/journal`, entry, authConfig());
+    const response = await axios.post(`${API_URL}/journal`, entry);
     return response.data;
 }
 
 /** Edycja wpisu - komplet pól, tak jak przy dodawaniu. */
 export const UpdateJournalEntry = async (entryId, entry) => {
-    const response = await axios.put(`${API_URL}/journal/${entryId}`, entry, authConfig());
+    const response = await axios.put(`${API_URL}/journal/${entryId}`, entry);
     return response.data;
 }
 
 export const DeleteJournalEntry = async (entryId) => {
-    await axios.delete(`${API_URL}/journal/${entryId}`, authConfig());
+    await axios.delete(`${API_URL}/journal/${entryId}`);
 }
 
 /**
@@ -76,13 +70,13 @@ export const DeleteJournalEntry = async (entryId) => {
  * to samo nadaje i cofa dostęp.
  */
 export const UpdateEntryShares = async (entryId, doctorIds) => {
-    const response = await axios.put(`${API_URL}/journal/${entryId}/shares`, { doctorIds }, authConfig());
+    const response = await axios.put(`${API_URL}/journal/${entryId}/shares`, { doctorIds });
     return response.data;
 }
 
 export const GetSharingData = async () => {
     try {
-        const response = await axios.get(`${API_URL}/sharing`, authConfig());
+        const response = await axios.get(`${API_URL}/sharing`);
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {
@@ -94,7 +88,7 @@ export const GetSharingData = async () => {
 
 export const GetSettingsData = async () => {
     try {
-        const response = await axios.get(`${API_URL}/settings`, authConfig());
+        const response = await axios.get(`${API_URL}/settings`);
         return response.data;
     } catch (error) {
         if (error.response && error.response.status === 204) {

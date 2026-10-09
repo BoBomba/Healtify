@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import com.healtify.healtify.security.token.TokenRepository;
+import com.healtify.healtify.security.token.TokenType;
 import com.healtify.healtify.security.service.JwtService;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,16 +39,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
+        final String jwt = AuthCookies.read(request, AuthCookies.ACCESS_TOKEN).orElse(null);
         final String userEmail;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        jwt = authHeader.substring(7);
 
         // Token podrobiony lub wygasly - nie uwierzytelniamy i dalej decyduje Spring Security
         // (403 na chronionych endpointach).
@@ -55,8 +53,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             userEmail = jwtService.extractUsername(jwt);
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+                // Refresh token nie może posłużyć za access token.
                 var isTokenValid = tokenRepository.findByToken(jwt)
-                        .map(t -> !t.isExpired() && !t.isRevoked())
+                        .map(t -> t.getTokenType() == TokenType.BEARER && !t.isExpired() && !t.isRevoked())
                         .orElse(false);
                 if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

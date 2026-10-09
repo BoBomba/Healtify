@@ -3,10 +3,6 @@ import { navigateTo } from '../utils/navigation';
 
 const API_URL = 'http://localhost:8080/api/user'; 
 
-const authConfig = (token = localStorage.getItem('token')) => ({
-    headers: { Authorization: `Bearer ${token}` }
-});
-
 class User {
     constructor(username, email, password) {
         this.username = username;
@@ -20,8 +16,8 @@ export const createUser = async (user) => {
     return response.data;
 };
 
-export const getUser = async (token) => {
-    const response = await axios.get(`${API_URL}/get`, authConfig(token));
+export const getUser = async () => {
+    const response = await axios.get(`${API_URL}/get`);
     return response.data;
 };
 
@@ -29,18 +25,15 @@ export const getUser = async (token) => {
  * dane uzytkownika z rolami i gotowymi flagami admin/doctor.
  * Na tej podstawie Nav dobiera linki i decyduje gdzie przekierować.
  */
-export const getCurrentUser = async (token) => {
-    const response = await axios.get(`${API_URL}/me`, authConfig(token));
+export const getCurrentUser = async () => {
+    const response = await axios.get(`${API_URL}/me`);
     return response.data;
 };
 
 export const updateUsername = async (username) => {
-    const token = localStorage.getItem('token');
     console.log({username});
     try {
-        const response = await axios.patch(`${API_URL}/update-username`, { username }, {
-            ...authConfig(token)
-        });
+        const response = await axios.patch(`${API_URL}/update-username`, { username });
 
         const data = response.data;
         alert("Username updated successfully, you must relogin: " + data);
@@ -51,12 +44,9 @@ export const updateUsername = async (username) => {
 }
 
 export const updateEmail = async (email) => {
-    const token = localStorage.getItem('token');
     console.log(email);
     try {
-        const response = await axios.patch(`${API_URL}/update-email`, {email}, {
-            ...authConfig(token)
-        });
+        const response = await axios.patch(`${API_URL}/update-email`, {email});
 
         const data = response.data;
         alert("Email updated successfully, you must relogin: " + data);
@@ -67,12 +57,8 @@ export const updateEmail = async (email) => {
 }
 
 export const updatePassword = async (password, newPassword) => {
-    const token = localStorage.getItem('token');
-    console.log({password, newPassword});
     try {
-        const response = await axios.patch(`${API_URL}/update-password`, { password, newPassword}, {
-            ...authConfig(token)
-        });
+        const response = await axios.patch(`${API_URL}/update-password`, { password, newPassword});
 
         const data = response.data;
         alert("Password updated successfully, you must relogin: " + data);
@@ -90,9 +76,8 @@ export const updatePassword = async (password, newPassword) => {
  * Hasło idzie w ciele żądania i backend sprawdza je u siebie. 
  * W axiosie ciało DELETE przekazuje się przez `data`.
  */
-export const deleteUser = async (password, token) => {
+export const deleteUser = async (password) => {
     const response = await axios.delete(`${API_URL}/delete`, {
-        ...authConfig(token),
         data: { password }
     });
     return response.data;

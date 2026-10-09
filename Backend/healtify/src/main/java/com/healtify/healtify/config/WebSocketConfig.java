@@ -44,7 +44,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        // Autoryzacja tokenem przy CONNECT
+        // CONNECT bez tożsamości z handshake'u jest odrzucany
         registration.interceptors(authChannelInterceptor);
     }
 }

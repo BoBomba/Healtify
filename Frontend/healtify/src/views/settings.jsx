@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { validateToken } from '../service/authService';
+import { logoutRequest } from '../service/http';
 import { GetUserData } from '../service/dataService';
 import * as UserService from '../service/userService';
 import Nav from '../Components/Nav';
@@ -53,8 +54,6 @@ function Settings() {
   const handleSubmitpassword = async (e) => {
     e.preventDefault();
     setPassword(Password);
-    console.log(Password);
-    console.log(NewPassword);
     await UserService.updatePassword(Password, NewPassword);
   }
 
@@ -62,8 +61,9 @@ function Settings() {
    * Potwierdzenie zostawiamy w sessionStorage tak jak wylogowanie -
    * strona logowania pokaże je po wejściu.
    */
-  const handleDeleted = () => {
-    localStorage.removeItem('token');
+  const handleDeleted = async () => {
+    // Tokeny zniknęły z bazy razem z kontem, zostają tylko martwe ciasteczka do skasowania.
+    await logoutRequest().catch((error) => console.log(error));
     localStorage.removeItem('username');
     sessionStorage.setItem('authNotice', 'Konto zostało usunięte razem ze wszystkimi danymi.');
     navigate('/login', { replace: true });

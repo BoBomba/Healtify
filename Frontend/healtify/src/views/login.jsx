@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import '../css/Global.css';
 import User from '../images/user.svg';
 import Lock from '../images/lock.svg';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {validateLoginData} from "../utils/validateAuthData";
 
 function Login() {
@@ -18,11 +18,6 @@ function Login() {
         sessionStorage.removeItem('authNotice');
         return message;
     });
-
-    // Kasuje token przy montowaniu komponentu
-    useEffect(() => {
-        localStorage.removeItem('token');
-    }, []);
 
     const loginSubmit = async (event) => {
         event.preventDefault();
